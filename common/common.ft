@@ -1,0 +1,6 @@
+\ : (             [char] ) word drop ; immediate
+\ : \             source# @ >in ! ; immediate
+
+: @cell+  ( a -- a' n ) dup cell+ swap @ ;
+
+: rom-dump 2drop ;

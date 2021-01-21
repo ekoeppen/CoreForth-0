@@ -1,0 +1,66 @@
+\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
+
+: 2c@           c@ swap c@ swap ;
+: +!            dup @ rot + swap ! ;
+: -!            dup @ rot - swap ! ;
+
+: cell          4 ;
+: chars         ;
+: cells         2* 2* ;
+: /             u/mod nip ;
+: umod          u/mod drop ;
+: mod           u/mod drop ;
+: >             swap < ;
+: u>            swap u< ;
+: <>            = invert ;
+: <=            > invert ;
+: >=            < invert ;
+: within        over - >r - r> u< ;
+
+: true          0 invert ;
+: false         0 ;
+: negate        invert 1+ ;
+
+: umin          2dup u> if swap then drop ;
+: umax          2dup u< if swap then drop ;
+: min           2dup > if swap then drop ;
+: max           2dup < if swap then drop ;
+
+: 2@            dup @ cell+ @ ;
+: 2!            tuck ! cell+ ! ;
+
+: pick          ?dup if 1- cells sp@ + @ else dup then ;
+: 2over         >r >r 2dup r> r> 2swap ;
+
+: uppercase     dup $61 $7B within $20 and xor ;
+: /string       rot over + -rot - ;
+: 1/string      1- swap 1+ swap ;
+: count         dup 1+ swap c@ ;
+: ci@=          c@ uppercase swap c@ uppercase = ;
+: cappend       1 over +! dup c@ + c! ;
+: digit?        dup $39 > $80 2*  and +
+                dup $A0 2* > $83 2* 1+ and -
+                $30 - dup base @ u< ;
+
+: si=           ( c-addr1 c-addr2 -- f )
+                dup c@ 1+ begin >r 2dup ci@= r> tuck and while
+                  1- rot 1+ rot 1+ rot
+                repeat -rot 2drop 0= ;
+
+: pad           vp @ $10 + ;
+: fill          swap >r swap begin r@ 0>
+                  while 2dup c! 1+ r> 1- >r
+                repeat
+                rdrop 2drop ;
+: move          >r begin r@ 0> while
+                  over @ over ! 4+ swap 4+ swap
+                  r> 4- >r
+                repeat rdrop 2drop ;
+: hmove         >r begin r@ 0> while
+                  over h@ over h! 2+ swap 2+ swap
+                  r> 2- >r
+                repeat rdrop 2drop ;
+: cmove         >r begin r@ 0> while
+                  over c@ over c! 1+ swap 1+ swap
+                  r> 1- >r
+                repeat rdrop 2drop ;

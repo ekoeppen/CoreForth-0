@@ -1,0 +1,117 @@
+$1000 constant info
+
+$1000 constant 'turnkey
+$1002 constant init-latest
+$1004 constant init-dp
+$1006 constant init-vp
+$1008 constant user-low
+$100A constant user-high
+$100C constant save-init
+
+$003E buffer: rs   variable r0
+$003E buffer: ps   variable s0
+$0080 buffer: tib
+$0080 constant tib#
+
+variable latest
+variable dp
+variable vp
+variable state
+variable (source)
+variable source#
+variable >in
+variable base
+variable hp
+variable handler
+variable tick
+variable timeout
+
+$0400 constant ram-top
+
+include ../core.ft
+
+code emit       $b3e2 $0003 $27fd $47c2 $0067 $4437 $4530 end-code
+code key        $b3d2 $0003 $27fd $8324 $4784 $0000 $4257 $0066 $4530 end-code
+code key?       $8324 $4784 $0000 $b3d2 $0003 $2002 $4307 $4530 $4337 $4530 end-code
+
+include ../cpus/msp430g2x53/sfr.fs
+include ../cpus/msp430g2x53/irq.fs
+include ../cpus/msp430g2x53/wdt.fs
+include ../cpus/msp430g2x53/clock.fs
+include ../cpus/msp430g2x53/usci.fs
+include ../cpus/msp430g2x53/flash.fs
+include ../cpus/msp430g2x53/ports.fs
+include ../cpus/msp430g2x53/tlv.fs
+
+include ../../common/io.ft
+include ../compiler.ft
+include ../save.ft
+include ../../common/eventloop.ft
+include ../../common/timeout.ft
+include ../../common/utils.ft
+
+: (set-speed)   ( caldco calbc -- )
+                c@ BCSCTL1 c!   c@ DCOCTL c!   0 BCSCTL2 c! ;
+: set-speed-16mhz   CALDCO_16MHZ CALBC1_16MHZ (set-speed) ;
+: set-speed-12mhz   CALDCO_12MHZ CALBC1_12MHZ (set-speed) ;
+: set-speed-8mhz   CALDCO_8MHZ CALBC1_8MHZ (set-speed) ;
+: set-speed-1mhz   CALDCO_1MHZ CALBC1_1MHZ (set-speed) ;
+
+: setup-ports   %00001000 P1OUT c!
+                %00001000 P1REN c!
+                %00001000 dup P1IE c! P1IFG c!
+                %10100101 P1DIR c!
+                %11100110 dup P1SEL c! P1SEL2 c!
+                %00000011 P2DIR c! ;
+
+: setup-uart    %00000001 UCA0CTL1 c!
+                %00000000 UCA0CTL0 c!
+                %10000000 UCA0CTL1 bis!
+                #65 UCA0BR0 c!   #3 UCA0BR1 c!
+                %00000100 UCA0MCTL c!
+                %00000001 UCA0CTL1 bic!
+                $1000 begin 1- dup 0= until drop ;
+
+: +spi          %00000010 P2OUT bic! ;
+: -spi          %00000010 P2OUT bis! ;
+
+: setup-spi     -spi
+                %00000001 UCB0CTL1 c!
+                %10101001 UCB0CTL0 c!         \ set SPI mode, master, sync
+                %10000000 UCB0CTL1 bis!       \ clock = SMCLK
+                8 UCB0BR0 c! 0 UCB0BR1 c!     \ prescaler 1x
+                %00000001 UCB0CTl1 bic! ;     \ enable module
+
+: spi.          UCB0CTL0 8 dump ;
+: >spi>         ( c -- c )
+                begin %00001000 $03 bit@ until UCB0TXBUF c!
+                begin %00000100 $03 bit@ until UCB0RXBUF c@ ;
+: >spi          >spi> drop ;
+: spi>          $FF >spi> ;
+
+: +led          %00000001 P1OUT bis! ;
+: -led          %00000001 P1OUT bic! ;
+: +-led         %00000001 P1OUT xor! ;
+
+: +rf-ce        %00000001 P2OUT bis! ;
+: -rf-ce        %00000001 P2OUT bic! ;
+
+: setup-hw      disable-wdt
+                set-speed-8mhz
+                wdt>timeout
+                #16 set-flash-clk
+                setup-ports
+                setup-uart
+                setup-spi ;
+
+include ../../drivers/nrf24.ft
+include ../../drivers/nrf24-utils.ft
+
+: turnkey       setup-hw
+                ." 430Forth/MSP-EXP430G XXXXXXXX ready" cr
+                abort ;
+
+code vector-18  $c0f1 $00f8 $0000 $1300 end-code
+code vector-19  $c0f1 $00f8 $0000 $1300 end-code
+: vector-26     <irq 1 tick +! %0000000100000111 and %00001000 or irq> ;
+code vector-31  $4307 $4031 $0240 $4034 $027E $4020 cold end-code

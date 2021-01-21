@@ -1,0 +1,60 @@
+\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
+
+$20 constant bl
+
+: wp            pad $40 + ;
+: source@       (source) @ >in @ + c@ ;
+: >>source      1 >in +! ;
+: in-source?    >in @ source# @ < ;
+: skip          begin source@ over = in-source? and while >>source repeat drop ;
+: copy          begin source@ over <> in-source? and while
+                  source@ wp cappend   >>source
+                repeat in-source? if >>source then drop ;
+: word          0 wp tuck c! swap dup skip copy ;
+: char          bl word 1+ c@ ;
+
+: count         dup 1+ swap c@ ;
+: cr            #13 emit #10 emit ;
+: space         bl emit ;
+: spaces        begin ?dup 0> while space 1- repeat ;
+: type          begin dup 0> while swap dup c@ emit 1+ swap 1- repeat 2drop ;
+: xon           $11 emit ;
+: xoff          $13 emit ;
+
+: <#            pad hp ! ;
+: hold          1 hp -! hp @ c! ;
+: >digit        dup 9 > 7 and + #48 + ;
+: #             base @ u/mod swap >digit hold ;
+: #s            begin # dup 0= until ;
+: #>            drop hp @ pad over - ;
+: sign          0< if $2D hold then ;
+: u.            <# #s #> type space ;
+: .             <# dup abs #s swap sign #> type space ;
+: ??            <# dup abs #s swap sign #> type space ;
+
+: binary        #2 base ! ;
+: octal         #8 base ! ;
+: decimal       #10 base ! ;
+: hex           #16 base ! ;
+
+: hex. ( n -- ) base @ swap hex <# # # # # # # # # #> type base ! ;
+: h.4  ( n -- ) base @ swap hex <# # # # # #> type base ! ;
+: h.2  ( n -- ) base @ swap hex <# # # #> type base ! ;
+: b.8  ( n -- ) base @ swap binary <# # # # # # # # # #> type base ! ;
+: b.   ( n -- ) base @ swap binary u. base ! ;
+
+: accept        ( c-addr +n -- +n'   get line from terminal )
+                over + 1- over
+                begin key
+                dup $0A <> while
+                  dup emit
+                  dup 8 = if  drop 1-  >r over r> umax
+                          else  over c!  1+ over umin
+                  then
+                repeat
+                drop nip swap - ;
+
+: depth         s0 sp@ - 2/ 1- ;
+: .s            depth 0= if exit then
+                sp@ begin dup s0 < while dup @ u. cell+ repeat drop ;
+: .r            rp@ begin dup r0 < while dup @ u. cell+ repeat drop ;

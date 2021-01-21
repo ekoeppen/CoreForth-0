@@ -1,0 +1,194 @@
+$1000 constant info
+
+$1000 constant 'turnkey
+$1002 constant init-latest
+$1004 constant init-dp
+$1006 constant init-vp
+$1008 constant user-low
+$100A constant user-high
+$100C constant save-init
+
+$003E buffer: rs   variable r0
+$003E buffer: ps   variable s0
+$0080 buffer: tib
+$0080 constant tib#
+$0010 buffer: tx-buffer
+$0010 constant tx-buffer#
+
+variable latest
+variable dp
+variable vp
+variable state
+variable (source)
+variable source#
+variable >in
+variable base
+variable hp
+variable handler
+
+$0400 constant ram-top
+
+include ../core.ft
+
+code emit       $b3e2 $0003 $27fd $47c2 $0067 $4437 $4530 end-code
+code key        $b3d2 $0003 $27fd $8324 $4784 $0000 $4257 $0066 $4530 end-code
+code key?       $8324 $4784 $0000 $b3d2 $0003 $2002 $4307 $4530 $4337 $4530 end-code
+
+include ../cpus/msp430g2x53/sfr.fs
+include ../cpus/msp430g2x53/wdt.fs
+include ../cpus/msp430g2x53/clock.fs
+include ../cpus/msp430g2x53/usci.fs
+include ../cpus/msp430g2x53/flash.fs
+include ../cpus/msp430g2x53/ports.fs
+include ../cpus/msp430g2x53/adc.fs
+include ../cpus/msp430g2x53/tlv.fs
+
+include ../../common/io.ft
+include ../compiler.ft
+include ../save.ft
+include ../../common/timeout.ft
+include ../../common/eventloop.ft
+include ../../common/utils.ft
+
+: (set-speed)   ( caldco calbc -- )
+                c@ BCSCTL1 c!   c@ DCOCTL c!   0 BCSCTL2 c! ;
+: set-speed-16mhz   CALDCO_16MHZ CALBC1_16MHZ (set-speed) ;
+: set-speed-12mhz   CALDCO_12MHZ CALBC1_12MHZ (set-speed) ;
+: set-speed-8mhz    CALDCO_8MHZ CALBC1_8MHZ (set-speed) ;
+: set-speed-1mhz    CALDCO_1MHZ CALBC1_1MHZ (set-speed) ;
+
+: +led          %00100000 P2OUT bis! ;
+: -led          %00100000 P2OUT bic! ;
+: +-led         %00100000 P2OUT xor! ;
+: +rf-reset     %00000001 dup P2DIR bis! P2OUT bis! ;
+: -rf-reset     %00000001 dup P2OUT bic! P2DIR bic! ;
+: btn?          %10000000 P2IFG 2dup bit@ -rot bic! ;
+: until-btn     begin dup execute standby btn? until drop ;
+: blink         +led 270 delay -led ;
+
+: setup-ports   %00000000 P1DIR c!
+                %00000000 P1OUT c!
+                %00000000 P1REN c!
+                %11100110 dup P1SEL c! P1SEL2 c!
+                %00000000 dup P2SEL c! P2SEL2 c!
+                %00100010 P2DIR c! %001000000 P2OUT bic!
+                %10000100 P2IE c! 0 P2IFG c! ;
+
+: standby-ports %00000000 P1DIR c!
+                %00000000 dup P1SEL c! P1SEL2 c!
+                %11100000 P1OUT c!
+                %11100000 P1REN c! ;
+
+: setup-uart    %00000001 UCA0CTL1 c!
+                %00000000 UCA0CTL0 c!
+                %10000000 UCA0CTL1 bis!
+                #65 UCA0BR0 c!   #3 UCA0BR1 c!
+                %00000100 UCA0MCTL c!
+                %00000001 UCA0CTL1 bic!
+                $1000 begin 1- dup 0= until drop ;
+
+: +spi          %00000010 P2OUT bic! ;
+: -spi          %00000010 P2OUT bis! ;
+
+: setup-spi     -spi
+                %00000001 UCB0CTL1 c!
+                %10101001 UCB0CTL0 c!         \ set SPI mode, master, sync
+                %10000000 UCB0CTL1 bis!       \ clock = SMCLK
+                8 UCB0BR0 c! 0 UCB0BR1 c!     \ prescaler 1x
+                %00000001 UCB0CTl1 bic! ;     \ enable module
+
+: spi.          UCB0CTL0 c@ b.8' space UCB0CTL1 c@ b.8' space
+                UCB0BR0 @ hex. space UCB0STAT c@ b.8' space IE2 c@ b.8' space ;
+: >spi>         ( c -- c )
+                begin %00001000 $03 bit@ until UCB0TXBUF c!
+                begin %00000100 3 bit@ until UCB0RXBUF c@ ;
+: >spi          >spi> drop ;
+: spi>          $FF >spi> ;
+
+: await-adc-ifg  begin %100 ADC10CTL0 bit@ until ;
+: disable-adc   0 %10 ADC10CTL0 tuck bic! ! ;
+: adc.          ADC10AE0 @ b. ADC10CTL0 @ b. ADC10CTL1 @ b. ADC10MEM @ u. ;
+
+: ntc-adc@      %00000001 ADC10AE0 bis!
+                disable-adc
+                %0000000011000000 ADC10CTL1 !
+                %0011101000110010 ADC10CTL0 !
+                %0000000000000001 ADC10CTL0 bis!
+                await-adc-ifg
+                disable-adc
+                %00000000 ADC10AE0 !
+                ADC10MEM @ ;
+
+: (vcc-adc@)    ( ref -- )
+                disable-adc
+                %1011000011000000 ADC10CTL1 !
+                %0011100000110010 or ADC10CTL0 !
+                %0000000000000001 ADC10CTL0 bis!
+                await-adc-ifg
+                disable-adc
+                ADC10MEM @ ;
+
+: vcc           0 (vcc-adc@) dup $380 <
+                if 375 * else drop %0000000001000000 (vcc-adc@) 625 * then
+                4 rshift ;
+
+code ntc-values $12b0 dovar
+                105 131 161 195 233 275 320 367
+                415 464 512 559 603 674 end-code
+
+: ntc           ntc-adc@ dup 105 < if -250 exit then
+                         dup 673 > if 400 exit then
+                ntc-values begin 2dup @ > while cell+ repeat
+                dup ntc-values - 2/ 1- 50 * 250 - -rot
+                dup @ swap cell- @ tuck - -rot - 50 * swap /
+                + ;
+
+: ntc.          base @ decimal ntc . base ! ;
+: vcc.          base @ decimal vcc . base ! ;
+
+include ../../drivers/rfm69.ft
+
+: setup-buffer  ;
+: vcc>buffer    ;
+: temp>buffer   ;
+: send-buffer   ; \ tx-buffer tx-buffer# rf-tx -rf-pwr ;
+
+: setup-hw      disable-wdt
+                set-speed-8mhz
+                #16 set-flash-clk
+                vlo>lfo
+                wdt>timeout
+                setup-ports
+                setup-uart
+                setup-spi ;
+
+: power-up      setup-ports ;
+: power-down    -spi standby-ports ;
+
+: active-cycle  +led vcc>buffer temp>buffer -led send-buffer ;
+: await-key     begin dup key? 0= and while standby 1- repeat ;
+
+code sensor-loop $12b0 dovar
+                 0  power-up
+                 0  active-cycle
+                 0  power-down
+                 5  0
+                -1 -1 end-code
+
+: turnkey       setup-hw
+                +rf-reset -rf-reset 1 ticks-delay
+                ." 430Forth/RFM69 board XXXXXXXX ready" cr
+                ['] rf-init catch ?dup if $45 emit ['] blink forever then
+                begin
+                  setup-buffer
+                  blink sensor-loop ['] btn? run-loop
+                  power-up
+                  prompt 5 await-key
+                until
+                blink
+                abort ;
+
+code vector-18  $c0f1 $00f8 $0000 $1300 end-code
+code vector-19  $c0f1 $00f8 $0000 $1300 end-code
+: vector-26     <irq 1 tick +! %0000000100000111 and %00001000 or irq> ;
+code vector-31  $4307 $4031 $0240 $4034 $027E $4020 cold end-code

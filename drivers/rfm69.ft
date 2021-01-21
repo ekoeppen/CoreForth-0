@@ -1,0 +1,116 @@
+$00 constant FIFO
+$01 constant OPMODE
+$02 constant DATAMODUL
+$03 constant BITRATEMSB
+$04 constant BITRATELSB
+$05 constant FDEVMSB
+$06 constant FDEVLSB
+$07 constant FRFMSB
+$08 constant FRFMID
+$09 constant FRFLSB
+$0A constant OSC1
+$0B constant AFCCTRL
+$0C constant LOWBAT
+$0D constant LISTEN1
+$0E constant LISTEN2
+$0F constant LISTEN3
+$10 constant VERSION
+$11 constant PALEVEL
+$12 constant PARAMP
+$13 constant OCP
+$14 constant AGCREF
+$15 constant AGCTHRESH1
+$16 constant AGCTHRESH2
+$17 constant AGCTHRESH3
+$18 constant LNA
+$19 constant RXBW
+$1A constant AFCBW
+$1B constant OOKPEAK
+$1C constant OOKAVG
+$1D constant OOKFIX
+$1E constant AFCFEI
+$1F constant AFCMSB
+$20 constant AFCLSB
+$21 constant FEIMSB
+$22 constant FEILSB
+$23 constant RSSICONFIG
+$24 constant RSSIVALUE
+$25 constant DIOMAPPING1
+$26 constant DIOMAPPING2
+$27 constant IRQFLAGS1
+$28 constant IRQFLAGS2
+$29 constant RSSITHRESH
+$2A constant RXTIMEOUT1
+$2B constant RXTIMEOUT2
+$2C constant PREAMBLEMSB
+$2D constant PREAMBLELSB
+$2E constant SYNCCONFIG
+$2F constant SYNCVALUE1
+$37 constant PACKETCONFIG1
+$38 constant PAYLOADLENGTH
+$39 constant NODEADRS
+$3A constant BROADCASTADRS
+$3B constant AUTOMODES
+$3C constant FIFOTHRESH
+$3D constant PACKETCONFIG2
+$3E constant AESKEY1
+$4E constant TEMP1
+$4F constant TEMP2
+
+: rf!           ( b reg -- ) $80 or +spi >spi >spi -spi ;
+: rf@           ( reg -- b ) +spi >spi spi> -spi ;
+
+: rf-fifo!      ( addr n -- )
+                +spi $80 >spi dup >spi
+                begin ?dup while swap dup c@ >spi 1+ swap 1- repeat
+                drop -spi ;
+
+: rf-init-data  ( addr -- )
+                begin dup c@ dup $FF <> while
+                   swap 1+ tuck c@ rf! 1+
+                repeat 2drop ;
+
+: await-mode    1 set-timeout
+                %10000000 IRQFLAGS1 begin 2dup rf@ and timeout? until
+                2drop ;
+: is-mode?      OPMODE rf@ %00011100 and <> $6d6f and throw ;
+: set-mode      dup OPMODE rf! await-mode is-mode? ;
+
+: rf-init       %00000100 set-mode
+                %10011000 SYNCCONFIG rf!
+                %10010000 PACKETCONFIG1 rf!
+                %00000000 DATAMODUL rf!
+                %10010000 FIFOTHRESH rf!
+                %01000010 RXBW rf!
+                %01000010 AFCBW rf!
+                %10011111 PALEVEL rf!
+                #200 RSSITHRESH rf!
+                +spi SYNCVALUE1 $80 or >spi $F0 >spi $12 >spi $78 >spi -spi
+                #6 PREAMBLELSB rf!
+                #195 FDEVMSB rf! #5 FDEVLSB rf!
+                +spi FRFMSB $80 or >spi $D9 >spi $00 >spi $00 >spi -spi
+                ;
+
+: rf.           OPMODE rf@ h.2 space
+                FRFMSB rf@ h.2 FRFMID rf@ h.2 FRFLSB rf@ h.2 space
+                SYNCVALUE1 dup rf@ h.2 1+ dup rf@ h.2 1+ rf@ h.2 space
+                RSSIVALUE rf@ . IRQFLAGS1 rf@ b.8 space IRQFLAGS2 rf@ b.8 ;
+
+: -rf-pwr       0 set-mode ;
+
+: rf-tx-mode    %00001100 set-mode ;
+: rf-rx-mode    %00010000 set-mode 00001001 IRQFLAGS1 rf! ;
+
+: rf-fifo@      ( addr -- )
+                +spi 0 >spi spi>
+                begin ?dup while
+                  swap spi> over c! 1+ swap 1-
+                repeat -spi drop ;
+: rf-tx         ( addr n -- ) rf-tx-mode rf-fifo! ;
+: rf-rx?        %00000100 IRQFLAGS2 rf@ and ;
+: rf-rx         ( addr timeout -- )
+                wdt>timeout set-timeout rf-rx-mode
+                begin rf-rx? not while
+                  standby timeout?
+                repeat
+                %00000100 p2ifg bic!   rf-fifo@ ;

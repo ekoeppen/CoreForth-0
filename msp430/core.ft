@@ -1,0 +1,215 @@
+\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
+
+\ -----------------------------------------------------------------------------
+\ -- Machine interface
+
+code halt       $3fff $4530 end-code
+code bye        $3fff end-code
+code standby    $d072 $00d8 $4530 end-code
+code stop       $d072 $00f8 $4530 end-code
+code reset      $4382 $0120 end-code
+code nop        $4530 end-code
+
+code dint       $c232 $4530 end-code
+code eint       $d232 $4530 end-code
+code sr@        $8324 $4784 $0000 $4207 $4530 end-code
+code default-handler
+                $c0f1 $00f8 $0000 $1300 end-code
+
+code <irq       $8224 $4784 $0000 $4684 $0002 $4117 $0002 $4530 end-code
+code irq>       $4135 $4781 $0000 $4437 $4436 $1300 end-code
+
+\ Compiler and control flow
+
+code docol      $4136 $1205 $4605 $4530 end-code
+code dovar      $8324 $4784 $0000 $4137 $4530 end-code
+code docon      $8324 $4784 $0000 $4137 $4727 $4530 end-code
+
+code lit        $8324 $4784 $0000 $4537 $4530 end-code
+code branch     $4525 $4530 end-code
+code ?branch    $5307 $4437 $2402 $5325 $4530 $4525 $4530 end-code
+code exit       $4135 $4530 end-code
+code execute    $4706 $4437 $4600 end-code
+
+\ -----------------------------------------------------------------------------
+\ -- Stack operations
+
+code dup        $8324 $4784 $0000 $4530 end-code
+code drop       $4437 $4530 end-code
+code swap       $4426 $4784 $0000 $4607 $4530 end-code
+code over       $4426 $8324 $4784 $0000 $4607 $4530 end-code
+code rot        $4426 $4784 $0000 $4417 $0002 $4684 $0002 $4530 end-code
+code ?dup       $9307 $2001 $4530 $8324 $4784 $0000 $4530 end-code
+code nip        $5324 $4530 end-code
+
+code >r         $1207 $4437 $4530 end-code
+code r>         $8324 $4784 $0000 $4137 $4530 end-code
+code r@         $8324 $4784 $0000 $4127 $4530 end-code
+code rdrop      $5321 $4530 end-code
+
+code sp@        $8324 $4784 $0000 $4407 $4530 end-code
+code rp@        $8324 $4784 $0000 $4107 $4530 end-code
+code sp!        $4704 $4437 $4530 end-code
+code rp!        $4701 $4437 $4530 end-code
+
+: 2dup          over over ;
+: tuck          swap over ;
+: -rot          rot rot ;
+: 2drop         drop drop ;
+: 2swap         rot >r rot r> ;
+
+\ -----------------------------------------------------------------------------
+\ -- Memory operations
+
+code c@         $4767 $4530 end-code
+code c!         $4436 $46c7 $0000 $4437 $4530 end-code
+code @          $4727 $4530 end-code
+code !          $44b7 $0000 $4437 $4530 end-code
+
+\ -----------------------------------------------------------------------------
+\ -- Logical operators
+
+code and        $f437 $4530 end-code
+code or         $d437 $4530 end-code
+code invert     $e337 $4530 end-code
+code not        $8317 $7707 $4530 end-code
+code xor        $e437 $4530 end-code
+code aligned    $5317 $c317 $4530 end-code
+
+code bis!       $443a $da87 $0000 $4437 $4530 end-code
+code bic!       $443a $ca87 $0000 $4437 $4530 $4530 end-code
+code xor!       $443a $ea87 $0000 $4437 $4530 end-code
+code bis        $443a $da07 $4530 end-code
+code bic        $443a $ca07 $4530 end-code
+code bit@       $b4b7 $0000 $2c02 $4307 $4530 $4337 $4530 end-code
+
+\ -----------------------------------------------------------------------------
+\ -- Arithmetic
+
+code +          $5437 $4530 end-code
+code -          $4436 $8706 $4607 $4530 end-code
+code um*        $442a $430c $430d $430b $4316 $b607 $2402 $5a0c
+                $6b0d $5a0a $6b0b $5606 $2bf8 $4c84 $0000 $4d07
+                $4530 end-code
+code u/mod      $430b $442a $430c $4036 $0011 $970b $2801 $870b $6c0c
+                $2c09 $8316 $2406 $5a0a $6b0b $2bf6 $870b $d312
+                $3ff6 $c312 $4b84 $0000 $4c07 $4530 end-code
+code um/mod     $443b $442a $430c $4036 $0011 $970b $2801 $870b $6c0c
+                $2c09 $8316 $2406 $5a0a $6b0b $2bf6 $870b $d312
+                $3ff6 $c312 $4b84 $0000 $4c07 $4530 end-code
+code abs        $9307 $3402 $e337 $5317 $4530 end-code
+
+code 1+         $5317 $4530 end-code
+code 2+         $5327 $4530 end-code
+code 4+         $5227 $4530 end-code
+code 1-         $8317 $4530 end-code
+code 2-         $8327 $4530 end-code
+code 4-         $8227 $4530 end-code
+code char+      $5317 $4530 end-code
+code cell+      $5327 $4530 end-code
+code char-      $8317 $4530 end-code
+code cell-      $8327 $4530 end-code
+code 2/         $1107 $4530 end-code
+code 2*         $5707 $4530 end-code
+code cells      $5707 $4530 end-code
+code chars      $4530 end-code
+\ code 0          $8324 $4784 $0000 $4307 $4530 end-code
+\ code 1          $8324 $4784 $0000 $4317 $4530 end-code
+\ code 2          $8324 $4784 $0000 $4327 $4530 end-code
+code cell       $8324 $4784 $0000 $4327 $4530 end-code
+
+code lshift     $4436 $f037 $001f $2403 $5606 $8317 $23fd $4607 $4530 end-code
+code rshift     $4436 $f037 $001f $2404 $c312 $1006 $8317 $23fc $4607 $4530 end-code
+code shl        $3fff $4530 end-code
+code shr        $3fff $4530 end-code
+
+code 0=         $8317 $7707 $4530 end-code
+code 0<>        $8317 $7707 $e337 $4530 end-code
+code 0<         $9307 $3402 $4337 $4530 $4307 $4530 end-code
+code 0<=        $9307 $2403 $2802 $4307 $4530 $4337 $4530 end-code
+code 0>         $9317 $3402 $4307 $4530 $4337 $4530 end-code
+code 0>=        $9307 $3402 $4307 $4530 $4337 $4530 end-code
+code =          $4436 $8706 $2402 $4307 $4530 $4337 $4530 end-code
+code <          $4436 $8706 $3402 $4337 $4530 $4307 $4530 end-code
+code u<         $4436 $8706 $2802 $4307 $4530 $4337 $4530 end-code
+code m+         $5784 $0002 $6384 $0000 $4437 $4530 end-code
+
+: s>d           dup 0< ;
+: dnegate       swap invert swap invert 1 m+ ;
+: ?dnegate      0< if dnegate then ;
+: m*            2dup xor >r swap abs swap abs um* r> ?dnegate ;
+: u*            um* drop ;
+: *             m* drop ;
+
+: 2c@           c@ swap c@ swap ;
+: +!            dup @ rot + swap ! ;
+: -!            dup @ rot - swap ! ;
+
+: /             u/mod nip ;
+: umod          u/mod drop ;
+: mod           u/mod drop ;
+: >             swap < ;
+: u>            swap u< ;
+: <>            = invert ;
+: <=            > invert ;
+: >=            < invert ;
+: within        over - >r - r> u< ;
+
+: true          0 invert ;
+: false         0 ;
+: negate        invert 1+ ;
+
+: umin          2dup u> if swap then drop ;
+: umax          2dup u< if swap then drop ;
+: min           2dup > if swap then drop ;
+: max           2dup < if swap then drop ;
+
+: 2@            dup @ cell+ @ ;
+: 2!            tuck ! cell+ ! ;
+
+: pick          ?dup if 1- cells sp@ + @ else dup then ;
+: 2over         >r >r 2dup r> r> 2swap ;
+
+\ -----------------------------------------------------------------------------
+\ -- Strings and chars
+
+: uppercase     dup $61 $7B within $20 and xor ;
+: /string       rot over + -rot - ;
+: 1/string      1- swap 1+ swap ;
+: count         dup 1+ swap c@ ;
+: ci@=          c@ uppercase swap c@ uppercase = ;
+: cappend       1 over +! dup c@ + c! ;
+: digit?        dup $39 > $80 2*  and +
+                dup $A0 2* > $83 2* 1+ and -
+                $30 - dup base @ u< ;
+
+\ -----------------------------------------------------------------------------
+\ -- Memory
+
+: pad           vp @ $10 + ;
+: fill          swap >r swap begin r@ 0>
+                  while 2dup c! 1+ r> 1- >r
+                repeat
+                rdrop 2drop ;
+: move          >r begin r@ 0> while
+                  over @ over ! cell+ swap cell+ swap
+                  r> cell- >r
+                repeat rdrop 2drop ;
+: cmove         >r begin r@ 0> while
+                  over c@ over c! 1+ swap 1+ swap
+                  r> 1- >r
+                repeat rdrop 2drop ;
+: imove         move ;
+
+\ -----------------------------------------------------------------------------
+\ -- Catch and throw
+
+: catch         sp@ >r handler @ >r rp@ handler !
+                execute
+                r> handler !  r> drop 0 ;
+
+: throw         ?dup 0= if exit then
+                handler @ rp!
+                r> handler !
+                r> swap >r
+                sp! drop r> ;

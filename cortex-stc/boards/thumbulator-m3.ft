@@ -1,0 +1,43 @@
+\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
+
+$00000080 constant init-cold
+$00000084 constant init-latest
+$00000088 constant init-dp
+$0000008C constant init-vp
+
+$7C buffer: rsp variable s0
+$7C buffer: psp variable r0
+$80 buffer: tib
+
+variable dp
+variable vp
+variable latest
+variable state
+variable (source)
+variable source#
+variable >in
+variable current
+variable base
+variable hp
+
+$00000080 constant tib#
+$20001000 constant ram-top
+
+$E0000000 constant emulator-uart-tx
+$E0000004 constant emulator-uart-rx
+$E0000008 constant emulator-uart-sr
+code reset-handler $4668 $3820 $0006 $4801 $6800 $4687 $0080 $0800 end-code
+
+include ../cpus/cortex-m3/core.ft
+include ../core.ft
+
+: emit      emulator-uart-tx ! ;
+: key       wait-key emulator-uart-rx @ ;
+: key?      emulator-uart-sr @ ;
+
+include ../../common/io.ft
+include ../cpus/cortex-m0/compiler.ft
+include ../../common/utils.ft
+include ../../common/code.ft
+
+: cold          abort ;

@@ -1,0 +1,13 @@
+$10F8 constant CALDCO_16MHZ
+$10F9 constant CALBC1_16MHZ
+$10FA constant CALDCO_12MHZ
+$10FB constant CALBC1_12MHZ
+$10FC constant CALDCO_8MHZ
+$10FD constant CALBC1_8MHZ
+$10FE constant CALDCO_1MHZ
+$10FF constant CALBC1_1MHZ
+$10C0 constant TLV_CHECKSUM
+$10F6 constant TLV_DCO_30_TAG
+$10F7 constant TLV_DCO_30_LEN
+$10DA constant TLV_ADC10_1_TAG
+$10DB constant TLV_ADC10_1_LEN

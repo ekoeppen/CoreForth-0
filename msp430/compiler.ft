@@ -1,0 +1,187 @@
+\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
+
+\ -----------------------------------------------------------------------------
+\ -- Compiler
+
+: here          dp @ ;
+: allot         here + dp ! ;
+: org           dp ! ;
+: ,             here ! cell allot ;
+: c,            here c! 1 allot ;
+
+: [             false state ! ; immediate
+: ]             true state ! ;
+: ,call         , ;
+: literal       postpone lit , ; immediate
+
+\ -----------------------------------------------------------------------------
+\ -- Control flow
+
+: if            postpone ?branch here cell allot ; immediate
+: else          postpone branch here cell allot here rot ! ; immediate
+: then          here swap ! ; immediate
+: begin         here ; immediate
+: again         postpone branch , ; immediate
+: until         postpone ?branch , ; immediate
+: while         postpone ?branch here cell allot ; immediate
+: repeat        swap postpone branch ,
+                here swap ! ; immediate
+
+: (do)          r> -rot >r >r >r ;
+: i             r> r@ swap >r ;
+: j             r> r> r@ -rot >r >r ;
+: unloop        r> rdrop rdrop >r ;
+: (loop)        r> r> r> 2dup <= if 2drop true else >r 1- >r false then
+                swap >r ;
+: do            postpone (do) here ; immediate
+: loop          postpone (loop)
+                postpone ?branch , ; immediate
+
+\ -----------------------------------------------------------------------------
+\ -- Dictionary
+
+: len=          ( c-addr c-addr -- f ) c@ $3F and swap c@ $3F and = ;
+: dict-compare  ( c-addr1 c-addr2 -- f )
+                2dup len= 0= if 2drop 0 exit then
+                swap 1+ swap count begin ?dup while
+                  -rot 2dup ci@= 0= if 2drop drop 0 exit then
+                  1+ swap 1+ rot 1-
+                repeat 2drop -1 ;
+
+: align         here aligned org ;
+: imove         move ;
+: link>name     2 + ;
+: link>flags    2 + ;
+: link>         link>name dup c@ $3F and + 1+ aligned ;
+: ,link         , ;
+: find          >r latest begin
+                  @ dup if dup link>name r@ dict-compare
+                  else r@ swap true
+                  then
+                until rdrop
+                dup if
+                  dup link>
+                  swap link>flags c@ $40 and 0<> 1 or
+                then ;
+: '             bl word find dup 0= if drop count type space $3F emit
+                else drop then ;
+
+\ -----------------------------------------------------------------------------
+\ -- Compiler
+
+: (,action)     -2 cells allot $12b0 , ; \ here at CFA
+: ,enter        (,action) ['] docol , ;
+: ,docon        (,action) ['] docon , ;
+: ,dovar        (,action) ['] dovar , ;
+: ,exit         ['] exit , ;
+
+code dodoes     $8324 $4784 $0000 $4137 $4727 $4530 end-code
+
+: immediate     $40 latest @ link>flags bic! ;
+: reveal        $80 latest @ link>flags bic! ;
+: hide          $80 latest @ link>flags bis! ;
+: postpone      bl word find 0< if literal postpone ,call
+                else ,call then ; immediate
+: [']           ' postpone literal ; immediate
+
+: (;code)       r> $12b0 latest @ link> tuck ! cell+ ! ;
+: ;code         postpone (;code) reveal [ ; immediate
+
+: <builds       \ leaves two cells for CFA before PFA to allow patching code
+                \ field
+                align   here latest dup @ ,link   !
+                bl word
+                dup dup c@ 1+
+                    over $C0 swap bis!
+                    here swap imove
+                c@ 1+ allot align 2 cells allot ;
+: :             <builds ,enter hide ] ;
+: ;             ,exit reveal [ ; immediate
+: :noname       align latest @ here dup latest ! ,enter ] ; immediate
+
+: does>         postpone (;code) $4020 , ['] dodoes , ; immediate
+: alloc         vp @ dup rot + vp ! ;
+: create        <builds ,dovar ;
+\ : constant      <builds , does> @ ;
+\ : variable      <builds cell alloc , does> ;
+\ : buffer:       <builds alloc , does> ;
+: constant      <builds ,docon , ;
+: variable      <builds ,docon cell alloc , ;
+: buffer:       <builds ,docon alloc , ;
+: defer         <builds $FFFF , 6 allot ; immediate
+: is            ' $FFFF over ! cell+ ! ; immediate
+
+: recurse       latest @ link> ,call ; immediate
+: [char]        char postpone literal ; immediate
+\ : (             [char] ) word drop ; immediate
+\ : \             source# @ >in ! ; immediate
+: setbase       ( addr n -- addr' n' )
+                over c@ dup 0<> and
+                dup [char] $ = if drop $10 else
+                dup [char] # = if drop $0A else
+                    [char] % = if $02 else exit
+                then then then base ! 1/string ;
+: ?sign         ( addr n --  addr' n' f )
+                over c@ $2C - dup abs 1 = and
+                dup if 1+ >r 1/string r> then ;
+: >number       ( u addr u --  u' addr' u' )
+                setbase
+                begin dup while
+                  over c@ digit? 0= if drop exit then
+                  >r rot base @ * r> + -rot
+                  1/string
+                repeat ;
+: ?number       ( c-addr -- n -1 | c-addr 0 )
+                base @ >r
+                dup 0 0 rot count
+                ?sign >r >number if rdrop 2drop drop 0
+                else 2swap 2drop drop r> if negate then
+                true then r> base ! ;
+: (s")          r> count 2dup + aligned >r ;
+: s"            postpone (s")
+                [char] " word dup dup c@ 1+ here swap imove
+                c@ 1+ allot align ; immediate
+\ : ."            postpone s" postpone type ; immediate
+
+\ -----------------------------------------------------------------------------
+\ -- Interpreter
+
+: setup-pointers
+                init-dp @ dp !
+                init-vp @ vp !
+                init-latest @ latest !  ;
+
+: ex.           $45 emit $23 emit h.4 ;
+: prompt        [char] o emit [char] k emit cr ;
+: source        (source) @ source# @ ;
+: (interpret)   begin  bl word  dup c@ while      \ textadr
+                  find ?dup if                    \ xt 1/-1
+                    1+ state @ 0= or              \ immed or interp?
+                    if execute else ,call then
+                  else                            \ textadr
+                    ?number if                    \ converted ok
+                      state @ if postpone literal then
+                    else
+                      count type [char] ? emit cr
+                      $fff3 throw
+                    then  \ error
+                  then
+                repeat drop ;
+: evaluate      source# !  (source) ! 0 >in !  (interpret) ;
+: quit          r0 rp! 0 state !
+                begin
+                  xon tib dup tib# accept space xoff
+                  ['] evaluate catch
+                  ?dup if
+                    dup $fff3 <> if ex. else drop then
+                    s0 sp!
+                  then
+                  state @ 0= if space prompt then
+                again ;
+
+: abort         s0 sp! quit ;
+: cold          s0 sp! r0 rp! #16 base ! 0 state ! 0 handler !
+                setup-pointers
+                'turnkey @ ?dup if catch ?dup if ex. then
+                else abort
+                then cold ;
