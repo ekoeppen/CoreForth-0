@@ -19,7 +19,7 @@ code >branch    $1040 $4906 $0002 $12D2 $4B05 $401A $4311 $0002 $0412 $4B04
 code exit       $BD00 end-code
 code branch     $4672 $3A01 $8811 $8852 $0412 $4311 $468F end-code
 code ?branch    $0001 $6830 $3604 $2900 $D002 $4671 $3104 $468F $4672 $3A01
-                $8811 $8852 $0412 $4311 $468F end-code
+                $6811 $468F end-code
 \ code branch     $4672 $3A01 $6811 $468F end-code
 \ code ?branch    $0001 $ce01 $D002 $4671 $3104 $468F $4672 $3A01
 \                 $6811 $468F end-code
