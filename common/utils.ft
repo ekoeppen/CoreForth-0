@@ -20,6 +20,6 @@
 
 : b.8'          base @ swap binary
                 <# # # # # [char] ' hold # # # # #> type base ! ;
-: b.16'         base @ swap b.8' [char] ' emit b.8' base ! ;
+: b.16'         base @ swap dup 8 rshift b.8' [char] ' emit b.8' base ! ;
 
 : delay         begin ?dup while 1- repeat ;

@@ -1,5 +1,8 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
 
+: -rot          rot rot ;
+: 2drop         drop drop ;
+
 : 2c@           c@ swap c@ swap ;
 : +!            dup @ rot + swap ! ;
 : -!            dup @ rot - swap ! ;
@@ -17,8 +20,6 @@
 : >=            < invert ;
 : within        over - >r - r> u< ;
 
-: true          0 invert ;
-: false         0 ;
 : negate        invert 1+ ;
 
 : umin          2dup u> if swap then drop ;
@@ -41,6 +42,7 @@
 : digit?        dup $39 > $80 2*  and +
                 dup $A0 2* > $83 2* 1+ and -
                 $30 - dup base @ u< ;
+: separator?    $27 = ;
 
 : si=           ( c-addr1 c-addr2 -- f )
                 dup c@ 1+ begin >r 2dup ci@= r> tuck and while
@@ -64,3 +66,4 @@
                   over c@ over c! 1+ swap 1+ swap
                   r> 1- >r
                 repeat rdrop 2drop ;
+: @cell+        ( a -- a' n ) dup cell+ swap @ ;

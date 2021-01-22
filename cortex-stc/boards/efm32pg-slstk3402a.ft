@@ -1,34 +1,8 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
 
-$00000080 constant init-cold
-$00000084 constant init-latest
-$00000088 constant init-dp
-$0000008C constant init-vp
-
-$7C buffer: rsp variable s0
-$7C buffer: psp variable r0
-$80 buffer: tib
-
-variable dp
-variable vp
-variable latest
-variable state
-variable (source)
-variable source#
-variable >in
-variable current
-variable base
-variable hp
-
-$00000080 constant tib#
-$20001000 constant ram-top
-
-include ../cpus/cortex-m3/core.ft
-include ../core.ft
-
-include ../cpus/efm32pg/cmu.ft
-include ../cpus/efm32pg/gpio.ft
-include ../cpus/efm32pg/usart.ft
+include efm32pg/cmu.ft
+include efm32pg/gpio.ft
+include efm32pg/usart.ft
 
 code reset-handler $4668 $3820 $0006 $4801 $6800 $4687 $0080 $0000 end-code
 
@@ -36,10 +10,6 @@ code reset-handler $4668 $3820 $0006 $4801 $6800 $4687 $0080 $0000 end-code
                 begin USART0_STATUS @ %100000 and until ;
 : key?          USART0_STATUS @ %10000000 and ;
 : key           begin key? until USART0_RXDATA c@ ;
-
-include ../../common/io.ft
-include ../../common/utils.ft
-include ../cpus/cortex-m0/compiler.ft
 
 : init-cmu      %000100000000000000000000 CMU_CTRL bis!
                 %0000000000001000 CMU_HFBUSCLKEN0 bis!
@@ -52,6 +22,6 @@ include ../cpus/cortex-m0/compiler.ft
                 %0101 USART0_CMD !
                 %00100000 GPIO_PA_DOUT ! ;
 
-: init-hw init-cmu init-gpio init-usart ;
+: init-hw       init-cmu init-gpio init-usart ;
 
-: cold          init-hw 10000 delay abort ;
+: setup-vars    $84 @ latest ! $88 @ dp ! $8C @ vp ! #16 base ! ;

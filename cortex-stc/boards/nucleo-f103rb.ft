@@ -1,20 +1,23 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
 
 include ../cpus/cortex-m3/armv7-m-primitives.ft
+include ../cpus/stm32f10x/rcc.ft
+include ../cpus/stm32f10x/gpio.ft
+include ../cpus/stm32f10x/usart.ft
 include ../../common/core.ft
-
-$E0000000 constant emulator-uart-tx
-$E0000004 constant emulator-uart-rx
-$E0000008 constant emulator-uart-sr
-
-code wait-key   $2182 $B402 $BEAB $46F7 end-code
-
-: key?      emulator-uart-sr @ ;
-: emit      emulator-uart-tx ! ;
-: key       wait-key emulator-uart-rx @ ;
 
 : setup-vars    $84 @ latest ! $88 @ dp ! $8C @ vp ! #16 base ! ;
 : save-vars     latest @ $84 ! dp @ $88 ! vp $8C ! ;
+
+: emit          USART2_DR c! begin USART2_SR @ %10000000 and until ;
+: key?          USART2_SR @ %100000 and ;
+: key           begin key? until USART2_DR c@ ;
+
+: setup-hw      %100 RCC_APB2ENR !
+                %00100000000000000000 RCC_APB1ENR !
+                GPIOA_CRL dup @ $FFFF00FF and $4B00 or swap !
+                #69 USART2_BRR !
+                %0010000000001100 USART2_CR1 ! ;
 
 code reset-handler
                 $4668 $3820 $0006 $4801 $6800 $4687 $0080 $0000 end-code
@@ -27,14 +30,7 @@ include ../../common/io.ft
 include ../../common/utils.ft
 include ../common/compiler.ft
 
-: save          save-vars
-                \ 0 0 here s" saved.hex" type-hex
-                0 here rom-dump
-                bye ;
-: slist         latest begin @ dup while
-                  dup $10 dump dup link>name count type
-                repeat drop ;
-: cold          setup-vars abort ;
+: cold          setup-vars setup-hw abort ;
 
 only forth
 
@@ -43,3 +39,4 @@ t' cold             $00000080 t!
 tlast @             $00000084 t!
 tdp @               $00000088 t!
 tvp @               $0000008C t!
+

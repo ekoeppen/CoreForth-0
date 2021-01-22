@@ -13,7 +13,6 @@ $20 constant bl
 : word          0 wp tuck c! swap dup skip copy ;
 : char          bl word 1+ c@ ;
 
-: count         dup 1+ swap c@ ;
 : cr            #13 emit #10 emit ;
 : space         bl emit ;
 : spaces        begin ?dup 0> while space 1- repeat ;
