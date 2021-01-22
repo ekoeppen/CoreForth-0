@@ -2,22 +2,23 @@
 
 include ../cpus/cortex-m3/armv7-m-primitives.ft
 include ../cpus/stm32f10x/rcc.ft
+include ../cpus/stm32f10x/flash.ft
 include ../cpus/stm32f10x/gpio.ft
 include ../cpus/stm32f10x/usart.ft
 include ../../common/core.ft
 
 : setup-vars    $84 @ latest ! $88 @ dp ! $8C @ vp ! #16 base ! ;
-: save-vars     latest @ $84 ! dp @ $88 ! vp $8C ! ;
+: save-vars     $80 ! latest @ $84 ! dp @ $88 ! vp $8C ! ;
 
 : emit          USART2_DR c! begin USART2_SR @ %10000000 and until ;
-: key?          USART2_SR @ %100000 and ;
+: key?          USART2_SR @ %00100000 and ;
 : key           begin key? until USART2_DR c@ ;
 
-: setup-hw      %100 RCC_APB2ENR !
+: setup-hw      %00000000000000000100 RCC_APB2ENR !
                 %00100000000000000000 RCC_APB1ENR !
                 GPIOA_CRL dup @ $FFFF00FF and $4B00 or swap !
                 #69 USART2_BRR !
-                %0010000000001100 USART2_CR1 ! ;
+                %00000010000000001100 USART2_CR1 ! ;
 
 code reset-handler
                 $4668 $3820 $0006 $4801 $6800 $4687 $0080 $0000 end-code
@@ -25,10 +26,13 @@ code reset-handler
 code rom-dump   $B500 $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
                 $3604 $B402 $2180 $B402 $BEAB $BD00 end-code
 
-
 include ../../common/io.ft
 include ../../common/utils.ft
 include ../common/compiler.ft
+
+: save          bl word find 0= if ." not found, not saving" cr drop exit then
+                1+ save-vars ;
+: restore       restore-vars erase-dictspace ;
 
 : cold          setup-vars setup-hw abort ;
 
@@ -40,3 +44,9 @@ tlast @             $00000084 t!
 tdp @               $00000088 t!
 tvp @               $0000008C t!
 
+variable hex-fd
+
+s" janus.hex" w/o create-file throw hex-fd !
+0 #target there hex-fd @ type-hex
+t' reset-handler 1+ hex-fd @ hex-end
+hex-fd @ close-file throw

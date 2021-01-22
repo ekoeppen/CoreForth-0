@@ -9,9 +9,9 @@ $E0000008 constant emulator-uart-sr
 
 code wait-key   $2182 $B402 $BEAB $46F7 end-code
 
-: key?      emulator-uart-sr @ ;
-: emit      emulator-uart-tx ! ;
-: key       wait-key emulator-uart-rx @ ;
+: key?          emulator-uart-sr @ ;
+: emit          emulator-uart-tx ! ;
+: key           wait-key emulator-uart-rx @ ;
 
 : setup-vars    $84 @ latest ! $88 @ dp ! $8C @ vp ! #16 base ! ;
 : save-vars     latest @ $84 ! dp @ $88 ! vp $8C ! ;
@@ -43,3 +43,10 @@ t' cold             $00000080 t!
 tlast @             $00000084 t!
 tdp @               $00000088 t!
 tvp @               $0000008C t!
+
+variable hex-fd
+
+s" janus.hex" w/o create-file throw hex-fd !
+0 #target there hex-fd @ type-hex
+t' reset-handler 1+ hex-fd @ hex-end
+hex-fd @ close-file throw
