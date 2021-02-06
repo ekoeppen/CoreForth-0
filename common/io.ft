@@ -29,7 +29,6 @@ $20 constant bl
 : sign          0< if $2D hold then ;
 : u.            <# #s #> type space ;
 : .             <# dup abs #s swap sign #> type space ;
-: ??            <# dup abs #s swap sign #> type space ;
 
 : binary        #2 base ! ;
 : octal         #8 base ! ;

@@ -1,5 +1,0 @@
-\ : (             [char] ) word drop ; immediate
-\ : \             source# @ >in ! ; immediate
-
-
-: rom-dump 2drop ;
