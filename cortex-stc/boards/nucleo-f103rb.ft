@@ -1,4 +1,44 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
+\ vim:ft=forth:ts=2:sw=2:expandtab
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+:noname     $F846 th, $0D04 th, $4800 th, $46F7 th, ; is ,docon
+:noname     $B500 th, ; is ,enter
+:noname     $BD00 th, ; is ,exit
+:noname     4 - there -
+            dup -$1000000 $1000000 within 0= if call-range-exceeded throw then
+            1 #23 lshift 1- and
+            dup #12 rshift %0000011111111111 and $F000 or th,
+                 #1 rshift %0000011111111111 and $F800 or th, ; is ,call
+:noname     ( c-addr n -- : compile word header into the target image )
+            talign
+            there tlast @ t, tlast !
+            $ff7f th,
+            there >target pack$ c@ 1+ tallot talign ; is thead
+:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tcell + tcell 2/ + dup tc@ + taligned ; is tlink>
+
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$08000000 to trom
+$20000000 to tram
+        4 to tcell
+
+trom tdp !
+tram tvp !
+
+tram $00001000 + t, 0 t,
+trom $00000400 + torg
+
+  $7C buffer:  psp
+      variable s0
+  $7C buffer:  rsp
+      variable r0
 
 include ../cpus/cortex-m3/armv7-m-primitives.ft
 include ../cpus/stm32f10x/rcc.ft
@@ -6,9 +46,6 @@ include ../cpus/stm32f10x/flash.ft
 include ../cpus/stm32f10x/gpio.ft
 include ../cpus/stm32f10x/usart.ft
 include ../../common/core.ft
-
-: setup-vars    $84 @ latest ! $88 @ dp ! $8C @ vp ! #16 base ! ;
-: save-vars     $80 ! latest @ $84 ! dp @ $88 ! vp $8C ! ;
 
 : emit          USART2_DR c! begin USART2_SR @ %10000000 and until ;
 : key?          USART2_SR @ %00100000 and ;
@@ -20,33 +57,101 @@ include ../../common/core.ft
                 #69 USART2_BRR !
                 %00000010000000001100 USART2_CR1 ! ;
 
+: reset         $05FA0004 $E000ED0C ! ;
 code reset-handler
-                $4668 $3820 $0006 $4801 $6800 $4687 $0080 $0000 end-code
-
-code rom-dump   $B500 $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
-                $3604 $B402 $2180 $B402 $BEAB $BD00 end-code
+                $4668 $3820 $0006 $4801 $6800 $4687 $03C0 $0000 end-code
 
 include ../../common/io.ft
 include ../../common/utils.ft
 include ../common/compiler.ft
 
-: save          bl word find 0= if ." not found, not saving" cr drop exit then
-                1+ save-vars ;
+$400 constant #page
+
+: flash-busy?   1 FLASH_SR bit@ ;
+: await-flash-idle
+                begin flash-busy? 0= until ;
+: unlock-flash  %10000000 FLASH_CR bit@
+                if $CDEF89AB $045670123 FLASH_KEYR tuck ! ! then ;
+: lock-flash    %10000000 FLASH_CR bis! ;
+: flash-mode!   unlock-flash FLASH_CR dup @ $1F invert and rot or swap ! ;
+: enable-flash-write
+                unlock-flash %00001 flash-mode! ;
+: erase-page    unlock-flash %00010 flash-mode!
+                FLASH_AR ! %01000000 FLASH_CR bis!
+                await-flash-idle lock-flash ;
+: erase-range   unlock-flash %00010 flash-mode!
+                swap begin 2dup > while
+                  dup FLASH_AR ! %01000000 FLASH_CR bis! #page +
+                repeat 2drop lock-flash ;
+: flash.        FLASH_ACR 8 dumpw ;
+
+$40 constant #init
+$140 constant #vectors
+$20000 constant end-of-flash
+
+$380 constant backup-start
+$380 constant backup-cold
+$384 constant backup-latest
+$388 constant backup-dp
+$38C constant backup-vp
+
+$3C0 constant init-start
+$3C0 constant init-cold
+$3C4 constant init-latest
+$3C8 constant init-dp
+$3CC constant init-vp
+
+: dict-space    backup-dp @ #page + #page 1- invert and ;
+: setup-vars    init-latest @ latest ! init-dp @ dp ! init-vp @ vp ! ;
+: erase-dictspace
+                unlock-flash dict-space end-of-flash erase-range lock-flash ;
+
+: save-vars     >r dint
+                pad aligned
+                0 over #page move
+                0 erase-page
+                enable-flash-write
+                dup 0 #vectors hmove
+                backup-start + backup-start #init hmove
+                r> init-cold i!
+                latest @ init-latest i! dp @ init-dp i! vp @ init-vp i!
+                lock-flash eint ;
+
+: restore-vars  dint
+                pad aligned
+                0 over #page move
+                0 erase-page
+                enable-flash-write
+                dup 0 #vectors hmove
+                dup backup-start + backup-start #init hmove
+                    backup-start + init-start #init hmove
+                lock-flash eint ;
+
+: save          bl word dup c@ 0= if
+                  ." missing start word, not saving" drop exit then
+                find 0= if ." not found, not saving" drop exit then
+                save-vars ;
 : restore       restore-vars erase-dictspace ;
 
-: cold          setup-vars setup-hw abort ;
+: cold          setup-vars setup-hw ." CoreForth-0 ready" cr hex
+                init-dp @ backup-dp @ = if dict-space org then
+                abort ;
 
-only forth
-
-t' reset-handler 1+ $00000004 t!
-t' cold             $00000080 t!
-tlast @             $00000084 t!
-tdp @               $00000088 t!
-tvp @               $0000008C t!
+::host::
 
 variable hex-fd
 
+t' reset-handler 1+ trom $00000004 + t!
+t' cold             trom $00000380 + t!
+tlast @             trom $00000384 + t!
+tdp @               trom $00000388 + t!
+tvp @               trom $0000038C + t!
+t' cold             trom $000003C0 + t!
+tlast @             trom $000003C4 + t!
+tdp @               trom $000003C8 + t!
+tvp @               trom $000003CC + t!
+
 s" janus.hex" w/o create-file throw hex-fd !
-0 #target there hex-fd @ type-hex
+trom #target there trom - hex-fd @ type-hex
 t' reset-handler 1+ hex-fd @ hex-end
 hex-fd @ close-file throw
