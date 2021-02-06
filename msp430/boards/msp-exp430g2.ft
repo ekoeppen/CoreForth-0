@@ -1,3 +1,43 @@
+\ vim:ft=forth:ts=2:sw=2:expandtab
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+create #info $100 allot         #info $100 $ff fill
+create #vectors $40 allot       #vectors $40 $ff fill
+
+:noname     th, ; is ,call
+:noname     $12B0 th, s" docon" ,tcall ; is ,docon
+:noname     $12B0 th, s" docol" ,tcall ; is ,enter
+:noname     s" exit" ,tcall ; is ,exit
+:noname     ( c-addr n -- : compile word header into the target image )
+            talign
+            there tlast @ th, tlast !
+            there >target pack$
+            dup c@ tuck 1+ tallot talign
+                swap $40 or swap c! ; is thead
+:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tcell + dup tc@ $3F and + 1+ taligned ; is tlink>
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$0000C000 to trom
+$00000200 to tram
+        2 to tcell
+
+trom tdp !
+tram tvp !
+
+include ../cpus/msp430-primitives.ft
+
+  $3E buffer:  psp
+      variable s0
+  $3E buffer:  rsp
+      variable r0
+
 $1000 constant info
 
 $1000 constant 'turnkey
@@ -8,33 +48,13 @@ $1008 constant user-low
 $100A constant user-high
 $100C constant save-init
 
-$003E buffer: rs   variable r0
-$003E buffer: ps   variable s0
-$0080 buffer: tib
-$0080 constant tib#
-
-variable latest
-variable dp
-variable vp
-variable state
-variable (source)
-variable source#
-variable >in
-variable base
-variable hp
-variable handler
-variable tick
-variable timeout
-
 $0400 constant ram-top
-
-include ../core.ft
 
 code emit       $b3e2 $0003 $27fd $47c2 $0067 $4437 $4530 end-code
 code key        $b3d2 $0003 $27fd $8324 $4784 $0000 $4257 $0066 $4530 end-code
 code key?       $8324 $4784 $0000 $b3d2 $0003 $2002 $4307 $4530 $4337 $4530 end-code
 
-include ../cpus/msp430g2x53/sfr.fs
+include ../../common/core.ft
 include ../cpus/msp430g2x53/irq.fs
 include ../cpus/msp430g2x53/wdt.fs
 include ../cpus/msp430g2x53/clock.fs
@@ -102,16 +122,37 @@ include ../../common/utils.ft
                 #16 set-flash-clk
                 setup-ports
                 setup-uart
-                setup-spi ;
+                setup-spi
+                ;
 
 include ../../drivers/nrf24.ft
 include ../../drivers/nrf24-utils.ft
 
 : turnkey       setup-hw
-                ." 430Forth/MSP-EXP430G XXXXXXXX ready" cr
+                ." CoreForth-0 ready" cr
                 abort ;
 
 code vector-18  $c0f1 $00f8 $0000 $1300 end-code
 code vector-19  $c0f1 $00f8 $0000 $1300 end-code
 : vector-26     <irq 1 tick +! %0000000100000111 and %00001000 or irq> ;
 code vector-31  $4307 $4031 $0240 $4034 $027E $4020 cold end-code
+
+::host::
+
+variable hex-fd
+
+t' turnkey dup              #info w!        #info $0C + w!
+tlast @ dup                 #info $02 + w!  #info $0E + w!
+tdp @ $200 + $FE00 and dup  #info $04 + w!  #info $10 + w!
+tvp @ dup                   #info $06 + w!  #info $12 + w!
+
+t' vector-18 #vectors #36 + w!
+t' vector-19 #vectors #38 + w!
+t' vector-26 #vectors #52 + w!
+t' vector-31 #vectors #62 + w!
+
+s" janus.hex" w/o create-file throw hex-fd !
+$1000 #info $100 hex-fd @ type-hex
+trom #target there trom - hex-fd @ type-hex
+$ffc0 #vectors $40 hex-fd @ type-hex
+hex-fd @ close-file throw

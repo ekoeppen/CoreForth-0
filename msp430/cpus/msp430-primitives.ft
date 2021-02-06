@@ -52,12 +52,6 @@ code rp@        $8324 $4784 $0000 $4107 $4530 end-code
 code sp!        $4704 $4437 $4530 end-code
 code rp!        $4701 $4437 $4530 end-code
 
-: 2dup          over over ;
-: tuck          swap over ;
-: -rot          rot rot ;
-: 2drop         drop drop ;
-: 2swap         rot >r rot r> ;
-
 \ -----------------------------------------------------------------------------
 \ -- Memory operations
 
@@ -113,10 +107,8 @@ code 2/         $1107 $4530 end-code
 code 2*         $5707 $4530 end-code
 code cells      $5707 $4530 end-code
 code chars      $4530 end-code
-\ code 0          $8324 $4784 $0000 $4307 $4530 end-code
-\ code 1          $8324 $4784 $0000 $4317 $4530 end-code
-\ code 2          $8324 $4784 $0000 $4327 $4530 end-code
 code cell       $8324 $4784 $0000 $4327 $4530 end-code
+code /cell      $1107 $4530 end-code
 
 code lshift     $4436 $f037 $001f $2403 $5606 $8317 $23fd $4607 $4530 end-code
 code rshift     $4436 $f037 $001f $2404 $c312 $1006 $8317 $23fc $4607 $4530 end-code
@@ -134,82 +126,19 @@ code <          $4436 $8706 $3402 $4337 $4530 $4307 $4530 end-code
 code u<         $4436 $8706 $2802 $4307 $4530 $4337 $4530 end-code
 code m+         $5784 $0002 $6384 $0000 $4437 $4530 end-code
 
-: s>d           dup 0< ;
+: true          0 invert ;
+: false         0 ;
+
+: 2dup          over over ;
+: tuck          swap over ;
+: 2swap         rot >r rot r> ;
+
 : dnegate       swap invert swap invert 1 m+ ;
 : ?dnegate      0< if dnegate then ;
 : m*            2dup xor >r swap abs swap abs um* r> ?dnegate ;
 : u*            um* drop ;
 : *             m* drop ;
 
-: 2c@           c@ swap c@ swap ;
-: +!            dup @ rot + swap ! ;
-: -!            dup @ rot - swap ! ;
+: h!            ! ;
+: h@            @ ;
 
-: /             u/mod nip ;
-: umod          u/mod drop ;
-: mod           u/mod drop ;
-: >             swap < ;
-: u>            swap u< ;
-: <>            = invert ;
-: <=            > invert ;
-: >=            < invert ;
-: within        over - >r - r> u< ;
-
-: true          0 invert ;
-: false         0 ;
-: negate        invert 1+ ;
-
-: umin          2dup u> if swap then drop ;
-: umax          2dup u< if swap then drop ;
-: min           2dup > if swap then drop ;
-: max           2dup < if swap then drop ;
-
-: 2@            dup @ cell+ @ ;
-: 2!            tuck ! cell+ ! ;
-
-: pick          ?dup if 1- cells sp@ + @ else dup then ;
-: 2over         >r >r 2dup r> r> 2swap ;
-
-\ -----------------------------------------------------------------------------
-\ -- Strings and chars
-
-: uppercase     dup $61 $7B within $20 and xor ;
-: /string       rot over + -rot - ;
-: 1/string      1- swap 1+ swap ;
-: count         dup 1+ swap c@ ;
-: ci@=          c@ uppercase swap c@ uppercase = ;
-: cappend       1 over +! dup c@ + c! ;
-: digit?        dup $39 > $80 2*  and +
-                dup $A0 2* > $83 2* 1+ and -
-                $30 - dup base @ u< ;
-
-\ -----------------------------------------------------------------------------
-\ -- Memory
-
-: pad           vp @ $10 + ;
-: fill          swap >r swap begin r@ 0>
-                  while 2dup c! 1+ r> 1- >r
-                repeat
-                rdrop 2drop ;
-: move          >r begin r@ 0> while
-                  over @ over ! cell+ swap cell+ swap
-                  r> cell- >r
-                repeat rdrop 2drop ;
-: cmove         >r begin r@ 0> while
-                  over c@ over c! 1+ swap 1+ swap
-                  r> 1- >r
-                repeat rdrop 2drop ;
-: imove         move ;
-
-\ -----------------------------------------------------------------------------
-\ -- Catch and throw
-
-: catch         sp@ >r handler @ >r rp@ handler !
-                execute
-                r> handler !  r> drop 0 ;
-
-: throw         ?dup 0= if exit then
-                handler @ rp!
-                r> handler !
-                r> swap >r
-                sp! drop r> ;

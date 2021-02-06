@@ -3,6 +3,10 @@
 \ -----------------------------------------------------------------------------
 \ -- Compiler
 
+variable state
+variable dp
+variable latest
+
 : here          dp @ ;
 : allot         here + dp ! ;
 : org           dp ! ;
@@ -65,6 +69,9 @@
                 then ;
 : '             bl word find dup 0= if drop count type space $3F emit
                 else drop then ;
+: words         latest begin @ ?dup while
+                  dup link>name count $3F and type space
+                repeat ;
 
 \ -----------------------------------------------------------------------------
 \ -- Compiler
@@ -94,7 +101,7 @@ code dodoes     $8324 $4784 $0000 $4137 $4727 $4530 end-code
                 dup dup c@ 1+
                     over $C0 swap bis!
                     here swap imove
-                c@ 1+ allot align 2 cells allot ;
+                c@ $3F and 1+ allot align 2 cells allot ;
 : :             <builds ,enter hide ] ;
 : ;             ,exit reveal [ ; immediate
 : :noname       align latest @ here dup latest ! ,enter ] ; immediate
@@ -184,4 +191,5 @@ code dodoes     $8324 $4784 $0000 $4137 $4727 $4530 end-code
                 setup-pointers
                 'turnkey @ ?dup if catch ?dup if ex. then
                 else abort
-                then cold ;
+                then
+                cold ;
