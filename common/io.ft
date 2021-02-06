@@ -1,8 +1,16 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
 
-$20 constant bl
+      variable hp
+      variable >in
+      variable source#
+      variable (source)
+      variable source-id
+  $80 buffer:  tib
+  $80 constant tib#
+  $20 constant bl
 
 : wp            pad $40 + ;
+: source        (source) @ source# @ ;
 : source@       (source) @ >in @ + c@ ;
 : >>source      1 >in +! ;
 : in-source?    >in @ source# @ < ;
@@ -40,19 +48,21 @@ $20 constant bl
 : h.2  ( n -- ) base @ swap hex <# # # #> type base ! ;
 : b.8  ( n -- ) base @ swap binary <# # # # # # # # # #> type base ! ;
 : b.   ( n -- ) base @ swap binary u. base ! ;
+: .(            [char] ) word count type ; immediate
+
+: .s            depth 0= if exit then
+                dup .
+                sp@ begin dup s0 cell- < while dup @ u. cell+ repeat drop ;
+: .r            rp@ begin dup r0 < while dup @ u. cell+ repeat drop ;
+
 
 : accept        ( c-addr +n -- +n'   get line from terminal )
                 over + 1- over
                 begin key
                 dup $0A <> while
-                  dup emit
+                  source-id @ 0= if dup emit then
                   dup 8 = if  drop 1-  >r over r> umax
                           else  over c!  1+ over umin
                   then
                 repeat
                 drop nip swap - ;
-
-: depth         s0 sp@ - 2/ 1- ;
-: .s            depth 0= if exit then
-                sp@ begin dup s0 < while dup @ u. cell+ repeat drop ;
-: .r            rp@ begin dup r0 < while dup @ u. cell+ repeat drop ;

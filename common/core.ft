@@ -1,4 +1,8 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
+\ vim:ft=forth:ts=2:sw=2:expandtab
+
+variable base
+variable vp
+variable handler
 
 : -rot          rot rot ;
 : 2drop         drop drop ;
@@ -7,12 +11,9 @@
 : +!            dup @ rot + swap ! ;
 : -!            dup @ rot - swap ! ;
 
-: cell          4 ;
-: chars         ;
-: cells         2* 2* ;
-: /             u/mod nip ;
+: /             /mod nip ;
 : umod          u/mod drop ;
-: mod           u/mod drop ;
+: mod           /mod drop ;
 : >             swap < ;
 : u>            swap u< ;
 : <>            = invert ;
@@ -20,6 +21,7 @@
 : >=            < invert ;
 : within        over - >r - r> u< ;
 
+: s>d           dup 0< ;
 : negate        invert 1+ ;
 
 : umin          2dup u> if swap then drop ;
@@ -27,8 +29,8 @@
 : min           2dup > if swap then drop ;
 : max           2dup < if swap then drop ;
 
-: 2@            dup @ cell+ @ ;
-: 2!            tuck ! cell+ ! ;
+: 2@            dup cell+ @ swap @ ;
+: 2!            swap over ! cell+ ! ;
 
 : pick          ?dup if 1- cells sp@ + @ else dup then ;
 : 2over         >r >r 2dup r> r> 2swap ;
@@ -44,19 +46,14 @@
                 $30 - dup base @ u< ;
 : separator?    $27 = ;
 
-: si=           ( c-addr1 c-addr2 -- f )
-                dup c@ 1+ begin >r 2dup ci@= r> tuck and while
-                  1- rot 1+ rot 1+ rot
-                repeat -rot 2drop 0= ;
-
 : pad           vp @ $10 + ;
 : fill          swap >r swap begin r@ 0>
                   while 2dup c! 1+ r> 1- >r
                 repeat
                 rdrop 2drop ;
 : move          >r begin r@ 0> while
-                  over @ over ! 4+ swap 4+ swap
-                  r> 4- >r
+                  over @ over ! cell+ swap cell+ swap
+                  r> cell- >r
                 repeat rdrop 2drop ;
 : hmove         >r begin r@ 0> while
                   over h@ over h! 2+ swap 2+ swap
@@ -66,4 +63,16 @@
                   over c@ over c! 1+ swap 1+ swap
                   r> 1- >r
                 repeat rdrop 2drop ;
+
 : @cell+        ( a -- a' n ) dup cell+ swap @ ;
+: depth         s0 sp@ - /cell 1- ;
+
+: catch         sp@ >r handler @ >r rp@ handler !
+                execute
+                r> handler !  r> drop 0 ;
+
+: throw         ?dup 0= if exit then
+                handler @ rp!
+                r> handler !
+                r> swap >r
+                sp! drop r> ;
