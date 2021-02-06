@@ -1,4 +1,44 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
+\ vim:ft=forth:ts=2:sw=2:expandtab
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+:noname     $F846 th, $0D04 th, $4800 th, $46F7 th, ; is ,docon
+:noname     $B500 th, ; is ,enter
+:noname     $BD00 th, ; is ,exit
+:noname     4 - there -
+            dup -$1000000 $1000000 within 0= if call-range-exceeded throw then
+            1 #23 lshift 1- and
+            dup #12 rshift %0000011111111111 and $F000 or th,
+                 #1 rshift %0000011111111111 and $F800 or th, ; is ,call
+:noname     ( c-addr n -- : compile word header into the target image )
+            talign
+            there tlast @ t, tlast !
+            $ff7f th,
+            there >target pack$ c@ 1+ tallot talign ; is thead
+:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tcell + tcell 2/ + dup tc@ + taligned ; is tlink>
+
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$00000000 to trom
+$20000000 to tram
+        4 to tcell
+
+trom tdp !
+tram tvp !
+
+tram $00001000 + t, 0 t,
+trom $00000400 + torg
+
+  $7C buffer:  psp
+      variable s0
+  $7C buffer:  rsp
+      variable r0
 
 include ../cpus/cortex-m3/armv7-m-primitives.ft
 include ../../common/core.ft
@@ -13,40 +53,38 @@ code wait-key   $2182 $B402 $BEAB $46F7 end-code
 : emit          emulator-uart-tx ! ;
 : key           wait-key emulator-uart-rx @ ;
 
-: setup-vars    $84 @ latest ! $88 @ dp ! $8C @ vp ! #16 base ! ;
-: save-vars     latest @ $84 ! dp @ $88 ! vp $8C ! ;
-
-code reset-handler
-                $4668 $3820 $0006 $4801 $6800 $4687 $0080 $0000 end-code
-
-code rom-dump   $B500 $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
-                $3604 $B402 $2180 $B402 $BEAB $BD00 end-code
-
-
 include ../../common/io.ft
 include ../../common/utils.ft
 include ../common/compiler.ft
 
-: save          save-vars
-                \ 0 0 here s" saved.hex" type-hex
-                0 here rom-dump
-                bye ;
-: slist         latest begin @ dup while
-                  dup $10 dump dup link>name count type
-                repeat drop ;
-: cold          setup-vars abort ;
+: setup-vars    $3F4 @ latest ! $3F8 @ dp ! $3FC @ vp ! #16 base ! ;
+: save-vars     $3F0 ! latest @ $3F4 ! dp @ $3F8 ! vp $3FC ! ;
 
-only forth
+code reset-handler
+                $4668 $3820 $0006 $4801 $6800 $4687 $03F0 $0000 end-code
 
-t' reset-handler 1+ $00000004 t!
-t' cold             $00000080 t!
-tlast @             $00000084 t!
-tdp @               $00000088 t!
-tvp @               $0000008C t!
+code rom-dump   $B500 $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
+                $3604 $B402 $2180 $B402 $BEAB $BD00 end-code
+
+: save          bl word dup c@ 0= if
+                  ." missing start word, not saving" drop exit then
+                find 0= if ." not found, not saving" drop exit then
+                save-vars
+                0 here rom-dump ;
+
+: cold          setup-vars  ." CoreForth-0 ready" cr hex abort ;
+
+::host::
+
+t' reset-handler 1+ trom $00000004 + t!
+t' cold             trom $000003F0 + t!
+tlast @             trom $000003F4 + t!
+tdp @               trom $000003F8 + t!
+tvp @               trom $000003FC + t!
 
 variable hex-fd
 
 s" janus.hex" w/o create-file throw hex-fd !
-0 #target there hex-fd @ type-hex
+trom #target there trom - hex-fd @ type-hex
 t' reset-handler 1+ hex-fd @ hex-end
 hex-fd @ close-file throw
