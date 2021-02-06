@@ -1,9 +1,8 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
-
-\ -----------------------------------------------------------------------------
-\ -- Compiler
+\ vim:ft=forth:ts=2:sw=2:expandtab
 
 variable state
+variable dp
+variable latest
 
 $0040 constant immediate-flag
 $0080 constant visible-flag
@@ -14,38 +13,48 @@ $0080 constant visible-flag
 : ,             here ! cell allot ;
 : h,            here h! 2 allot ;
 : c,            here c! 1 allot ;
+: i,            dup h, #16 rshift h, ;
+: i!            2dup h! swap #16 rshift swap 2+ h! ;
 
 : [             false state ! ; immediate
 : ]             true state ! ;
-: ,call         here cell+ - >branch , ;
-: literal       postpone lit , ; immediate
+: ,call         here cell+ - >branch i, ;
+: literal       postpone lit i, ; immediate
 
 : compiling?    state @ ;
 : interpreting? state @ 0= ;
-: execute       1+ >r ;
+
+: si=           ( c-addr1 c-addr2 -- f )
+                dup c@ 1+ begin >r 2dup ci@= r> tuck and while
+                  1- rot 1+ rot 1+ rot
+                repeat -rot 2drop 0= ;
 
 \ -----------------------------------------------------------------------------
 \ -- Control flow
 
 : if            postpone ?branch here cell allot ; immediate
-: else          postpone branch here cell allot here rot ! ; immediate
 : then          here swap ! ; immediate
+: else          postpone branch here cell allot swap here swap ! ; immediate
 : begin         here ; immediate
 : again         postpone branch , ; immediate
 : until         postpone ?branch , ; immediate
-: while         postpone ?branch here cell allot ; immediate
-: repeat        swap postpone branch ,
-                here swap ! ; immediate
+: while         postpone if swap ; immediate
+: repeat        postpone branch , postpone then ; immediate
 
-: (do)          r> -rot >r 1- >r >r ;
+: (do)          r> -rot >r >r >r ;
 : i             r> r> r@ -rot >r >r ;
 : j             rp@ 4 cells + @ ;
 : unloop        r> rdrop rdrop >r ;
-: (loop)        r> r> r> 1+ 2dup < if 2drop true else >r >r false then
+: (loop)        r> r> r> 1+ 2dup = if 2drop true else >r >r false then
+                swap >r ;
+: (+loop)       r> r> r> 4 pick + 2dup = if 2drop true else >r >r false then
                 swap >r ;
 : do            postpone (do) here ; immediate
 : loop          postpone (loop)
-                postpone ?branch , ; immediate
+                postpone ?branch i, ; immediate
+: +loop         postpone (+loop)
+                postpone ?branch i, ; immediate
+: leave         unloop rdrop ;
 
 : align         here aligned org ;
 : imove         hmove ;
@@ -53,7 +62,7 @@ $0080 constant visible-flag
 : link>name     6 + ;
 : >body         $10 + ;
 : link>         link>name dup c@ + 1+ aligned ;
-: ,link         , ;
+: ,link         i, ;
 : visible?      link>flags c@ visible-flag and 0= ;
 : immediate?    link>flags c@ immediate-flag and 0= ;
 : find          >r latest begin
@@ -81,26 +90,27 @@ $0080 constant visible-flag
                 c@ 1+ allot align ;
 : ,enter        $B500 h, ;
 : ,exit         $BD00 h, ;
-: latest-flags  ( -- addr f ) latest @ link>flags dup c@ ;
-: immediate     latest-flags immediate-flag invert and swap c! ;
-: hide          latest-flags visible-flag or swap c! ;
-: reveal        latest-flags visible-flag invert and swap c! ;
+: latest-flags  ( -- addr f ) latest @ link>flags dup h@ ;
+: immediate     latest-flags immediate-flag invert and swap h! ;
+: hide          latest-flags visible-flag or swap h! ;
+: reveal        latest-flags visible-flag invert and swap h! ;
 : postpone      bl word find 0< if literal postpone ,call
                 else ,call then ; immediate
 : [']           ' postpone literal ; immediate
 
 : :             <builds ,enter hide ] ;
 : ;             ,exit reveal [ ; immediate
-: :noname       align latest @ here latest ! ]  , here ; immediate
+: :noname       align latest @ here latest ! ]  i, here ; immediate
 
 : dodata        $4679 h, $310C h, $3E04 h, $6030 h, $0008 h, $46F7 h, ;
-: dodefer       $4900 h, $468F h, ;
-: create        <builds dodata here , reveal ;
-: constant      <builds docon align , reveal ;
-: variable      <builds docon align vp dup @ dup , cell+ swap ! reveal ;
-: defer         <builds $46F7 h, 6 allot ; immediate
-: defer!        swap 1+ swap cell+ ! ;
-: is            ' $468F4900 over ! defer! ; immediate
+: docon         $F846 h, $0D04 h, $4800 h, $46F7 h, ;
+: create        <builds dodata here i, reveal ;
+: constant      <builds docon align i, reveal ;
+: variable      <builds docon align vp dup @ dup i, cell+ swap ! reveal ;
+: buffer:       <builds docon align vp dup @ dup i, rot + swap ! reveal ;
+: defer         <builds $46F7 h, 6 allot reveal ; immediate
+: defer!        swap 1+ swap cell+ i! ;
+: is            ' $468F4900 over i! defer! ; immediate
 
 : (does>)       here r> 1- latest @ link> #10 + org $B500 h, ,call org ;
 : does>         postpone (does>) ; immediate
@@ -139,8 +149,8 @@ $0080 constant visible-flag
 \ -----------------------------------------------------------------------------
 \ -- Interpreter
 
-: prompt        [char] o emit [char] k emit cr ;
-: source        (source) @ source# @ ;
+: ex.           $45 emit $23 emit h.4 ;
+: prompt        source-id @ if exit then space [char] o emit [char] k emit cr ;
 : interpret     begin  bl word  dup c@ while      \ textadr
                   find ?dup if                    \ xt 1/-1
                     1+ interpreting? or              \ immed or interp?
@@ -148,20 +158,28 @@ $0080 constant visible-flag
                   else                            \ textadr
                     ?number if                    \ converted ok
                       compiling? if postpone literal then
-                    else count type [char] ? emit cr then  \ error
+                    else count type [char] ? emit cr $fff3 throw then
                   then
                 repeat drop ;
 
-: refill        xon tib dup tib# accept space xoff
+: evaluate      source >in @ >r >r >r
+                source# ! (source) ! 0 >in ! interpret
+                r> r> r> >in ! source# ! (source) ! ;
+
+: refill        xon tib dup tib# accept xoff
                 source# ! (source) ! 0 >in ! true ;
 
-: quit          r0 rp! 0 state !
-                \ s" CoreForth Nemesis ready" type cr
+: quit          r0 rp! 0 state ! 0 source-id !
                 begin
                   refill
                 while
-                  interpret
-                  state @ 0= if space prompt then
+                  source-id @ 0= if space then
+                  ['] interpret catch
+                  ?dup if
+                    dup $fff3 <> if ex. else drop then
+                    s0 sp!
+                  then
+                  interpreting? if prompt then
                 repeat
                 bye ;
 
