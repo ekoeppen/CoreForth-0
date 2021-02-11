@@ -1,7 +1,4 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
-
-\ -----------------------------------------------------------------------------
-\ -- Compiler
+\ vim:ft=forth:ts=2:sw=2:expandtab
 
 variable state
 variable dp
@@ -22,14 +19,13 @@ variable latest
 \ -- Control flow
 
 : if            postpone ?branch here cell allot ; immediate
-: else          postpone branch here cell allot here rot ! ; immediate
 : then          here swap ! ; immediate
+: else          postpone branch here cell allot swap here swap ! ; immediate
 : begin         here ; immediate
 : again         postpone branch , ; immediate
 : until         postpone ?branch , ; immediate
-: while         postpone ?branch here cell allot ; immediate
-: repeat        swap postpone branch ,
-                here swap ! ; immediate
+: while         postpone if swap ; immediate
+: repeat        postpone branch , postpone then ; immediate
 
 : (do)          r> -rot >r >r >r ;
 : i             r> r@ swap >r ;
@@ -160,7 +156,6 @@ code dodoes     $8324 $4784 $0000 $4137 $4727 $4530 end-code
 
 : ex.           $45 emit $23 emit h.4 ;
 : prompt        [char] o emit [char] k emit cr ;
-: source        (source) @ source# @ ;
 : (interpret)   begin  bl word  dup c@ while      \ textadr
                   find ?dup if                    \ xt 1/-1
                     1+ state @ 0= or              \ immed or interp?

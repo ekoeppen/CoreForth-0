@@ -1,0 +1,144 @@
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+0 constant STC
+1 constant DTC
+2 constant ITC
+
+variable threading-type
+
+: set-threading-type
+            next-arg
+            2dup s" stc" compare 0= if STC else
+            2dup s" dtc" compare 0= if DTC else
+                 s" itc" compare 0= if ITC else STC
+            then then then
+            threading-type ! 2drop ;
+
+: ::stc:: threading-type @ STC <> if postpone \ then ;
+: ::dtc:: threading-type @ DTC <> if postpone \ then ;
+: ::itc:: threading-type @ ITC <> if postpone \ then ;
+
+set-threading-type
+
+: ,bl       4 - there -
+            1 #23 lshift 1- and
+            dup #12 rshift %0000011111111111 and $F000 or th,
+                 #1 rshift %0000011111111111 and $F800 or th, ;
+
+::stc:: :noname     $F846 th, $0D04 th, $4800 th, $46F7 th, ; is ,docon
+::stc:: :noname     $B500 th, ; is ,enter
+::stc:: :noname     $46f7 th, ; is ,next
+::stc:: :noname     $BD00 th, ; is ,exit
+::stc:: ' ,bl is ,call
+
+::dtc:: :noname     $F846 th, $0D04 th, $4801 th, $cf20 th, $4728 th, 2 tallot ; is ,docon
+::dtc:: :noname     s" docol" tfind ,bl ; is ,enter
+::dtc:: :noname     $cf20 th, $4728 th, ; is ,next
+::dtc:: :noname     s" exit" ,tcall ; is ,exit
+::dtc:: :noname     1+ t, ; is ,call
+
+:noname     ( c-addr n -- : compile word header into the target image )
+            talign
+            there tlast @ t, tlast !
+            $ff7f th,
+            there >target pack$ c@ 1+ tallot talign ; is thead
+:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tcell + tcell 2/ + dup tc@ + taligned ; is tlink>
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$00000000 to trom
+$20000000 to tram
+        4 to tcell
+
+trom tdp !
+tram tvp !
+
+tram $00001000 + t, 0 t,
+trom $00000400 + torg
+
+  $10 buffer:  #docol
+  $7C buffer:  psp
+      variable s0
+  $7C buffer:  rsp
+      variable r0
+
+include ../cpus/cortex-m3/armv7-m-primitives.ft
+::stc:: include ../threading/primitives/stc.ft
+::dtc:: include ../threading/primitives/dtc.ft
+include ../common/core.ft
+include ../../common/core.ft
+include ../dictionary/common.ft
+
+$E0000000 constant emulator-uart-tx
+$E0000004 constant emulator-uart-rx
+$E0000008 constant emulator-uart-sr
+
+code wait-key   $2182 $B402 $BEAB end-code
+
+: key?          emulator-uart-sr @ ;
+: emit          emulator-uart-tx ! ;
+: key           wait-key emulator-uart-rx @ ;
+
+include ../../common/io.ft
+include ../../common/utils.ft
+include ../dictionary/full.ft
+::stc:: include ../threading/highlevel/stc.ft
+::dtc:: include ../threading/highlevel/dtc.ft
+include ../../common/exception.ft
+include ../common/compiler.ft
+
+$3C0 constant init-start
+$3C0 constant init-cold
+$3C4 constant init-latest
+$3C8 constant init-dp
+$3CC constant init-vp
+
+: setup-vars    init-latest @ latest ! init-dp @ dp ! init-vp @ vp !
+::dtc::         ['] docol #docol 2 cells move
+::dtc::         ['] next #docol 2 cells + cell move
+::dtc::         #docol ['] ,enter 8 + !
+::dtc::         true ram? !
+                ;
+::stc:: code reset-handler
+::stc::                 $4668 $3820 $0006 $4801 $6800 $4687 $03C0 $0000 end-code
+::stc:: code rom-dump   $B500 $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001
+::stc::                 $6830 $3604 $B402 $2180 $B402 $BEAB $BD00 end-code
+::stc:: : .threading ." [STC]" ;
+
+::dtc:: code reset-handler
+::dtc::                 $4668 $3880 $0006 $4f02 $cf20 $1c6d $4728
+::dtc::                 $ffff $03c0 $0000 end-code
+::dtc:: code rom-dump   $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
+::dtc::                 $3604 $B402 $2180 $B402 $BEAB end-code
+::dtc:: : .threading ." [DTC]" ;
+
+: save-vars     init-start !
+                latest @ init-latest ! dp @ init-dp ! vp @ init-vp ! ;
+
+: save          bl word dup c@ 0= if
+                  ." missing start word, not saving" drop exit then
+                find 0= if ." not found, not saving" drop exit then
+                save-vars
+                0 here rom-dump ;
+
+: cold          setup-vars ." CoreForth-0 " .threading ."  ready" cr hex abort ;
+
+::host::
+
+t' reset-handler 1+ trom $00000004 + t!
+t' cold             trom $000003C0 + t!
+tlast @             trom $000003C4 + t!
+tdp @               trom $000003C8 + t!
+tvp @               trom $000003CC + t!
+
+variable hex-fd
+
+s" janus.hex" w/o create-file throw hex-fd !
+trom #target there trom - hex-fd @ type-hex
+t' reset-handler 1+ hex-fd @ hex-end
+hex-fd @ close-file throw

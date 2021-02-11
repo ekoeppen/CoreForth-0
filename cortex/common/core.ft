@@ -1,0 +1,10 @@
+: dnegate       not >r not 1 m+ r> + ;
+: m*            2dup xor 0< >r abs swap abs um* r> if dnegate then ;
+: sm/rem        nip /mod ;
+: um/mod        nip u/mod ;
+
+: fm/mod        dup >r 2dup xor 0< >r sm/rem over 0<> r> and if
+                  1 - swap r> + swap exit
+                then r> drop ;
+: */mod         >r m* r> sm/rem ;
+: */            */mod swap drop ;

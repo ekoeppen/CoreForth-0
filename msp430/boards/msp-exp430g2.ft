@@ -10,6 +10,7 @@ create #vectors $40 allot       #vectors $40 $ff fill
 :noname     th, ; is ,call
 :noname     $12B0 th, s" docon" ,tcall ; is ,docon
 :noname     $12B0 th, s" docol" ,tcall ; is ,enter
+:noname     ; is ,next
 :noname     s" exit" ,tcall ; is ,exit
 :noname     ( c-addr n -- : compile word header into the target image )
             talign
@@ -64,6 +65,7 @@ include ../cpus/msp430g2x53/ports.fs
 include ../cpus/msp430g2x53/tlv.fs
 
 include ../../common/io.ft
+include ../../common/exception.ft
 include ../compiler.ft
 include ../save.ft
 include ../../common/eventloop.ft
@@ -128,7 +130,7 @@ include ../../common/utils.ft
 include ../../drivers/nrf24.ft
 include ../../drivers/nrf24-utils.ft
 
-: turnkey       setup-hw
+: turnkey       setup-hw 0 source-id !
                 ." CoreForth-0 ready" cr
                 abort ;
 

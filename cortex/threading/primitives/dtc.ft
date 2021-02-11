@@ -1,0 +1,8 @@
+code branch     $683f end-code
+code ?branch    $0001 $6830 $3604 $2900 $D002 $1d3f $cf20 $4728
+                $683f $cf20 $4728 end-code
+
+code docol      $b480 $1cef $cf20 $4728 end-code
+code next       $cf20 $4728 end-code
+code exit       $bc80 $cf20 $4728 end-code
+code lit        $f846 $0d04 $cf01 $cf20 $4728 end-code

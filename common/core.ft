@@ -1,8 +1,6 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab
 
 variable base
-variable vp
-variable handler
 
 : -rot          rot rot ;
 : 2drop         drop drop ;
@@ -10,6 +8,7 @@ variable handler
 : 2c@           c@ swap c@ swap ;
 : +!            dup @ rot + swap ! ;
 : -!            dup @ rot - swap ! ;
+
 
 : /             /mod nip ;
 : umod          u/mod drop ;
@@ -31,6 +30,7 @@ variable handler
 
 : 2@            dup cell+ @ swap @ ;
 : 2!            swap over ! cell+ ! ;
+: i!            2dup h! swap #16 rshift swap 2+ h! ;
 
 : pick          ?dup if 1- cells sp@ + @ else dup then ;
 : 2over         >r >r 2dup r> r> 2swap ;
@@ -46,7 +46,6 @@ variable handler
                 $30 - dup base @ u< ;
 : separator?    $27 = ;
 
-: pad           vp @ $10 + ;
 : fill          swap >r swap begin r@ 0>
                   while 2dup c! 1+ r> 1- >r
                 repeat
@@ -66,13 +65,3 @@ variable handler
 
 : @cell+        ( a -- a' n ) dup cell+ swap @ ;
 : depth         s0 sp@ - /cell 1- ;
-
-: catch         sp@ >r handler @ >r rp@ handler !
-                execute
-                r> handler !  r> drop 0 ;
-
-: throw         ?dup 0= if exit then
-                handler @ rp!
-                r> handler !
-                r> swap >r
-                sp! drop r> ;
