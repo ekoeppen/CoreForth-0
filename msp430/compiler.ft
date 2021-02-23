@@ -1,14 +1,7 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab
 
 variable state
-variable dp
 variable latest
-
-: here          dp @ ;
-: allot         here + dp ! ;
-: org           dp ! ;
-: ,             here ! cell allot ;
-: c,            here c! 1 allot ;
 
 : [             false state ! ; immediate
 : ]             true state ! ;

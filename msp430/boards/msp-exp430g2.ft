@@ -7,11 +7,14 @@
 create #info $100 allot         #info $100 $ff fill
 create #vectors $40 allot       #vectors $40 $ff fill
 
-:noname     th, ; is ,call
-:noname     $12B0 th, s" docon" ,tcall ; is ,docon
-:noname     $12B0 th, s" docol" ,tcall ; is ,enter
-:noname     ; is ,next
-:noname     s" exit" ,tcall ; is ,exit
+:noname     th, ; is t,call
+:noname     $12B0 th, s" docon" tfwdref ; is t,docon
+:noname     $12B0 th, s" docol" tfwdref ; is t,enter
+:noname     ; is t,next
+:noname     s" exit" tfwdref ; is t,exit
+:noname     s" lit" tfwdref ; is t,lit
+:noname     s" branch" tfwdref ; is t,branch
+:noname     s" ?branch" tfwdref ; is t,?branch
 :noname     ( c-addr n -- : compile word header into the target image )
             talign
             there tlast @ th, tlast !
@@ -56,6 +59,7 @@ code key        $b3d2 $0003 $27fd $8324 $4784 $0000 $4257 $0066 $4530 end-code
 code key?       $8324 $4784 $0000 $b3d2 $0003 $2002 $4307 $4530 $4337 $4530 end-code
 
 include ../../common/core.ft
+include ../dictionary.ft
 include ../cpus/msp430g2x53/irq.fs
 include ../cpus/msp430g2x53/wdt.fs
 include ../cpus/msp430g2x53/clock.fs
@@ -67,10 +71,10 @@ include ../cpus/msp430g2x53/tlv.fs
 include ../../common/io.ft
 include ../../common/exception.ft
 include ../compiler.ft
-include ../save.ft
 include ../../common/eventloop.ft
 include ../../common/timeout.ft
 include ../../common/utils.ft
+include ../save.ft
 
 : (set-speed)   ( caldco calbc -- )
                 c@ BCSCTL1 c!   c@ DCOCTL c!   0 BCSCTL2 c! ;

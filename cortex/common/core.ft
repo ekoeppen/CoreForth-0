@@ -1,3 +1,4 @@
+: pick          ?dup if 1- cells sp@ + @ else dup then ;
 : dnegate       not >r not 1 m+ r> + ;
 : m*            2dup xor 0< >r abs swap abs um* r> if dnegate then ;
 : sm/rem        nip /mod ;

@@ -32,7 +32,6 @@ variable base
 : 2!            swap over ! cell+ ! ;
 : i!            2dup h! swap #16 rshift swap 2+ h! ;
 
-: pick          ?dup if 1- cells sp@ + @ else dup then ;
 : 2over         >r >r 2dup r> r> 2swap ;
 
 : uppercase     dup $61 $7B within $20 and xor ;
