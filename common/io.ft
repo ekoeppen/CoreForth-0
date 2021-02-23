@@ -23,8 +23,8 @@
 
 : cr            #13 emit #10 emit ;
 : space         bl emit ;
-: spaces        begin ?dup 0> while space 1- repeat ;
-: type          begin dup 0> while swap dup c@ emit 1+ swap 1- repeat 2drop ;
+: spaces        begin ?dup while space 1- repeat ;
+: type          begin dup while swap dup c@ emit 1+ swap 1- repeat 2drop ;
 : xon           $11 emit ;
 : xoff          $13 emit ;
 
