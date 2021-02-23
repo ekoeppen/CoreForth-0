@@ -49,18 +49,24 @@ variable base
                   while 2dup c! 1+ r> 1- >r
                 repeat
                 rdrop 2drop ;
-: move          >r begin r@ 0> while
-                  over @ over ! cell+ swap cell+ swap
-                  r> cell- >r
+: cmove         >r begin r@ 0> while
+                  over c@ over c! 1+ swap 1+ swap
+                  r> 1- >r
                 repeat rdrop 2drop ;
 : hmove         >r begin r@ 0> while
                   over h@ over h! 2+ swap 2+ swap
                   r> 2- >r
                 repeat rdrop 2drop ;
-: cmove         >r begin r@ 0> while
-                  over c@ over c! 1+ swap 1+ swap
-                  r> 1- >r
+: wmove          >r begin r@ 0> while
+                  over @ over ! cell+ swap cell+ swap
+                  r> cell- >r
                 repeat rdrop 2drop ;
+
+: move          >r 2dup $3 and swap $3 and r@ $3 and or or
+                0= if r> wmove exit then
+                2dup $1 and swap $1 and r@ $1 and or or
+                0= if r> hmove exit then
+                r> cmove ;
 
 : @cell+        ( a -- a' n ) dup cell+ swap @ ;
 : depth         s0 sp@ - /cell 1- ;
