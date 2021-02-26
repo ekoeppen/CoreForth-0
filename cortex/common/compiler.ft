@@ -26,13 +26,15 @@ variable state
 : while         postpone if swap ; immediate
 : repeat        postpone branch , postpone then ; immediate
 
-: (do)          r> -rot >r >r >r ;
-: i             r> r> r@ -rot >r >r ;
-: j             rp@ 4 cells + @ ;
+: (do)          swap r> -rot >r >r >r ;
+: i             rp@ cell+ @ ;
+: j             rp@ 3 cells + @ ;
 : unloop        r> rdrop rdrop >r ;
-: (loop)        r> r> r> 1+ 2dup = if 2drop true else >r >r false then
+: (loop)        r> r> 1+ dup r@ =
+                if drop rdrop true else >r false then
                 swap >r ;
-: (+loop)       r> r> r> 4 pick + 2dup = if 2drop true else >r >r false then
+: (+loop)       r> r> rot + dup r@ <
+                if drop rdrop true else >r false then
                 swap >r ;
 : do            postpone (do) here ; immediate
 : loop          postpone (loop)
