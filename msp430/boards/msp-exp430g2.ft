@@ -82,6 +82,7 @@ include ../save.ft
 : set-speed-12mhz   CALDCO_12MHZ CALBC1_12MHZ (set-speed) ;
 : set-speed-8mhz   CALDCO_8MHZ CALBC1_8MHZ (set-speed) ;
 : set-speed-1mhz   CALDCO_1MHZ CALBC1_1MHZ (set-speed) ;
+: wdt>timeout   wdt/1s +wdt-ie eint ;
 
 : setup-ports   %00001000 P1OUT c!
                 %00001000 P1REN c!

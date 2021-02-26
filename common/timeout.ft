@@ -1,7 +1,6 @@
 variable tick
 variable timeout
 
-: wdt>timeout   wdt/1s +wdt-ie eint ;
 : set-timeout   tick @ + timeout ! ;
 : timeout?      tick @ timeout @ = $6f74 and throw ;
 
