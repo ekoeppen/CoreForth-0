@@ -54,12 +54,15 @@ $100C constant save-init
 
 $0400 constant ram-top
 
-code emit       $b3e2 $0003 $27fd $47c2 $0067 $4437 $4530 end-code
-code key        $b3d2 $0003 $27fd $8324 $4784 $0000 $4257 $0066 $4530 end-code
-code key?       $8324 $4784 $0000 $b3d2 $0003 $2002 $4307 $4530 $4337 $4530 end-code
-
 include ../../common/core.ft
-include ../dictionary.ft
+include ../../common/dictionary.ft
+include ../../common/io.ft
+include ../../common/exception.ft
+include ../../common/eventloop.ft
+include ../../common/timeout.ft
+include ../../common/utils.ft
+include ../compiler.ft
+
 include ../cpus/msp430g2x53/irq.fs
 include ../cpus/msp430g2x53/wdt.fs
 include ../cpus/msp430g2x53/clock.fs
@@ -68,12 +71,6 @@ include ../cpus/msp430g2x53/flash.fs
 include ../cpus/msp430g2x53/ports.fs
 include ../cpus/msp430g2x53/tlv.fs
 
-include ../../common/io.ft
-include ../../common/exception.ft
-include ../compiler.ft
-include ../../common/eventloop.ft
-include ../../common/timeout.ft
-include ../../common/utils.ft
 include ../save.ft
 
 : (set-speed)   ( caldco calbc -- )
