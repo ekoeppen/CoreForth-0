@@ -133,6 +133,8 @@ include ../janus/init.ft
 
 ::host::
 
+::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
+
 include ../janus/save-image.ft
 
 s" janus.hex" save-hex

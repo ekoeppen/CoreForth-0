@@ -70,7 +70,7 @@ code rom-dump   $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
 
 ::host::
 
-::dtc:: [t'] #docol $0C + t@ [t'] ,enter 8 + t!
+::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
 
 include ../janus/save-image.ft
 
