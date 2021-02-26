@@ -21,7 +21,6 @@ variable base
 : within        over - >r - r> u< ;
 
 : s>d           dup 0< ;
-: negate        invert 1+ ;
 
 : umin          2dup u> if swap then drop ;
 : umax          2dup u< if swap then drop ;

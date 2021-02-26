@@ -1,6 +1,13 @@
+: negate        invert 1+ ;
 : pick          ?dup if 1- cells sp@ + @ else dup then ;
 : dnegate       not >r not 1 m+ r> + ;
 : m*            2dup xor 0< >r abs swap abs um* r> if dnegate then ;
+
+: /mod          2dup xor 0< >r
+                swap dup 0< dup >r if negate then
+                swap dup 0< if negate then
+                u/mod swap r> if negate then swap r> if negate then ;
+
 : sm/rem        nip /mod ;
 : um/mod        nip u/mod ;
 

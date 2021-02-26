@@ -66,7 +66,7 @@ code +          $6831 $3604 $1840 end-code
 code -          $6831 $3604 $1A08 end-code
 code *          $6831 $3604 $4348 end-code
 code u/mod      $CE02 $FBB1 $F3F0 $FB00 $1213 $F846 $2D04 $0018 end-code
-code /mod       $CE02 $FB91 $F3F0 $FB00 $1213 $F846 $2D04 $0018 end-code
+\ code /mod       $CE02 $FB91 $F3F0 $FB00 $1213 $F846 $2D04 $0018 end-code
 code abs        $2800 $DA01 $43C0 $3001 end-code
 
 code 1+         $3001 end-code
