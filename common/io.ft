@@ -35,8 +35,9 @@
 : #s            begin # dup 0= until ;
 : #>            drop hp @ pad over - ;
 : sign          0< if $2D hold then ;
-: u.            <# #s #> type space ;
-: .             <# dup abs #s swap sign #> type space ;
+: (u.)          base @ u/mod ?dup if recurse then >digit emit ;
+: u.            (u.) space ;
+: .             dup 0< if [char] - emit abs then u. ;
 
 : binary        #2 base ! ;
 : octal         #8 base ! ;
@@ -51,7 +52,7 @@
 : .(            [char] ) word count type ; immediate
 
 : .s            depth 0= if exit then
-                dup .
+                dup u.
                 sp@ begin dup s0 cell- < while dup @ u. cell+ repeat drop ;
 : .r            rp@ begin dup r0 < while dup @ u. cell+ repeat drop ;
 
