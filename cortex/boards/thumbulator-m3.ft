@@ -46,12 +46,12 @@ code wait-key   $2182 $B402 $BEAB end-code
 : key           wait-key emulator-uart-rx @ ;
 
 include ../../common/io.ft
-include ../../common/utils.ft
 include ../dictionary/full.ft
 ::stc:: include ../threading/highlevel/stc.ft
 ::dtc:: include ../threading/highlevel/dtc.ft
 include ../../common/exception.ft
 include ../common/compiler.ft
+include ../../common/utils.ft
 
 include ../janus/init.ft
 
