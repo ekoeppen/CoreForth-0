@@ -1,0 +1,29 @@
+::host::
+
+: ,bl       4 - there -
+            1 #23 lshift 1- and
+            dup #12 rshift %0000011111111111 and $F000 or th,
+                 #1 rshift %0000011111111111 and $F800 or th, ;
+
+::stc:: :noname     $F846 th, $0D04 th, $4800 th, $46F7 th, ; is t,docon
+::stc:: :noname     $B500 th, ; is t,enter
+::stc:: :noname     $46f7 th, ; is t,next
+::stc:: :noname     $BD00 th, ; is t,exit
+::stc:: ' ,bl is t,call
+
+::dtc:: :noname     $F846 th, $0D04 th, $4801 th, $cf20 th, $4728 th, 2 tallot ; is t,docon
+::dtc:: :noname     s" docol" tfind ,bl ; is t,enter
+::dtc:: :noname     $cf20 th, $4728 th, ; is t,next
+::dtc:: :noname     s" exit" tfwdref ; is t,exit
+::dtc:: :noname     1+ t, ; is t,call
+
+:noname     s" lit" tfwdref ; is t,lit
+:noname     s" branch" tfwdref ; is t,branch
+:noname     s" ?branch" tfwdref ; is t,?branch
+:noname     ( c-addr n -- : compile word header into the target image )
+            talign
+            there tlast @ t, tlast !
+            $ff7f th,
+            there >target pack$ c@ 1+ tallot talign ; is thead
+:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tcell + tcell 2/ + dup tc@ + taligned ; is tlink>

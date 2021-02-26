@@ -1,0 +1,18 @@
+::host::
+
+0 constant STC
+1 constant DTC
+2 constant ITC
+
+variable threading-type
+
+: set-threading-type
+            2dup s" stc" compare 0= if STC else
+            2dup s" dtc" compare 0= if DTC else
+                 s" itc" compare 0= if ITC else STC
+            then then then
+            threading-type ! 2drop ;
+
+: ::stc:: threading-type @ STC <> if postpone \ then ;
+: ::dtc:: threading-type @ DTC <> if postpone \ then ;
+: ::itc:: threading-type @ ITC <> if postpone \ then ;

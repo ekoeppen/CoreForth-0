@@ -1,0 +1,23 @@
+::target::
+
+$3C0 constant init-start
+$3C0 constant init-cold
+$3C4 constant init-latest
+$3C8 constant init-dp
+$3CC constant init-vp
+
+: setup-vars    init-latest @ latest ! init-dp @ (dp) ! init-vp @ vp !
+::dtc::         ['] docol #docol 2 cells move
+::dtc::         ['] next #docol 2 cells + cell move
+::dtc::         true
+::stc::         false
+                ram? !  ;
+
+::stc:: code reset-handler
+::stc::                 $4668 $3820 $0006 $4801 $6800 $4687 $03C0 $0000 end-code
+::stc:: : .threading ." [STC]" ;
+
+::dtc:: code reset-handler
+::dtc::                 $4668 $3880 $0006 $4f02 $cf20 $1c6d $4728
+::dtc::                 $ffff $03c0 $0000 end-code
+::dtc:: : .threading ." [DTC]" ;
