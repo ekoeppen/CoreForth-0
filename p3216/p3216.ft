@@ -1,0 +1,110 @@
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+:noname     t, ; is t,call
+:noname     $0f2c th, $000c th, $0c0d th, $0030 th, t,next ; is t,docon
+:noname     $f92c th, $0000 th, ; is t,enter
+:noname     s" exit" tfwdref ; is t,exit
+:noname     $ea0c th, $0020 th, $fe03 th, $0000 th, ; is t,next
+:noname     s" lit" tfwdref ; is t,lit
+:noname     s" branch" tfwdref ; is t,branch
+:noname     s" ?branch" tfwdref ; is t,?branch
+:noname     talign
+            there tlast @ t, tlast !
+            $0000000080 t,
+            there >target pack$ c@ 1+ tallot talign ; is thead
+:noname     tlast @ tcell + dup t@ $40 or swap t! ; is timmediate
+:noname     tcell + tcell + dup tc@ + taligned ; is tlink>
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$00000000 to trom
+$00018000 to tram
+        4 to tcell
+
+trom tdp !
+tram tvp !
+
+$80 torg
+
+$FC buffer:  rsp
+    variable r0
+$FC buffer:  psp
+    variable s0
+
+$40 constant init-latest
+$44 constant init-dp
+$48 constant init-vp
+
+include primitives.ft
+include ../common/core.ft
+include ../common/dictionary.ft
+include ../common/io.ft
+include ../common/exception.ft
+include ../common/utils.ft
+include compiler.ft
+
+$ffffffff constant max-uint
+$7fffffff constant max-int
+$80000000 constant min-int
+$7fffffff constant mid-uint
+$80000000 constant mid-uint+1
+
+: m*            u* s>d ;
+: um*           u* s>d ;
+
+: */            >r m* r> sm/rem swap drop ;
+: */mod         >r m* r> sm/rem ;
+
+: setup-pointers    init-latest @ latest !
+                    init-dp @ dp !
+                    init-vp @ vp ! ;
+
+: does1 does> @ 1 + ;
+: does2 does> @ 2 + ;
+
+: cold          s0 sp! r0 rp!
+                0 state ! 0 handler !
+                setup-pointers
+                hex abort
+                bye ;
+
+::host::
+
+variable hex-fd
+
+#target #16 tcell * 0 fill
+
+\ #09: 'docol
+\ #10: IP
+\ #11: RSP
+\ #12: PSP
+\ #13: Flags
+\ #14: W
+
+$60                     #09 tcell * t!
+$ffffffff               #10 tcell * t!
+t' r0 4 tcell * + t@    #11 tcell * t!
+t' s0 4 tcell * + t@    #12 tcell * t!
+t' cold                 #14 tcell * t!
+t' cold                 #15 tcell * t!
+
+tlast @ $40 t!
+tdp @   $44 t!
+tvp @   $48 t!
+
+t' docol $60 t!
+t' docon $64 t!
+t' dovar $68 t!
+t' dodoes $6C t!
+
+
+: save-hex          ( filename name-len -- )
+                    w/o create-file throw >r
+                    trom #target there trom - r@ type-hex
+                    r> close-file throw ;
+
+s" janus.hex" save-hex

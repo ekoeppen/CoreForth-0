@@ -1,0 +1,190 @@
+\ vim:ft=forth:ts=2:sw=2:expandtab
+
+variable state
+variable latest
+
+$0040 constant immediate-flag
+$0080 constant visible-flag
+
+: depth         s0 sp@ - /cell 1- ;
+: rdepth        r0 rp@ - /cell 1- ;
+: .s            sp@ depth 1- begin ?dup while
+                  swap dup @ . cell+ swap 1-
+                repeat drop cr ;
+
+: .r            rp@ rdepth 1- begin ?dup while
+                  swap dup @ . cell+ swap 1-
+                repeat drop cr ;
+
+: align         here aligned org ;
+: link>name     2 cells + ;
+: link>flags    cell+ ;
+: link>         link>name dup c@ + 1+ aligned ;
+: >body         4 cells + ;
+: visible?      link>flags @ visible-flag and 0> ;
+: immediate?    link>flags @ immediate-flag and 0> ;
+: ,link         , ;
+: ,call         , ;
+: ,enter        $0000f92c , ;
+: ,dodoes       $000cf92c , ;
+: ,next         $0020ea0c , $0000fe03 , ;
+: ,exit         ['] exit ,call ;
+
+: dodata        $000c0f28 , $00300c0d , ,next ;
+: docon         $000c0f2c , $00300c0d , ,next ;
+
+: (s")          r> count 2dup + aligned >r ;
+
+: latest-flags  ( -- addr f ) latest @ link>flags dup @ ;
+: immediate     latest-flags immediate-flag or swap ! ;
+: hide          latest-flags visible-flag invert and swap ! ;
+: reveal        latest-flags visible-flag or swap ! ;
+
+: [             false state ! ; immediate
+: ]             true state ! ;
+: compiling?    state @ ;
+: interpreting? state @ 0= ;
+: ,call         , ;
+: literal       postpone lit , ; immediate
+
+: <builds       align   here latest dup @ ,link 0 , !
+                bl word
+                dup dup c@ 1+ here swap move
+                c@ 1+ allot align ;
+
+: if            postpone ?branch here cell allot ; immediate
+: then          here swap ! ; immediate
+: else          postpone branch here cell allot swap here swap ! ; immediate
+: begin         here ; immediate
+: again         postpone branch , ; immediate
+: until         postpone ?branch , ; immediate
+: while         postpone if swap ; immediate
+: repeat        postpone branch , postpone then ; immediate
+
+: (do)          swap r> -rot >r >r >r ;
+: i             rp@ cell+ @ ;
+: j             rp@ 3 cells + @ ;
+: unloop        r> rdrop rdrop >r ;
+: (loop)        r> r> 1+ dup r@ =
+                if drop rdrop true else >r false then
+                swap >r ;
+: (+loop)       r> r> rot + dup r@ <
+                if drop rdrop true else >r false then
+                swap >r ;
+: do            postpone (do) here ; immediate
+: loop          postpone (loop)
+                postpone ?branch , ; immediate
+: +loop         postpone (+loop)
+                postpone ?branch , ; immediate
+: leave         unloop rdrop ;
+
+: si=           ( c-addr1 c-addr2 -- f )
+                dup c@ 1+ begin >r 2dup ci@= r> tuck and while
+                  1- rot 1+ rot 1+ rot
+                repeat -rot 2drop 0= ;
+
+: imove         move ;
+: find          >r latest begin
+                  @ dup if dup link>name r@ si= over visible? and
+                  else r@ swap true
+                  then
+                until rdrop
+                dup if
+                  dup link>
+                  swap immediate? not 1 or
+                then ;
+: '             bl word find dup 0= if drop count type space $3F emit
+                else drop then ;
+: words         latest begin @ ?dup while
+                  dup link>name count type space
+                repeat ;
+: list          latest begin @ ?dup while
+                  dup link> hex. space dup link>name count type cr
+                repeat ;
+
+: postpone      bl word find 0< if literal postpone ,call
+                else ,call then ; immediate
+: [']           ' postpone literal ; immediate
+: s"            postpone (s")
+                [char] " word dup dup c@ 1+ here swap move
+                c@ 1+ allot align ; immediate
+: ."            postpone s" postpone type ; immediate
+
+: :             <builds ,enter hide ] ;
+: ;             ,exit reveal [ ; immediate
+: :noname       align latest @ here latest ! ]  , here ; immediate
+
+: create        <builds dodata reveal ;
+: constant      <builds docon align , reveal ;
+: variable      <builds docon align vp dup @ dup , cell+ swap ! reveal ;
+: buffer:       <builds docon align vp dup @ dup , rot + swap ! reveal ;
+
+\ : defer         <builds $46F7 h, 6 allot reveal ; immediate
+\ : defer!        swap 1+ swap cell+ ! ;
+\ : is            ' $468F4900 over ! defer! ; immediate
+
+: (does>)       here latest @ link> #8 + org ,dodoes r> ,call org ;
+: does>         postpone (does>) ; immediate
+: recurse       latest @ link> ,call ; immediate
+: [char]        char postpone literal ; immediate
+: (             [char] ) word drop ; immediate
+: \             source# @ >in ! ; immediate
+
+: setbase       ( addr n -- addr' n' )
+                over c@ dup 0<> and
+                dup [char] $ = if drop $10 else
+                dup [char] # = if drop $0A else
+                    [char] % = if $02 else exit
+                then then then base ! 1/string ;
+: ?sign         ( addr n --  addr' n' f )
+                over c@ $2C - dup abs 1 = and
+                dup if 1+ >r 1/string r> then ;
+: >number       ( u addr u --  u' addr' u' )
+                setbase
+                begin dup while
+                  over c@ digit? 0= if drop exit then
+                  >r rot base @ * r> + -rot
+                  1/string
+                repeat ;
+
+: ?number       ( c-addr -- n -1 | c-addr 0 )
+                base @ >r
+                dup 0 0 rot count
+                ?sign >r >number if rdrop 2drop drop 0
+                else 2swap 2drop drop r> if negate then
+                true then r> base ! ;
+: ex.           $45 emit $23 emit h.4 ;
+: prompt        source-id @ if exit then space [char] o emit [char] k emit cr ;
+: interpret     begin  bl word dup c@ while      \ textadr
+                  find ?dup if                    \ xt 1/-1
+                    1+ interpreting? or              \ immed or interp?
+                    if execute else ,call then
+                  else                            \ textadr
+                    ?number if                    \ converted ok
+                      compiling? if postpone literal then
+                    else count type [char] ? emit cr $fff3 throw then
+                  then
+                repeat drop ;
+
+: evaluate      source >in @ >r >r >r
+                source# ! (source) ! 0 >in ! interpret
+                r> r> r> >in ! source# ! (source) ! ;
+
+: refill        xon tib dup tib# accept xoff
+                source# ! (source) ! 0 >in ! true ;
+
+: quit          r0 rp! 0 state ! 0 source-id !
+                begin
+                  refill
+                while
+                  source-id @ 0= if space then
+                  ['] interpret catch
+                  ?dup if
+                    dup $fff3 <> if ex. postpone [ else drop then
+                    s0 sp!
+                  then
+                  interpreting? if prompt then
+                repeat
+                bye ;
+
+: abort         s0 sp! quit ;

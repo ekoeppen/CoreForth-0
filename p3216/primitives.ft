@@ -1,0 +1,459 @@
+code next       $ea0c $0020 \ load r14, [r10++]
+                $fe03 $0000 \ move r15, r14
+                end-code
+
+code exit       $ab0c $0020 \ load r10, [r11++]
+                $ea0c $0020 \ load r14, [r10++[
+                $fe03 $0000 \ move r15, r14
+                end-code
+
+code docol      $ab0d $0030 \ store r10, [--r11]
+                $ae03 $0000 \ move r10, r14
+                $ea0c $0020 \ load r14, [r10++]
+                $fe03 $0000 \ move r15, r14
+                end-code
+
+code docon      $0f2c $000c \ load r0, [r15, #12]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code dovar      $0f28 $000c \ add r0, r15, #12
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code dodoes     $ab0d $0030 \ store r10, [--r11]
+                $ae0c $0000 \ load r10, [r14]
+                $ea0c $0020 \ load r14, [r10++]
+                $fe03 $0000 \ move r15, r14
+                end-code
+
+code branch     $aa0c $0000 \ load r10, [r10]
+                end-code
+
+code ?branch    $0c0c $0020 \ load r0, [r12++]
+                $ffa8 $000c \ z? add r15, r15, #12
+                $aa28 $0004 \ add r10, r10, #4
+                $ea0c $0020 \ load r14, [r10++]
+                $fe03 $0000 \ move r15, r14
+                $aa0c $0000 \ load r10, [r10]
+                end-code
+
+code lit        $0a0c $0020 \ load r0, [ip++]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code cell       $0023 $0004 \ move r0, #4
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code dup        $0c0c $0000 \ load r0, [r12]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code drop       $cc28 $0004 \ add r12, r12, #4
+                end-code
+
+code swap       $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0c0d $0030 \ store r0, [--r12]
+                $1c0d $0030 \ store r1, [--r12]
+                end-code
+
+code over       $0c2c $0004 \ load r0, [r12, #4]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code rot        $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $2c0c $0020 \ load r2, [r12++]
+                $1c0d $0030 \ store r1, [--r12]
+                $0c0d $0030 \ store r0, [--r12]
+                $2c0d $0030 \ store r2, [--r12]
+                end-code
+
+code ?dup       $0c0c $0000 \ load r0, [r12]
+                $ffa8 $0004 \ z? add r15, r15, #4
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code nip        $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code tuck       $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0c0d $0030 \ store r0, [--r12]
+                $1c0d $0030 \ store r1, [--r12]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code 2dup       $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $1c0d $0030 \ store r1, [--r12]
+                $0c0d $0030 \ store r0, [--r12]
+                $1c0d $0030 \ store r1, [--r12]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code 2swap      $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $2c0c $0020 \ load r2, [r12++]
+                $3c0c $0020 \ load r3, [r12++]
+                $1c0d $0030 \ store r1, [--r12]
+                $0c0d $0030 \ store r0, [--r12]
+                $3c0d $0030 \ store r3, [--r12]
+                $2c0d $0030 \ store r2, [--r12]
+                end-code
+
+code >r         $0c0c $0020 \ load r0, [r12++]
+                $0b0d $0030 \ store r0, [--r11]
+                end-code
+
+code r>         $0b0c $0020 \ load r0, [r11++]
+                $0c0d $0030 \ store r0, [--r11]
+                end-code
+
+code r@         $0b0c $0000 \ load r0, [r11]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code rdrop      $bb28 $0004 \ add r11, r11, #4
+                end-code
+
+code sp@        $0c03 $0000 \ mov r0, r12
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code rp@        $0b03 $0000 \ mov r0, r11
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code sp!        $cc0c $0000 \ load r12, [r12]
+                end-code
+
+code rp!        $bc0c $0020 \ load r11, [r12++]
+                end-code
+
+code !          $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $100d $0000 \ store r0, [r1]
+                end-code
+
+code h!         $3023 $ffff \ move r3, $ffff
+                $4307 $0000 \ not r4, r3
+                $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $1104 $0030 \ and r1, r1, r3
+                $200c $0000 \ load r2, [r0]
+                $2204 $0040 \ and r2, r2, r4
+                $0005 $0020 \ or r0, r0, r2
+                $100d $0000 \ store r0, [r1]
+                end-code
+
+code c!         $3023 $00ff \ move r3, $ff
+                $4307 $0000 \ not r4, r3
+                $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $1104 $0030 \ and r1, r1, r3
+                $200c $0000 \ load r2, [r0]
+                $2204 $0040 \ and r2, r2, r4
+                $1105 $0020 \ or r1, r1, r2
+                $100d $0000 \ store r1, [r0]
+                end-code
+
+code @          $0c0c $0000 \ load r0, [r12]
+                $000c $0000 \ load r0, [r0]
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code c@         $3023 $00ff \ move r3, $ff
+                $0c0c $0000 \ load r0, [r12]
+                $000c $0000 \ load r0, [r0]
+                $0004 $0030 \ and r0, r0, r3
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code h@         $3023 $ffff \ move r3, $ffff
+                $0c0c $0000 \ load r0, [r12]
+                $000c $0000 \ load r0, [r0]
+                $1104 $0030 \ and r0, r0, r3
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code and        $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0004 $0010 \ and r0, r0, r1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code or         $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0005 $0010 \ or r0, r0, r1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code xor        $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0006 $0010 \ xor r0, r0, r1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code not        $0c0c $0000 \ load r0, [r12]
+                $0007 $0000 \ not r0, r0
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code invert     $0c0c $0000 \ load r0, [r12]
+                $0007 $0000 \ not r0, r0
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code +          $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $0008 $0010 \ add r0, r0, r1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code -          $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $0009 $0010 \ sub r0, r0, r1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code rshift     $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $0010 $0010 \ rshift r0, r0, r1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code lshift     $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $0011 $0010 \ lshift r0, r0, r1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code 2/         $0c0c $0000 \ load r0, [r12]
+                $0033 $0001 \ asr r0, r0, #1
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code 2*         $0c0c $0000 \ load r0, [r12]
+                $0031 $0001 \ lshift r0, r0, #1
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code u*         $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $000a $0010 \ mul r0, r0, r1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code *          $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $000a $0010 \ mul r0, r0, r1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code u/mod      $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $200b $0010 \ div r2, r0, r1
+                $310a $0020 \ mul r3, r1, r2
+                $0009 $0030 \ sub r0, r0, r3
+                $0c0d $0030 \ store r0, [--r12]
+                $2c0d $0030 \ store r2, [--r12]
+                end-code
+
+code s/rem      $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $2012 $0010 \ sdiv r2, r0, r1
+                $310a $0020 \ mul r3, r1, r2
+                $0009 $0030 \ sub r0, r0, r3
+                $0c0d $0030 \ store r0, [--r12]
+                $2c0d $0030 \ store r2, [--r12]
+                end-code
+
+code 1+         $0c0c $0000 \ load r0, [r12]
+                $0028 $0001 \ add r0, r0, #1
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code 1-         $0c0c $0000 \ load r0, [r12]
+                $0029 $0001 \ sub r0, r0, #1
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code 2+         $0c0c $0000 \ load r0, [r12]
+                $0028 $0002 \ add r0, r0, #1
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code 2-         $0c0c $0000 \ load r0, [r12]
+                $0029 $0002 \ sub r0, r0, #1
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code char+      $0c0c $0000 \ load r0, [r12]
+                $0028 $0001 \ add r0, r0, #1
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code cell+      $0c0c $0000 \ load r0, [r12]
+                $0028 $0004 \ add r0, r0, #4
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code cell-      $0c0c $0000 \ load r0, [r12]
+                $0029 $0004 \ sub r0, r0, #4
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code chars      end-code
+
+code cells      $0c0c $0000 \ load r0, [r12]
+                $002a $0004 \ mul r0, r0, #4
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code /cell      $0c0c $0000 \ load r0, [r12]
+                $002b $0004 \ div r0, r0, #4
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code 0=         $1109 $0010 \ sub r1, r1, r1
+                $0c0c $0020 \ load r0, [r12++]
+                $11a9 $0001 \ z? sub r1, r1, #1
+                $1c0d $0030 \ store r1, [--r12]
+                end-code
+
+code 0<>        $1109 $0010 \ sub r1, r1, r1
+                $0c0c $0020 \ load r0, [r12++]
+                $11a9 $0001 \ z? sub r1, r1, #1
+                $1107 $0000 \ not r1, r1
+                $1c0d $0030 \ store r1, [--r12]
+                end-code
+
+code 0<         $1109 $0010 \ sub r1, r1, r1
+                $0c0c $0020 \ load r0, [r12++]
+                $1169 $0001 \ n? sub r1, r1, #1
+                $1c0d $0030 \ store r1, [--r12]
+                end-code
+
+code 0>         $1109 $0010 \ sub r1, r1, r1
+                $0c0c $0020 \ load r0, [r12++]
+                $0007 $0000 \ not r0, r0
+                $0028 $0001 \ add r0, r0, #1
+                $1169 $0001 \ n? sub r1, r1, #1
+                $1c0d $0030 \ store r1, [--r12]
+                end-code
+
+code u<         $2209 $0020 \ sub r2, r2, r2
+                $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $0009 $0010 \ sub r0, r0, r1
+                $2269 $0001 \ n? sub r2, r2, #1
+                $2c0d $0030 \ store r2, [--r12]
+                end-code
+
+code =          $2209 $0020 \ sub r2, r2, r2
+                $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $0009 $0010 \ sub r0, r0, r1
+                $22a9 $0001 \ z? sub r2, r2, #1
+                $2c0d $0030 \ store r2, [--r12]
+                end-code
+
+code abs        $0c0c $0000 \ load r0, [r12]
+                $ff68 $0008 \ n? add r15, r15, #8
+                $ea0c $0020 \ load r14, [r10++]
+                $fe03 $0000 \ move r15, r14
+                $0007 $0000 \ not r0, r0
+                $0028 $0001 \ add r0, r0, #1
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code true       $000e $ffff \ setlow r0, $ffff
+                $000f $ffff \ sethigh r0, $ffff
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code false      $0009 $0000 \ sub r0, r0, r0
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code execute    $ec0c $0020 \ load r14, [r12++]
+                $fe03 $0000 \ move r15, r14
+                end-code
+
+code emit       $0c0c $0020 \ load r0, [r12++]
+                $003f $0001 \ syscall r0, r0, #1
+                end-code
+
+code bye        $0009 00000 \ sub r0, r0, r0
+                $003f $0002 \ syscall r0, r0, #2
+                end-code
+
+code key        $003f $0000 \ syscall r0, r0, #1
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code sysdump    $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $013f $0003 \ syscall r0, r1, #3
+                end-code
+
+code regdump    $003f $0004 \ syscall r0, r0, #4
+                end-code
+
+code trace      $0c0c $0020 \ load r0, [r12++]
+                $003f $0005 \ syscall r0, r0, #4
+                end-code
+
+code negate     $0c0c $0000 \ load r0, [r12]
+                $0007 $0000 \ not r0, r0
+                $0028 $0001 \ add r0, r0, #1
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code m+         $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $0008 $0010 \ add r0, r0, r1
+                $1d03 $0000 \ mov r1, r13
+                $1130 $0002 \ rshift r1, r1, #2
+                $1124 $0001 \ and r1, r1, #1
+                $0c0d $0030 \ store r0, [r--12]
+                $1c0d $0030 \ store r1, [r--12]
+                end-code
+
+code d+         $3c0c $0020 \ load r3, [r12++]
+                $2c0c $0020 \ load r2, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $1108 $0030 \ add r1, r1, r3
+                $0008 $0020 \ add r0, r0, r2
+                $4d03 $0000 \ mov r4, r13
+                $4430 $0002 \ rshift r4, r4, #2
+                $4424 $0001 \ and r4, r4, #1
+                $1108 $0040 \ add r1, r1, r4
+                $0c0d $0030 \ store r0, [r--12]
+                $1c0d $0030 \ store r1, [r--12]
+                end-code
+
+: u<            2dup swap not and 1 and >r
+                1 rshift swap 1 rshift swap - r> -  0< ;
+
+: <             2dup swap not and 1 and >r
+                2/ swap 2/ swap - r> -  0< ;
+
+: /mod          2dup xor 0< >r
+                swap dup 0< dup >r if negate then
+                swap dup 0< if negate then
+                u/mod swap r> if negate then swap r> if negate then ;
+
+: um/mod        nip u/mod ;
+: sm/rem        nip s/rem ;
+: fm/mod        nip /mod ;
+
+: aligned       3 + $fffffffc and ;
+: depth         s0 sp@ - /cell ;
+: pick          1+ cells sp@ + @ ;
