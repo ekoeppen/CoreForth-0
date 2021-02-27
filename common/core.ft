@@ -52,6 +52,10 @@ variable base
                   over c@ over c! 1+ swap 1+ swap
                   r> 1- >r
                 repeat rdrop 2drop ;
+: cmove>        >r swap r@ + swap r@ + begin r@ 0> while
+                  swap 1- swap 1- over c@ over c!
+                  r> 1- >r
+                repeat rdrop 2drop ;
 : hmove         >r begin r@ 0> while
                   over h@ over h! 2+ swap 2+ swap
                   r> 2- >r
@@ -65,7 +69,7 @@ variable base
                 0= if r> wmove exit then
                 2dup $1 and swap $1 and r@ $1 and or or
                 0= if r> hmove exit then
-                r> cmove ;
+                2dup < if r> cmove> else r> cmove then ;
 
 : @cell+        ( a -- a' n ) dup cell+ swap @ ;
 : depth         s0 sp@ - /cell 1- ;
