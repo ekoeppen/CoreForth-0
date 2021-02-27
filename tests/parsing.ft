@@ -1,0 +1,42 @@
+\ ------------------------------------------------------------------------
+TESTING CHAR [CHAR] [ ] BL S"
+
+T{ BL -> 20 }T
+T{ CHAR X -> 58 }T
+T{ CHAR HELLO -> 48 }T
+T{ : GC1 [CHAR] X ; -> }T
+T{ : GC2 [CHAR] HELLO ; -> }T
+T{ GC1 -> 58 }T
+T{ GC2 -> 48 }T
+T{ : GC3 [ GC1 ] LITERAL ; -> }T
+T{ GC3 -> 58 }T
+T{ : GC4 S" XY" ; -> }T
+T{ GC4 SWAP DROP -> 2 }T
+T{ GC4 DROP DUP C@ SWAP CHAR+ C@ -> 58 59 }T
+
+\ ------------------------------------------------------------------------
+TESTING SOURCE >IN WORD
+
+: GS1 S" SOURCE" 2DUP EVALUATE
+       >R SWAP >R = R> R> = ;
+T{ GS1 -> <TRUE> <TRUE> }T
+
+VARIABLE SCANS
+: RESCAN?  -1 SCANS +! SCANS @ IF 0 >IN ! THEN ;
+
+T{ 2 SCANS !
+345 RESCAN?
+-> 345 345 }T
+
+: GS2  5 SCANS ! S" 123 RESCAN?" EVALUATE ;
+T{ GS2 -> 123 123 123 123 123 }T
+
+: GS3 WORD COUNT SWAP C@ ;
+T{ BL GS3 HELLO -> 5 CHAR H }T
+T{ CHAR " GS3 GOODBYE" -> 7 CHAR G }T
+T{ BL GS3
+DROP -> 0 }T            \ BLANK LINE RETURN ZERO-LENGTH STRING
+
+: GS4 SOURCE >IN ! DROP ;
+T{ GS4 123 456
+-> }T

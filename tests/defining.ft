@@ -1,0 +1,80 @@
+\ ------------------------------------------------------------------------
+TESTING DEFINING WORDS: : ; CONSTANT VARIABLE CREATE DOES> >BODY
+
+T{ 123 CONSTANT X123 -> }T
+T{ X123 -> 123 }T
+T{ : EQU CONSTANT ; -> }T
+T{ X123 EQU Y123 -> }T
+T{ Y123 -> 123 }T
+
+T{ VARIABLE V1 -> }T
+T{ 123 V1 ! -> }T
+T{ V1 @ -> 123 }T
+
+T{ : NOP : POSTPONE ; ; -> }T
+T{ NOP NOP1 NOP NOP2 -> }T
+T{ NOP1 -> }T
+T{ NOP2 -> }T
+
+T{ : DOES1 DOES> @ 1 + ; -> }T
+T{ : DOES2 DOES> @ 2 + ; -> }T
+T{ CREATE CR1 -> }T
+T{ CR1 -> HERE }T
+T{ ' CR1 >BODY -> HERE }T
+T{ 1 , -> }T
+T{ CR1 @ -> 1 }T
+T{ DOES1 -> }T
+T{ CR1 -> 2 }T
+T{ DOES2 -> }T
+T{ CR1 -> 3 }T
+
+T{ : WEIRD: CREATE DOES> 1 + DOES> 2 + ; -> }T
+T{ WEIRD: W1 -> }T
+T{ ' W1 >BODY -> HERE }T
+T{ W1 -> HERE 1 + }T
+T{ W1 -> HERE 2 + }T
+
+\ ------------------------------------------------------------------------
+TESTING EVALUATE
+
+: GE1 S" 123" ; IMMEDIATE
+: GE2 S" 123 1+" ; IMMEDIATE
+: GE3 S" : GE4 345 ;" ;
+: GE5 EVALUATE ; IMMEDIATE
+
+T{ GE1 EVALUATE -> 123 }T         ( TEST EVALUATE IN INTERP. STATE )
+T{ GE2 EVALUATE -> 124 }T
+T{ GE3 EVALUATE -> }T
+T{ GE4 -> 345 }T
+
+T{ : GE6 GE1 GE5 ; -> }T         ( TEST EVALUATE IN COMPILE STATE )
+T{ GE6 -> 123 }T
+T{ : GE7 GE2 GE5 ; -> }T
+T{ GE7 -> 124 }T
+
+\ ------------------------------------------------------------------------
+TESTING SOURCE >IN WORD
+
+: GS1 S" SOURCE" 2DUP EVALUATE
+       >R SWAP >R = R> R> = ;
+T{ GS1 -> <TRUE> <TRUE> }T
+
+VARIABLE SCANS
+: RESCAN?  -1 SCANS +! SCANS @ IF 0 >IN ! THEN ;
+
+T{ 2 SCANS !
+345 RESCAN?
+-> 345 345 }T
+
+: GS2  5 SCANS ! S" 123 RESCAN?" EVALUATE ;
+T{ GS2 -> 123 123 123 123 123 }T
+
+: GS3 WORD COUNT SWAP C@ ;
+T{ BL GS3 HELLO -> 5 CHAR H }T
+T{ CHAR " GS3 GOODBYE" -> 7 CHAR G }T
+T{ BL GS3
+DROP -> 0 }T            \ BLANK LINE RETURN ZERO-LENGTH STRING
+
+: GS4 SOURCE >IN ! DROP ;
+T{ GS4 123 456
+-> }T
