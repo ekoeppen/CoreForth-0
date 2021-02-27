@@ -389,7 +389,7 @@ code emit       $0c0c $0020 \ load r0, [r12++]
                 $003f $0001 \ syscall r0, r0, #1
                 end-code
 
-code bye        $0009 00000 \ sub r0, r0, r0
+code bye        $0c0c $0000 \ load r0, [r12]
                 $003f $0002 \ syscall r0, r0, #2
                 end-code
 
