@@ -11,6 +11,12 @@
                     tvp @               trom $000003CC + t!
                     ;
 
+: save-bin         ( filename name-len -- )
+                    vars-to-image
+                    w/o create-file throw >r
+                    #target there r@ write-file throw
+                    r> close-file throw ;
+
 : save-hex          ( filename name-len -- )
                     vars-to-image
                     w/o create-file throw >r
