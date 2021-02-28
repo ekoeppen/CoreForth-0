@@ -102,9 +102,9 @@ t' dovar $68 t!
 t' dodoes $6C t!
 
 
-: save-hex          ( filename name-len -- )
+: save-bin         ( filename name-len -- )
                     w/o create-file throw >r
-                    trom #target there trom - r@ type-hex
+                    #target there r@ write-file throw
                     r> close-file throw ;
 
-s" janus.hex" save-hex
+s" p3216.bin" save-bin
