@@ -72,6 +72,10 @@ code rom-dump   $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
 
-include ../janus/save-image.ft
+: save-bin         ( filename name-len -- )
+                    w/o create-file throw >r
+                    #target there r@ write-file throw
+                    r> close-file throw ;
 
-s" janus.hex" save-hex
+::dtc:: s" thumbulator-m3-dtc.bin" save-bin
+::stc:: s" thumbulator-m3-stc.bin" save-bin

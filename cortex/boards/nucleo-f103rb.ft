@@ -137,4 +137,5 @@ include ../janus/init.ft
 
 include ../janus/save-image.ft
 
-s" janus.hex" save-hex
+::dtc:: s" nucleo-f103rb-dtc.hex" save-hex
+::stc:: s" nucleo-f103rb-stc.hex" save-hex

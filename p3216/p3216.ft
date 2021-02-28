@@ -101,7 +101,6 @@ t' docon $64 t!
 t' dovar $68 t!
 t' dodoes $6C t!
 
-
 : save-bin         ( filename name-len -- )
                     w/o create-file throw >r
                     #target there r@ write-file throw
