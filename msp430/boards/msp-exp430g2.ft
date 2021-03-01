@@ -143,7 +143,7 @@ code vector-31  $4307 $4031 $0240 $4034 $027E $4020 cold end-code
 
 ::host::
 
-variable hex-fd
+variable fd
 
 t' turnkey dup              #info w!        #info $0C + w!
 tlast @ dup                 #info $02 + w!  #info $0E + w!
@@ -155,8 +155,17 @@ t' vector-19 #vectors #38 + w!
 t' vector-26 #vectors #52 + w!
 t' vector-31 #vectors #62 + w!
 
-s" msp-exp430g2.hex" w/o create-file throw hex-fd !
-$1000 #info $100 hex-fd @ type-hex
-trom #target there trom - hex-fd @ type-hex
-$ffc0 #vectors $40 hex-fd @ type-hex
-hex-fd @ close-file throw
+: save-bin ( mem mem-len name name-len -- )
+                w/o create-file throw >r
+                r@ write-file throw
+                r> close-file throw ;
+
+s" msp-exp430g2.hex" w/o create-file throw fd !
+$1000 #info $100 fd @ type-hex
+trom #target there trom - fd @ type-hex
+$ffc0 #vectors $40 fd @ type-hex
+fd @ close-file throw
+
+#info $100 s" msp-exp430g2-info.bin" save-bin
+#target there trom - s" msp-exp430g2-main.bin" save-bin
+#vectors $40 s" msp-exp430g2-vectors.bin" save-bin
