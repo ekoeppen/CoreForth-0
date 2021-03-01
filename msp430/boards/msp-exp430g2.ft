@@ -155,7 +155,7 @@ t' vector-19 #vectors #38 + w!
 t' vector-26 #vectors #52 + w!
 t' vector-31 #vectors #62 + w!
 
-s" janus.hex" w/o create-file throw hex-fd !
+s" msp-exp430g2.hex" w/o create-file throw hex-fd !
 $1000 #info $100 hex-fd @ type-hex
 trom #target there trom - hex-fd @ type-hex
 $ffc0 #vectors $40 hex-fd @ type-hex
