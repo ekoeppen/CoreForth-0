@@ -51,6 +51,7 @@ include ../dictionary/full.ft
 include ../../common/exception.ft
 include ../common/compiler.ft
 include ../../common/utils.ft
+include ../../common/interpret.ft
 
 $400 constant #page
 

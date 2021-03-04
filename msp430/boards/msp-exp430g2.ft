@@ -62,6 +62,7 @@ include ../../common/eventloop.ft
 include ../../common/timeout.ft
 include ../../common/utils.ft
 include ../compiler.ft
+include ../../common/interpret.ft
 
 include ../cpus/msp430g2x53/irq.fs
 include ../cpus/msp430g2x53/wdt.fs
@@ -135,6 +136,18 @@ include ../../drivers/nrf24-utils.ft
 : turnkey       setup-hw 0 source-id !
                 ." CoreForth-0 ready" cr
                 abort ;
+
+: setup-pointers
+                init-dp @ dp !
+                init-vp @ vp !
+                init-latest @ latest !  ;
+
+: cold          s0 sp! r0 rp! #16 base ! 0 state ! 0 handler !
+                setup-pointers
+                'turnkey @ ?dup if catch ?dup if ex. then
+                else abort
+                then
+                cold ;
 
 code vector-18  $c0f1 $00f8 $0000 $1300 end-code
 code vector-19  $c0f1 $00f8 $0000 $1300 end-code

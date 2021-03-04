@@ -70,6 +70,19 @@ include ../../common/eventloop.ft
 include ../../common/timeout.ft
 include ../../common/utils.ft
 include ../compiler.ft
+include ../../common/interpret.ft
+
+: setup-pointers
+                init-dp @ dp !
+                init-vp @ vp !
+                init-latest @ latest !  ;
+
+: cold          s0 sp! r0 rp! #16 base ! 0 state ! 0 handler !
+                setup-pointers
+                'turnkey @ ?dup if catch ?dup if ex. then
+                else abort
+                then
+                cold ;
 
 : turnkey       0 source-id !
                 ." CoreForth-0 ready" cr
