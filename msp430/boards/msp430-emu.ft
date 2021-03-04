@@ -1,0 +1,96 @@
+\ vim:ft=forth:ts=2:sw=2:expandtab
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+create #info $100 allot         #info $100 $ff fill
+create #vectors $40 allot       #vectors $40 $ff fill
+
+:noname     th, ; is t,call
+:noname     $12B0 th, s" docon" tfwdref ; is t,docon
+:noname     $12B0 th, s" docol" tfwdref ; is t,enter
+:noname     ; is t,next
+:noname     s" exit" tfwdref ; is t,exit
+:noname     s" lit" tfwdref ; is t,lit
+:noname     s" branch" tfwdref ; is t,branch
+:noname     s" ?branch" tfwdref ; is t,?branch
+:noname     ( c-addr n -- : compile word header into the target image )
+            talign
+            there tlast @ th, tlast !
+            there >target pack$
+            dup c@ tuck 1+ tallot talign
+                swap $40 or swap c! ; is thead
+:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tcell + dup tc@ $3F and + 1+ taligned ; is tlink>
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$00004000 to trom
+$00000200 to tram
+        2 to tcell
+
+trom tdp !
+tram tvp !
+
+include ../cpus/msp430-primitives.ft
+
+code bye        $0000 $4530 end-code
+code emit       $0001 $4437 $4530 end-code
+code key        $8324 $4784 $0000 $0002 $4530 end-code
+: key? true ;
+code trace-on   $0003 $4530 end-code
+code trace-off  $0004 $4530 end-code
+code show-regs  $0005 $4530 end-code
+
+  $3E buffer:  psp
+      variable s0
+  $3E buffer:  rsp
+      variable r0
+
+$1000 constant info
+
+$1000 constant 'turnkey
+$1002 constant init-latest
+$1004 constant init-dp
+$1006 constant init-vp
+$1008 constant user-low
+$100A constant user-high
+$100C constant save-init
+
+$0400 constant ram-top
+
+include ../../common/core.ft
+include ../../common/dictionary.ft
+include ../../common/io.ft
+include ../../common/exception.ft
+include ../../common/eventloop.ft
+include ../../common/timeout.ft
+include ../../common/utils.ft
+include ../compiler.ft
+
+: turnkey       0 source-id !
+                ." CoreForth-0 ready" cr
+                abort ;
+
+code vector-31  $4307 $4031 $0240 $4034 $027E $4020 cold end-code
+
+::host::
+
+t' turnkey               #info w!
+tlast @                  #info $02 + w!
+tdp @ $200 + $FE00 and   #info $04 + w!
+tvp @                    #info $06 + w!
+
+t' vector-31 #vectors #62 + w!
+
+: save-bin ( mem mem-len name name-len -- )
+                w/o create-file throw >r
+                r@ write-file throw
+                r> close-file throw ;
+
+#info $100 s" msp430-emu-info.bin" save-bin
+#target there trom - s" msp430-emu-main.bin" save-bin
+#vectors $40 s" msp430-emu-vectors.bin" save-bin
