@@ -109,8 +109,8 @@ code dodoes     $8324 $4784 $0000 $4137 $4727 $4530 end-code
 
 : recurse       latest @ link> ,call ; immediate
 : [char]        char postpone literal ; immediate
-\ : (             [char] ) word drop ; immediate
-\ : \             source# @ >in ! ; immediate
+: (             [char] ) word drop ; immediate
+: \             source# @ >in ! ; immediate
 : setbase       ( addr n -- addr' n' )
                 over c@ dup 0<> and
                 dup [char] $ = if drop $10 else
@@ -137,7 +137,7 @@ code dodoes     $8324 $4784 $0000 $4137 $4727 $4530 end-code
 : s"            postpone (s")
                 [char] " word dup dup c@ 1+ here swap imove
                 c@ 1+ allot align ; immediate
-\ : ."            postpone s" postpone type ; immediate
+: ."            postpone s" postpone type ; immediate
 
 \ -----------------------------------------------------------------------------
 \ -- Interpreter
