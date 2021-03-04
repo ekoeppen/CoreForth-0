@@ -1,6 +1,5 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab
 
-variable state
 variable latest
 
 $0040 constant immediate-flag
@@ -40,24 +39,21 @@ $0080 constant visible-flag
 : hide          latest-flags visible-flag invert and swap ! ;
 : reveal        latest-flags visible-flag or swap ! ;
 
+: ,call         , ;
+: literal       postpone lit , ; immediate
+
+variable state
+
 : [             false state ! ; immediate
 : ]             true state ! ;
 : compiling?    state @ ;
 : interpreting? state @ 0= ;
-: ,call         , ;
-: literal       postpone lit , ; immediate
-
-: <builds       align   here latest dup @ ,link 0 , !
-                bl word
-                dup dup c@ 1+ here swap move
-                c@ 1+ allot align ;
 
 : si=           ( c-addr1 c-addr2 -- f )
                 dup c@ 1+ begin >r 2dup ci@= r> tuck and while
                   1- rot 1+ rot 1+ rot
                 repeat -rot 2drop 0= ;
 
-: imove         move ;
 : find          >r latest begin
                   @ dup if dup link>name r@ si= over visible? and
                   else r@ swap true
@@ -72,9 +68,6 @@ $0080 constant visible-flag
 : words         latest begin @ ?dup while
                   dup link>name count type space
                 repeat ;
-: list          latest begin @ ?dup while
-                  dup link> hex. space dup link>name count type cr
-                repeat ;
 
 : postpone      bl word find 0< if literal postpone ,call
                 else ,call then ; immediate
@@ -83,6 +76,11 @@ $0080 constant visible-flag
                 [char] " word dup dup c@ 1+ here swap move
                 c@ 1+ allot align ; immediate
 : ."            postpone s" postpone type ; immediate
+
+: <builds       align   here latest dup @ ,link 0 , !
+                bl word
+                dup dup c@ 1+ here swap move
+                c@ 1+ allot align ;
 
 : :             <builds ,enter hide ] ;
 : ;             ,exit reveal [ ; immediate

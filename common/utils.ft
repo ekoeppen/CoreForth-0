@@ -23,3 +23,7 @@
 : b.16'         base @ swap dup 8 rshift b.8' [char] ' emit b.8' base ! ;
 
 : delay         begin ?dup while 1- repeat ;
+
+: list          latest begin @ ?dup while
+                  dup link> hex. space dup link>name count type cr
+                repeat ;
