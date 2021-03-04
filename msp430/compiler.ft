@@ -82,7 +82,7 @@ variable latest
 : ,dovar        (,action) ['] dovar , ;
 : ,exit         ['] exit , ;
 
-code dodoes     $8324 $4784 $0000 $4137 $4727 $4530 end-code
+code dodoes     $8324 $4784 $0000 $4136 $4137 $1205 $4605 $4530 end-code
 
 : immediate     $40 latest @ link>flags bic! ;
 : reveal        $80 latest @ link>flags bic! ;
@@ -106,7 +106,7 @@ code dodoes     $8324 $4784 $0000 $4137 $4727 $4530 end-code
 : ;             ,exit reveal [ ; immediate
 : :noname       align latest @ here dup latest ! ,enter ] ; immediate
 
-: does>         postpone (;code) $4020 , ['] dodoes , ; immediate
+: does>         postpone (;code) $12b0 , ['] dodoes , ; immediate
 : alloc         vp @ dup rot + vp ! ;
 : create        <builds ,dovar ;
 \ : constant      <builds , does> @ ;
