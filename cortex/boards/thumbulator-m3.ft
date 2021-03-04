@@ -45,7 +45,8 @@ code wait-key   $2182 $B402 $BEAB end-code
 : emit          emulator-uart-tx ! ;
 : key           wait-key emulator-uart-rx @ ;
 
-include ../../common/io.ft
+include ../../common/output.ft
+include ../../common/input.ft
 include ../dictionary/full.ft
 ::stc:: include ../threading/highlevel/stc.ft
 ::dtc:: include ../threading/highlevel/dtc.ft

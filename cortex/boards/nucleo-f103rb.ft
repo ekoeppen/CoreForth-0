@@ -44,7 +44,8 @@ include ../dictionary/common.ft
 : key?          USART2_SR @ %00100000 and ;
 : key           begin key? until USART2_DR c@ ;
 
-include ../../common/io.ft
+include ../../common/output.ft
+include ../../common/input.ft
 include ../dictionary/full.ft
 ::stc:: include ../threading/highlevel/stc.ft
 ::dtc:: include ../threading/highlevel/dtc.ft

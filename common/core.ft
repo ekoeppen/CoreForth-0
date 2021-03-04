@@ -71,5 +71,10 @@ variable base
                 0= if r> hmove exit then
                 2dup < if r> cmove> else r> cmove then ;
 
+: binary        #2 base ! ;
+: octal         #8 base ! ;
+: decimal       #10 base ! ;
+: hex           #16 base ! ;
+
 : @cell+        ( a -- a' n ) dup cell+ swap @ ;
 : depth         s0 sp@ - /cell 1- ;

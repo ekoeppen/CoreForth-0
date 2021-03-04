@@ -42,7 +42,8 @@ $48 constant init-vp
 include primitives.ft
 include ../common/core.ft
 include ../common/dictionary.ft
-include ../common/io.ft
+include ../common/output.ft
+include ../common/input.ft
 include ../common/exception.ft
 include compiler.ft
 include ../common/control-flow.ft
