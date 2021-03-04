@@ -29,8 +29,8 @@ $0080 constant visible-flag
 : ,next         $0020ea0c , $0000fe03 , ;
 : ,exit         ['] exit ,call ;
 
-: dodata        $000c0f28 , $00300c0d , ,next ;
-: docon         $000c0f2c , $00300c0d , ,next ;
+: ,dodata       $000c0f28 , $00300c0d , ,next ;
+: ,docon        $000c0f2c , $00300c0d , ,next ;
 
 : (s")          r> count 2dup + aligned >r ;
 
@@ -86,10 +86,10 @@ variable state
 : ;             ,exit reveal [ ; immediate
 : :noname       align latest @ here latest ! ]  , here ; immediate
 
-: create        <builds dodata reveal ;
-: constant      <builds docon align , reveal ;
-: variable      <builds docon align vp dup @ dup , cell+ swap ! reveal ;
-: buffer:       <builds docon align vp dup @ dup , rot + swap ! reveal ;
+: create        <builds ,dodata reveal ;
+: constant      <builds ,docon align , reveal ;
+: variable      <builds ,docon align vp dup @ dup , cell+ swap ! reveal ;
+: buffer:       <builds ,docon align vp dup @ dup , rot + swap ! reveal ;
 
 \ : defer         <builds $46F7 h, 6 allot reveal ; immediate
 \ : defer!        swap 1+ swap cell+ ! ;
