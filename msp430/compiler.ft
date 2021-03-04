@@ -57,9 +57,10 @@ variable latest
 : link>flags    cell+ ;
 : link>         link>name dup c@ $3F and + 1+ aligned ;
 : >body         2 cells + ;
+: visible?      link>flags c@ $80 and 0= ;
 : ,link         , ;
 : find          >r latest begin
-                  @ dup if dup link>name r@ dict-compare
+                  @ dup if dup link>name r@ dict-compare over visible? and
                   else r@ swap true
                   then
                 until rdrop
@@ -108,13 +109,13 @@ code dodoes     $8324 $4784 $0000 $4136 $4137 $1205 $4605 $4530 end-code
 
 : does>         postpone (;code) $12b0 , ['] dodoes , ; immediate
 : alloc         vp @ dup rot + vp ! ;
-: create        <builds ,dovar ;
+: create        <builds ,dovar reveal ;
 \ : constant      <builds , does> @ ;
 \ : variable      <builds cell alloc , does> ;
 \ : buffer:       <builds alloc , does> ;
-: constant      <builds ,docon , ;
-: variable      <builds ,docon cell alloc , ;
-: buffer:       <builds ,docon alloc , ;
+: constant      <builds ,docon , reveal ;
+: variable      <builds ,docon cell alloc , reveal ;
+: buffer:       <builds ,docon alloc , reveal ;
 : defer         <builds $FFFF , 6 allot ; immediate
 : is            ' $FFFF over ! cell+ ! ; immediate
 
