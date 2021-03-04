@@ -110,9 +110,6 @@ code dodoes     $8324 $4784 $0000 $4136 $4137 $1205 $4605 $4530 end-code
 : does>         postpone (;code) $12b0 , ['] dodoes , ; immediate
 : alloc         vp @ dup rot + vp ! ;
 : create        <builds ,dovar reveal ;
-\ : constant      <builds , does> @ ;
-\ : variable      <builds cell alloc , does> ;
-\ : buffer:       <builds alloc , does> ;
 : constant      <builds ,docon , reveal ;
 : variable      <builds ,docon cell alloc , reveal ;
 : buffer:       <builds ,docon alloc , reveal ;

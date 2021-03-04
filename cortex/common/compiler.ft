@@ -4,7 +4,7 @@ variable state
 
 : [             false state ! ; immediate
 : ]             true state ! ;
-: literal       postpone lit i, ; immediate
+: literal       postpone lit , ; immediate
 
 : compiling?    state @ ;
 : interpreting? state @ 0= ;
@@ -38,9 +38,9 @@ variable state
                 swap >r ;
 : do            postpone (do) here ; immediate
 : loop          postpone (loop)
-                postpone ?branch i, ; immediate
+                postpone ?branch , ; immediate
 : +loop         postpone (+loop)
-                postpone ?branch i, ; immediate
+                postpone ?branch , ; immediate
 : leave         unloop rdrop ;
 
 : find          >r latest begin
@@ -68,17 +68,17 @@ variable state
 
 : :             <builds ,enter hide ] ;
 : ;             ,exit reveal [ ; immediate
-: :noname       align latest @ here latest ! ]  i, here ; immediate
+: :noname       align latest @ here latest ! ]  , here ; immediate
 
-: create        <builds dodata reveal ;
-: constant      <builds docon align i, reveal ;
+: create        <builds ,dodata reveal ;
+: constant      <builds ,docon align , reveal ;
 : variable      <builds
-                ram? @ if dodata cell allot
-                else docon align vp dup @ dup i, cell+ swap !
+                ram? @ if ,dodata cell allot
+                else ,docon align vp dup @ dup , cell+ swap !
                 then reveal ;
 : buffer:       <builds
-                ram? @ if dodata allot
-                else docon align vp dup @ dup i, rot + swap !
+                ram? @ if ,dodata allot
+                else ,docon align vp dup @ dup , rot + swap !
                 then reveal ;
 
 : defer         <builds $46F7 h, 6 allot reveal ; immediate

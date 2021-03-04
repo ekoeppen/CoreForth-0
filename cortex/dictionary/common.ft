@@ -11,9 +11,8 @@ $0080 constant visible-flag
 : here          dp @ ;
 : allot         here + dp ! ;
 : org           dp ! ;
-: ,             here ! cell allot ;
 : h,            here h! 2 allot ;
 : c,            here c! 1 allot ;
-: i,            dup h, #16 rshift h, ;
+: ,             dup h, #16 rshift h, ;
 
 : align         here aligned org ;

@@ -3,13 +3,13 @@
                 dup #12 rshift %0000011111111111 and $F000 or h,
                      #1 rshift %0000011111111111 and $F800 or h, ;
 
-: ,call         1+ i, ;
+: ,call         1+ , ;
 : ,enter        ['] docol ,bl ;
 : ,next         $cf20 h, $4728 h, ;
 : ,exit         ['] exit ,call ;
 
-: dodata        $F846 h, $0D04 h, $4678 h, $3004 h, $cf20 h, $4728 h, ;
-: docon         $F846 h, $0D04 h, $4801 h, $cf20 h, $4728 h, 2 allot ;
+: ,dodata        $F846 h, $0D04 h, $4678 h, $3004 h, $cf20 h, $4728 h, ;
+: ,docon         $F846 h, $0D04 h, $4801 h, $cf20 h, $4728 h, 2 allot ;
 
 : (s")          r> count 2dup + aligned >r ;
 
