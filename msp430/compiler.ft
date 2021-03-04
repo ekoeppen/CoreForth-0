@@ -159,8 +159,8 @@ code dodoes     $8324 $4784 $0000 $4136 $4137 $1205 $4605 $4530 end-code
                 init-latest @ latest !  ;
 
 : ex.           $45 emit $23 emit h.4 ;
-: prompt        [char] o emit [char] k emit cr ;
-: (interpret)   begin  bl word  dup c@ while      \ textadr
+: prompt        source-id @ if exit then space [char] o emit [char] k emit cr ;
+: interpret     begin  bl word  dup c@ while      \ textadr
                   find ?dup if                    \ xt 1/-1
                     1+ state @ 0= or              \ immed or interp?
                     if execute else ,call then
@@ -173,19 +173,29 @@ code dodoes     $8324 $4784 $0000 $4136 $4137 $1205 $4605 $4530 end-code
                     then  \ error
                   then
                 repeat drop ;
-: evaluate      source# !  (source) ! 0 >in !  (interpret) ;
-: quit          r0 rp! 0 state !
+: evaluate      source >in @ >r >r >r
+                source# ! (source) ! 0 >in ! interpret
+                r> r> r> >in ! source# ! (source) ! ;
+
+: refill        xon tib dup tib# accept xoff
+                source# ! (source) ! 0 >in ! true ;
+
+: quit          r0 rp! 0 state ! 0 source-id !
                 begin
-                  xon tib dup tib# accept space xoff
-                  ['] evaluate catch
+                  refill
+                while
+                  source-id @ 0= if space then
+                  ['] interpret catch
                   ?dup if
-                    dup $fff3 <> if ex. else drop then
+                    dup $fff3 <> if ex. postpone [ else drop then
                     s0 sp!
                   then
-                  state @ 0= if space prompt then
-                again ;
+                  interpreting? if prompt then
+                repeat
+                bye ;
 
 : abort         s0 sp! quit ;
+
 : cold          s0 sp! r0 rp! #16 base ! 0 state ! 0 handler !
                 setup-pointers
                 'turnkey @ ?dup if catch ?dup if ex. then
