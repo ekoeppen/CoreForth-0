@@ -70,6 +70,7 @@ include ../../common/eventloop.ft
 include ../../common/timeout.ft
 include ../../common/utils.ft
 include ../compiler.ft
+include ../../common/control-flow.ft
 include ../../common/interpret.ft
 
 : setup-pointers

@@ -52,32 +52,6 @@ $0080 constant visible-flag
                 dup dup c@ 1+ here swap move
                 c@ 1+ allot align ;
 
-: if            postpone ?branch here cell allot ; immediate
-: then          here swap ! ; immediate
-: else          postpone branch here cell allot swap here swap ! ; immediate
-: begin         here ; immediate
-: again         postpone branch , ; immediate
-: until         postpone ?branch , ; immediate
-: while         postpone if swap ; immediate
-: repeat        postpone branch , postpone then ; immediate
-
-: (do)          swap r> -rot >r >r >r ;
-: i             rp@ cell+ @ ;
-: j             rp@ 3 cells + @ ;
-: unloop        r> rdrop rdrop >r ;
-: (loop)        r> r> 1+ dup r@ =
-                if drop rdrop true else >r false then
-                swap >r ;
-: (+loop)       r> r> rot + dup r@ <
-                if drop rdrop true else >r false then
-                swap >r ;
-: do            postpone (do) here ; immediate
-: loop          postpone (loop)
-                postpone ?branch , ; immediate
-: +loop         postpone (+loop)
-                postpone ?branch , ; immediate
-: leave         unloop rdrop ;
-
 : si=           ( c-addr1 c-addr2 -- f )
                 dup c@ 1+ begin >r 2dup ci@= r> tuck and while
                   1- rot 1+ rot 1+ rot

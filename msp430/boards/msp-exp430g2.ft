@@ -62,6 +62,7 @@ include ../../common/eventloop.ft
 include ../../common/timeout.ft
 include ../../common/utils.ft
 include ../compiler.ft
+include ../../common/control-flow.ft
 include ../../common/interpret.ft
 
 include ../cpus/msp430g2x53/irq.fs

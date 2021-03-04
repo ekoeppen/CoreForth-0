@@ -1,47 +1,12 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab
 
-variable state
-variable latest
-
-: [             false state ! ; immediate
-: ]             true state ! ;
-: ,call         , ;
-: literal       postpone lit , ; immediate
-
-: compiling?    state @ ;
-: interpreting? state @ 0= ;
-
-\ -----------------------------------------------------------------------------
-\ -- Control flow
-
-: if            postpone ?branch here cell allot ; immediate
-: then          here swap ! ; immediate
-: else          postpone branch here cell allot swap here swap ! ; immediate
-: begin         here ; immediate
-: again         postpone branch , ; immediate
-: until         postpone ?branch , ; immediate
-: while         postpone if swap ; immediate
-: repeat        postpone branch , postpone then ; immediate
-
-: (do)          swap r> -rot >r >r >r ;
-: i             rp@ cell+ @ ;
-: j             rp@ 3 cells + @ ;
-: unloop        r> rdrop rdrop >r ;
-: (loop)        r> r> 1+ dup r@ =
-                if drop rdrop true else >r false then
-                swap >r ;
-: (+loop)       r> r> rot + dup r@ <
-                if drop rdrop true else >r false then
-                swap >r ;
-: do            postpone (do) here ; immediate
-: loop          postpone (loop)
-                postpone ?branch , ; immediate
-: +loop         postpone (+loop)
-                postpone ?branch , ; immediate
-: leave         unloop rdrop ;
-
 \ -----------------------------------------------------------------------------
 \ -- Dictionary
+
+variable latest
+
+: ,call         , ;
+: literal       postpone lit , ; immediate
 
 : len=          ( c-addr c-addr -- f ) c@ $3F and swap c@ $3F and = ;
 : dict-compare  ( c-addr1 c-addr2 -- f )
@@ -76,6 +41,13 @@ variable latest
 
 \ -----------------------------------------------------------------------------
 \ -- Compiler
+
+variable state
+
+: [             false state ! ; immediate
+: ]             true state ! ;
+: compiling?    state @ ;
+: interpreting? state @ 0= ;
 
 : (,action)     -2 cells allot $12b0 , ; \ here at CFA
 : ,enter        (,action) ['] docol , ;

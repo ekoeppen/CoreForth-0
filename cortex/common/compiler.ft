@@ -14,35 +14,6 @@ variable state
                   1- rot 1+ rot 1+ rot
                 repeat -rot 2drop 0= ;
 
-\ -----------------------------------------------------------------------------
-\ -- Control flow
-
-: if            postpone ?branch here cell allot ; immediate
-: then          here swap ! ; immediate
-: else          postpone branch here cell allot swap here swap ! ; immediate
-: begin         here ; immediate
-: again         postpone branch , ; immediate
-: until         postpone ?branch , ; immediate
-: while         postpone if swap ; immediate
-: repeat        postpone branch , postpone then ; immediate
-
-: (do)          swap r> -rot >r >r >r ;
-: i             rp@ cell+ @ ;
-: j             rp@ 3 cells + @ ;
-: unloop        r> rdrop rdrop >r ;
-: (loop)        r> r> 1+ dup r@ =
-                if drop rdrop true else >r false then
-                swap >r ;
-: (+loop)       r> r> rot + dup r@ <
-                if drop rdrop true else >r false then
-                swap >r ;
-: do            postpone (do) here ; immediate
-: loop          postpone (loop)
-                postpone ?branch , ; immediate
-: +loop         postpone (+loop)
-                postpone ?branch , ; immediate
-: leave         unloop rdrop ;
-
 : find          >r latest begin
                   @ dup if dup link>name r@ si= over visible? and
                   else r@ swap true
