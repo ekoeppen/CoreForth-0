@@ -46,9 +46,10 @@ variable latest
 
 : align         here aligned org ;
 : imove         move ;
-: link>name     2 + ;
-: link>flags    2 + ;
+: link>name     cell+ ;
+: link>flags    cell+ ;
 : link>         link>name dup c@ $3F and + 1+ aligned ;
+: >body         2 cells + ;
 : ,link         , ;
 : find          >r latest begin
                   @ dup if dup link>name r@ dict-compare
