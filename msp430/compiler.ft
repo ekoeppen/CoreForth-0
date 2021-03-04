@@ -90,30 +90,6 @@ code dodoes     $8324 $4784 $0000 $4136 $4137 $1205 $4605 $4530 end-code
 
 : recurse       latest @ link> ,call ; immediate
 : [char]        char postpone literal ; immediate
-: (             [char] ) word drop ; immediate
-: \             source# @ >in ! ; immediate
-: setbase       ( addr n -- addr' n' )
-                over c@ dup 0<> and
-                dup [char] $ = if drop $10 else
-                dup [char] # = if drop $0A else
-                    [char] % = if $02 else exit
-                then then then base ! 1/string ;
-: ?sign         ( addr n --  addr' n' f )
-                over c@ $2C - dup abs 1 = and
-                dup if 1+ >r 1/string r> then ;
-: >number       ( u addr u --  u' addr' u' )
-                setbase
-                begin dup while
-                  over c@ digit? 0= if drop exit then
-                  >r rot base @ * r> + -rot
-                  1/string
-                repeat ;
-: ?number       ( c-addr -- n -1 | c-addr 0 )
-                base @ >r
-                dup 0 0 rot count
-                ?sign >r >number if rdrop 2drop drop 0
-                else 2swap 2drop drop r> if negate then
-                true then r> base ! ;
 : (s")          r> count 2dup + aligned >r ;
 : s"            postpone (s")
                 [char] " word dup dup c@ 1+ here swap imove

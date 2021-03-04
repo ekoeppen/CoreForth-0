@@ -60,30 +60,6 @@ variable state
 : does>         postpone (does>) ; immediate
 : recurse       latest @ link> ,call ; immediate
 : [char]        char postpone literal ; immediate
-: (             [char] ) word drop ; immediate
-: \             source# @ >in ! ; immediate
-: setbase       ( addr n -- addr' n' )
-                over c@ dup 0<> and
-                dup [char] $ = if drop $10 else
-                dup [char] # = if drop $0A else
-                    [char] % = if $02 else exit
-                then then then base ! 1/string ;
-: ?sign         ( addr n --  addr' n' f )
-                over c@ $2C - dup abs 1 = and
-                dup if 1+ >r 1/string r> then ;
-: >number       ( u addr u --  u' addr' u' )
-                setbase
-                begin dup while
-                  over c@ separator? if 1/string else
-                  over c@ digit? if >r rot base @ * r> + -rot 1/string
-                  else drop exit then then
-                repeat ;
-: ?number       ( c-addr -- n -1 | c-addr 0 )
-                base @ >r
-                dup 0 0 rot count
-                ?sign >r >number if rdrop 2drop drop 0
-                else 2swap 2drop drop r> if negate then
-                true then r> base ! ;
 : s"            postpone (s")
                 [char] " word dup dup c@ 1+ here swap hmove
                 c@ 1+ allot align ; immediate
