@@ -8,6 +8,9 @@ variable latest
 : ,call         , ;
 : literal       postpone lit , ; immediate
 
+: compiling?    state @ ;
+: interpreting? state @ 0= ;
+
 \ -----------------------------------------------------------------------------
 \ -- Control flow
 
