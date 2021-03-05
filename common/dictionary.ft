@@ -7,4 +7,4 @@ variable vp
 : ,             here ! cell allot ;
 : c,            here c! 1 allot ;
 : alloc         vp +! ;
-: pad           vp @ $10 + ;
+: pad           vp @ $10 + aligned ;
