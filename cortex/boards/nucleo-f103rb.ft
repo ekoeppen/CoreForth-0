@@ -23,6 +23,7 @@ tram $00001000 + t, 0 t,
 trom $00000400 + torg
 
 ::dtc::  $10  buffer: #docol
+::dtc::  $10  buffer: #dodoes
          $1FC buffer: psp
              variable s0
          $1FC buffer: rsp
@@ -137,6 +138,7 @@ include ../janus/init.ft
 ::host::
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
+::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!
 
 include ../janus/save-image.ft
 

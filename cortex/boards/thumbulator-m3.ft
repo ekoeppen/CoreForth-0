@@ -23,6 +23,7 @@ tram $00001000 + t, 0 t,
 trom $00000400 + torg
 
   $10 buffer:  #docol
+  $10 buffer:  #dodoes
   $7C buffer:  psp
       variable s0
   $7C buffer:  rsp
@@ -74,6 +75,7 @@ code rom-dump   $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
 ::host::
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
+::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!
 
 include ../janus/save-image.ft
 

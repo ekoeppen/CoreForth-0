@@ -9,6 +9,7 @@ $3CC constant init-vp
 : setup-vars    init-latest @ latest ! init-dp @ (dp) ! init-vp @ vp !
 ::dtc::         ['] docol #docol 2 cells move
 ::dtc::         ['] next #docol 2 cells + cell move
+::dtc::         ['] dodoes #dodoes 3 cells move
 ::dtc::         true
 ::stc::         false
                 ram? !  ;
