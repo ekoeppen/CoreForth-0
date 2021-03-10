@@ -7,14 +7,18 @@
 
 ::stc:: :noname     $F846 th, $0D04 th, $4800 th, $46F7 th, ; is t,docon
 ::stc:: :noname     $B500 th, ; is t,enter
+::stc:: :noname     $B500 th, ; is t,doirq
 ::stc:: :noname     $46f7 th, ; is t,next
 ::stc:: :noname     $BD00 th, ; is t,exit
+::stc:: :noname     $BD00 th, ; is t,irqexit
 ::stc:: ' ,bl is t,call
 
 ::dtc:: :noname     $F846 th, $0D04 th, $4801 th, $cf20 th, $4728 th, 2 tallot ; is t,docon
 ::dtc:: :noname     s" docol" tfind ,bl ; is t,enter
+::dtc:: :noname     s" doirq" tfind ,bl ; is t,doirq
 ::dtc:: :noname     $cf20 th, $4728 th, ; is t,next
 ::dtc:: :noname     s" exit" tfwdref ; is t,exit
+::dtc:: :noname     s" irqexit" tfwdref ; is t,irqexit
 ::dtc:: :noname     1+ t, ; is t,call
 
 :noname     s" lit" tfwdref ; is t,lit
