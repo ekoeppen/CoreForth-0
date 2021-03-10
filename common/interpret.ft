@@ -15,7 +15,7 @@
                 source# ! (source) ! 0 >in ! interpret
                 r> r> r> >in ! source# ! (source) ! ;
 
-: refill        xon tib dup tib# accept xoff
+: refill        tib dup tib# xon accept xoff
                 source# ! (source) ! 0 >in ! true ;
 
 : quit          r0 rp! 0 state ! 0 source-id !
