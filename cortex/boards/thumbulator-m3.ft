@@ -30,8 +30,8 @@ trom $00000400 + torg
       variable r0
 
 include ../cpus/cortex-m3/armv7-m-primitives.ft
-::stc:: include ../threading/primitives/stc.ft
-::dtc:: include ../threading/primitives/dtc.ft
+::stc:: include ../cpus/cortex-m3/threading-stc.ft
+::dtc:: include ../cpus/cortex-m3/threading-dtc.ft
 include ../common/core.ft
 include ../../common/core.ft
 include ../dictionary/common.ft
@@ -49,8 +49,8 @@ code wait-key   $2182 $B402 $BEAB end-code
 include ../../common/output.ft
 include ../../common/input.ft
 include ../dictionary/full.ft
-::stc:: include ../threading/highlevel/stc.ft
-::dtc:: include ../threading/highlevel/dtc.ft
+::stc:: include ../common/threading-stc.ft
+::dtc:: include ../common/threading-dtc.ft
 include ../../common/exception.ft
 include ../../common/control-flow.ft
 include ../common/compiler.ft
