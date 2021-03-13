@@ -1,0 +1,189 @@
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+include ../janus/threading.ft
+
+next-arg set-threading-type
+
+include ../janus/compiler.ft
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$08000000 to trom
+$20000000 to tram
+        4 to tcell
+
+trom tdp !
+tram tvp !
+
+tram $00004000 + t, 0 t,
+trom $00000400 + torg
+
+::dtc::   $10 buffer: #docol
+::dtc::   $10 buffer: #dodoes
+          $FC buffer: psp
+             variable s0
+          $FC buffer: rsp
+             variable r0
+
+          $40 buffer: rxb
+             variable rx-head
+             variable rx-tail
+
+          $40 buffer: txb
+             variable tx-head
+             variable tx-tail
+
+         $40 constant #init
+        $140 constant #vectors
+
+        $380 constant backup-start
+        $380 constant backup-cold
+        $384 constant backup-latest
+        $388 constant backup-dp
+        $38C constant backup-vp
+
+   $08020000 constant end-of-flash
+
+
+include ../cpus/cortex-m0/armv6-m-primitives.ft
+
+::stc:: include ../threading/primitives/stc.ft
+::dtc:: include ../threading/primitives/dtc.ft
+
+include ../common/core.ft
+include ../../common/core.ft
+
+include ../cpus/cortex-m0/nvic.ft
+include ../cpus/stm32f0xx/rcc.ft
+include ../cpus/stm32f0xx/flash.ft
+include ../cpus/stm32f0xx/gpio.ft
+include ../cpus/stm32f0xx/usart.ft
+include ../dictionary/common.ft
+
+code emit end-code
+code key? end-code
+code key end-code
+
+include ../../common/output.ft
+include ../../common/input.ft
+include ../dictionary/full.ft
+::stc:: include ../threading/highlevel/stc.ft
+::dtc:: include ../threading/highlevel/dtc.ft
+include ../../common/exception.ft
+include ../../common/control-flow.ft
+include ../common/compiler.ft
+include ../../common/interpret.ft
+include ../../common/utils.ft
+
+: reset         $05FA0004 $E000ED0C ! ;
+
+: +pll          %1000000000000000000000000 RCC_CR bis! ;
+: -pll          %1000000000000000000000000 RCC_CR bic! ;
+: pllmul!       #18 lshift RCC_CFGR tuck @ $FFC3FFFF and or swap ! ;
+: usart2-src!   #16 lshift RCC_CFGR3 tuck @ $FFFCFFFF and or swap ! ;
+: sysclk-src!   RCC_CFGR tuck @ $FFFFFFF0 and or swap ! ;
+: rcc.          RCC_CR #13 dumpw ;
+: flash-latency!
+                FLASH_ACR tuck @ $FFFFFFF0 and or swap ! ;
+
+: 36mhz         1 flash-latency!
+                #36 4 / 2 - pllmul!
+                +pll
+                2 sysclk-src! ;
+
+: 64mhz         2 flash-latency!
+                #64 4 / 2 - pllmul!
+                +pll
+                2 sysclk-src! ;
+
+: setup-uart2   %00100000000000000000 RCC_APB1ENR bis!
+                3 usart2-src!
+                GPIOA_MODER dup @ $FFFFFF0F and $A0 or swap !
+                GPIOA_AFRL dup @ $FFFF00FF and $7700 or swap !
+                #69 USART2_BRR !
+                %00001101 USART2_CR1 !
+                ;
+
+: setup-hw      %00100000000000000000 RCC_AHBENR !
+                GPIOA_MODER dup @ $FFFFF3FF and $400 or swap !
+                setup-uart2
+                ;
+
+
+$400 constant #page
+
+: flash-busy?   1 FLASH_SR bit@ ;
+: await-flash-idle
+                begin flash-busy? 0= until ;
+: unlock-flash  %10000000 FLASH_CR bit@
+                if $CDEF89AB $045670123 FLASH_KEYR tuck ! ! then ;
+: lock-flash    %10000000 FLASH_CR bis! ;
+: flash-mode!   unlock-flash FLASH_CR dup @ $1F invert and rot or swap ! ;
+: enable-flash-write
+                unlock-flash %00001 flash-mode! ;
+: erase-page    unlock-flash %00010 flash-mode!
+                FLASH_AR ! %01000000 FLASH_CR bis!
+                await-flash-idle lock-flash ;
+: erase-range   unlock-flash %00010 flash-mode!
+                swap begin 2dup > while
+                  dup FLASH_AR ! %01000000 FLASH_CR bis! #page +
+                repeat 2drop lock-flash ;
+: flash.        FLASH_ACR 8 dumpw ;
+
+include ../janus/init.ft
+
+: dict-space    backup-dp @ #page + #page 1- invert and ;
+: erase-dictspace
+                unlock-flash dict-space end-of-flash erase-range lock-flash ;
+
+: save-vars     >r dint
+                pad aligned
+                0 over #page move
+                0 erase-page
+                enable-flash-write
+                dup 0 #vectors hmove
+                backup-start + backup-start #init hmove
+                r> init-cold i!
+                latest @ init-latest i! dp @ init-dp i! vp @ init-vp i!
+                lock-flash eint ;
+
+: restore-vars  dint
+                pad aligned
+                0 over #page move
+                0 erase-page
+                enable-flash-write
+                dup 0 #vectors hmove
+                dup backup-start + backup-start #init hmove
+                    backup-start + init-start #init hmove
+                lock-flash eint ;
+
+: save          bl word dup c@ 0= if
+                  ." missing start word, not saving" drop exit then
+                find 0= if ." not found, not saving" drop exit then
+                save-vars ;
+: restore       restore-vars erase-dictspace ;
+
+: cold          setup-vars setup-hw
+                ." CoreForth-0 " .threading ."  ready" cr
+                txb u. tx-head u. tx-tail u. cr
+                rxb u. rx-head u. rx-tail u. cr
+                0 source-id !
+::stc::         init-dp @ backup-dp @ = if dict-space org then
+                hex abort ;
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
+::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!
+
+include ../janus/save-image.ft
+
+::dtc:: s" nucleo-f072rb-dtc.hex" save-hex
+::stc:: s" nucleo-f072rb-stc.hex" save-hex
+
