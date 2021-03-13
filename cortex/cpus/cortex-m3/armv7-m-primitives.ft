@@ -5,6 +5,7 @@ code halt       $E7FE end-code
 code bye        $2118 $B402 $BEAB end-code
 code wfi        $BF30 end-code
 code wfe        $BF20 end-code
+code sev        $BF40 end-code
 code eint       $B662 end-code
 code dint       $B672 end-code
 
@@ -110,3 +111,6 @@ code d+         $CE0E $1810 $4159 $3E04 $6031 end-code
 code um*        $6831 $b28a $0c03 $0c09 $460c $4359 $b280 $4353 $4344
                 $4350 $2200 $191b $4152 $0412 $1889 $041a $0c1b $1880
                 $4159 $6030 $0008 end-code
+
+::dtc:: code doirq      $b4e0 $4677 $3f01 $cf20 $4728 end-code
+::dtc:: code irqexit    $bce0 $2100 $3907 $4708 end-code
