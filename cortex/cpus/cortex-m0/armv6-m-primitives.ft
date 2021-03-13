@@ -1,0 +1,117 @@
+\ -----------------------------------------------------------------------------
+\ -- Machine interface
+
+code halt       $E7FE end-code
+code bye        $2118 $B402 $BEAB end-code
+code wfi        $BF30 end-code
+code wfe        $BF20 end-code
+code sev        $BF40 end-code
+code eint       $B662 end-code
+code dint       $B672 end-code
+
+\ -----------------------------------------------------------------------------
+\ -- Stack operations
+
+code dup        $3E04 $6030 end-code
+code drop       $6830 $3604 end-code
+code swap       $6831 $6030 $0008 end-code
+code over       $3E04 $6030 $6870 end-code
+code rot        $6873 $6832 $0001 $6072 $6031 $0018 end-code
+code ?dup       $2800 $D001 $3E04 $6030 end-code
+code nip        $3604 end-code
+code tuck       $6831 $6030 $3E04 $6031 end-code
+code 2dup       $6831 $3E08 $6070 $6031 end-code
+code 2swap      $68B3 $6872 $6831 $60B1 $6070 $6033 $0010 end-code
+
+code >r         $0001 $6830 $3604 $B402 end-code
+code r>         $BC02 $3E04 $6030 $0008 end-code
+code r@         $9900 $3E04 $6030 $0008 end-code
+code rdrop      $BC10 end-code
+
+code sp@        $4631 $3E04 $6030 $0008 end-code
+code rp@        $4669 $3E04 $6030 $0008 end-code
+code sp!        $4606 $4631 $3904 $6808 end-code
+code rp!        $0001 $6830 $3604 $468D end-code
+
+\ -----------------------------------------------------------------------------
+\ -- Memory operations
+
+code c@         $7800 end-code
+code c!         $6831 $7001 $6870 $3608 end-code
+code h@         $8800 end-code
+code h!         $6831 $8001 $6870 $3608 end-code
+code @          $6800 end-code
+code !          $6831 $6001 $6870 $3608 end-code
+
+\ -----------------------------------------------------------------------------
+\ -- Logical operators
+
+code and        $6831 $3604 $4008 end-code
+code or         $6831 $3604 $4308 end-code
+code invert     $43C0 end-code
+code not        $43C0 end-code
+code xor        $6831 $3604 $4048 end-code
+code aligned    $3003 $2103 $43C9 $4008 end-code
+
+code bis!       $6831 $6802 $4311 $6001 $6870 $3608 end-code
+code bic!       $6831 $6802 $438A $6002 $6870 $3608 end-code
+code xor!       $6831 $6802 $404A $6002 $6870 $3608 end-code
+code bis        $6831 $3604 $4308 end-code
+code bic        $6831 $4381 $4608 $3604 end-code
+code bit@       $6831 $3604 $6802 $2000 $4011 $D000 $43C0 end-code
+
+\ -----------------------------------------------------------------------------
+\ -- Arithmetic
+
+code +          $6831 $3604 $1840 end-code
+code -          $6831 $3604 $1A08 end-code
+code *          $6831 $3604 $4348 end-code
+code u/mod      $4601 $6830 $460c $4603 $085b $429c $d801 $0064 $e7fb $2300
+                $18db $42a0 $d301 $3301 $1b00 $0864 $428c $d2f7 $6030
+                $4618 end-code
+code abs        $2800 $DA01 $43C0 $3001 end-code
+
+code 1+         $3001 end-code
+code 2+         $3002 end-code
+code 4+         $3004 end-code
+code 1-         $3801 end-code
+code 2-         $3802 end-code
+code 4-         $3804 end-code
+code char+      $3001 end-code
+code cell+      $3004 end-code
+code char-      $3801 end-code
+code cell-      $3804 end-code
+code 2/         $1040 end-code
+code 2*         $1800 end-code
+
+code lshift     $6831 $3604 $4081 $0008 end-code
+code rshift     $0000 $6831 $3604 $40C1 $0008 end-code
+code shl        $0040 end-code
+code shr        $0840 end-code
+
+code 0=         $2300 $2800 $D100 $43DB $0018 end-code
+code 0<>        $2300 $2800 $D000 $43DB $0018 end-code
+code 0<         $2300 $2800 $DA00 $43DB $0018 end-code
+code 0<=        $2300 $2800 $DC00 $43DB $0018 end-code
+code 0>         $2300 $2800 $DD00 $43DB $0018 end-code
+code 0>=        $2300 $2800 $DB00 $43DB $0018 end-code
+code =          $6831 $3604 $2300 $4288 $D100 $43DB $0018 end-code
+code <          $6831 $3604 $2300 $4281 $DA00 $43DB $0018 end-code
+code u<         $6831 $3604 $2300 $4281 $D200 $43DB $0018 end-code
+
+code false      $3e04 $6030 $2000 end-code
+code true       $3e04 $6030 $2000 $43c0 end-code
+
+code cell       $3e04 $6030 $0d04 $2004 end-code
+code cells      $1800 $1800 end-code
+code chars      end-code
+code /cell      $1040 $1040 end-code
+
+code m+         $6831 $2200 $1809 $4152 $0010 $6031 end-code
+code d+         $CE0E $1810 $4159 $3E04 $6031 end-code
+code um*        $6831 $b28a $0c03 $0c09 $460c $4359 $b280 $4353 $4344
+                $4350 $2200 $191b $4152 $0412 $1889 $041a $0c1b $1880
+                $4159 $6030 $0008 end-code
+
+::dtc:: code doirq      $b4e0 $4677 $3f01 $cf20 $4728 end-code
+::dtc:: code irqexit    $bce0 $2100 $3907 $4708 end-code
