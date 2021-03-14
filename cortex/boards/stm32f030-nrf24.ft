@@ -1,0 +1,113 @@
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+include ../janus/threading.ft
+
+next-arg set-threading-type
+
+include ../janus/compiler.ft
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$00000000 to trom
+$20000000 to tram
+        4 to tcell
+
+trom tdp !
+tram tvp !
+
+tram $00001000 + t, 0 t,
+trom $00000400 + torg
+
+::dtc::   $10 buffer: #docol
+::dtc::   $10 buffer: #dodoes
+          $FC buffer: psp
+             variable s0
+          $FC buffer: rsp
+             variable r0
+
+          $40 buffer: rxb
+             variable rx-head
+             variable rx-tail
+
+          $40 buffer: txb
+             variable tx-head
+             variable tx-tail
+
+   $08004000 constant end-of-flash
+        $400 constant #page
+
+$48000000 constant GPIOA_MODER
+$48000018 constant GPIOA_BSRR
+$48000020 constant GPIOA_AFRL
+$48000024 constant GPIOA_AFRH
+$48000028 constant GPIOA_BRR
+
+$40021014 constant RCC_AHBENR
+$40021018 constant RCC_APB2ENR
+
+$40013800 constant USART1_CR1
+$4001380C constant USART1_BRR
+$4001381C constant USART1_ISR
+$40013824 constant USART1_RDR
+$40013828 constant USART1_TDR
+
+include ../cpus/cortex-m0/armv6-m-primitives.ft
+::stc:: include ../cpus/cortex-m0/threading-stc.ft
+::dtc:: include ../cpus/cortex-m0/threading-dtc.ft
+include ../common/core.ft
+include ../../common/core.ft
+include ../dictionary/common.ft
+
+: +led          %10 GPIOA_BSRR ! ;
+: -led          %10 GPIOA_BRR ! ;
+
+: emit         begin %10000000 USART1_ISR bit@ until USART1_TDR ! ;
+: key?         %00100000 USART1_ISR bit@ ;
+: key          begin key? until USART1_RDR @ ;
+
+include ../../common/output.ft
+include ../../common/input.ft
+include ../dictionary/full.ft
+::stc:: include ../common/threading-stc.ft
+::dtc:: include ../common/threading-dtc.ft
+include ../../common/exception.ft
+include ../../common/control-flow.ft
+include ../common/compiler.ft
+include ../../common/interpret.ft
+
+include ../janus/init.ft
+
+: setup-uart1   %100000000000000 RCC_APB2ENR bis!
+                GPIOA_MODER dup @ $FFC3FF0F and $00280000 or swap !
+                GPIOA_AFRH dup @ $FFFFF00F and $110 or swap !
+                #69 USART1_BRR !
+                %00001101 USART1_CR1 bis!
+                ;
+
+: setup-hw      %00100000000000000000 RCC_AHBENR !
+                GPIOA_MODER dup @ $FFFFFFF3 and $4 or swap !
+                setup-uart1
+                ;
+
+: cold          s0 sp! r0 rp!
+                setup-vars
+                setup-hw +led
+                ." CoreForth-0 " .threading ."  ready" cr
+                0 source-id !
+                hex abort ;
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
+::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!
+
+include ../janus/save-image.ft
+
+::dtc:: s" stm32f030-nrf24-dtc.bin" save-bin
+::stc:: s" stm32f030-nrf24-stc.bin" save-bin
