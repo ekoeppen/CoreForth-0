@@ -1,42 +1,83 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
+\ -- Host ---------------------------------------------------------------------
 
-$00000080 constant init-cold
-$00000084 constant init-latest
-$00000088 constant init-dp
-$0000008C constant init-vp
+::host::
 
-$7C buffer: rsp variable s0
-$7C buffer: psp variable r0
-$80 buffer: tib
+include ../janus/threading.ft
 
-variable dp
-variable vp
-variable latest
-variable state
-variable (source)
-variable source#
-variable >in
-variable current
-variable base
-variable hp
+next-arg set-threading-type
 
-$00000080 constant tib#
-$20001000 constant ram-top
+include ../janus/compiler.ft
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$00000000 to trom
+$20000000 to tram
+        4 to tcell
+
+trom tdp !
+tram tvp !
+
+tram $00001000 + t, 0 t,
+trom $00000400 + torg
+
+  $10 buffer:  #docol
+  $10 buffer:  #dodoes
+  $7C buffer:  psp
+      variable s0
+  $7C buffer:  rsp
+      variable r0
+
+include ../cpus/cortex-m0/armv6-m-primitives.ft
+::stc:: include ../cpus/cortex-m0/threading-stc.ft
+::dtc:: include ../cpus/cortex-m0/threading-dtc.ft
+include ../common/core.ft
+include ../../common/core.ft
+include ../dictionary/common.ft
 
 $E0000000 constant emulator-uart-tx
 $E0000004 constant emulator-uart-rx
 $E0000008 constant emulator-uart-sr
-code reset-handler $4668 $3820 $0006 $4801 $6800 $4687 $0080 $0800 end-code
 
-include ../cpus/cortex-m0/core.ft
-include ../core.ft
+code wait-key   $2182 $B402 $BEAB end-code
 
-: emit      emulator-uart-tx ! ;
-: key       wait-key emulator-uart-rx @ ;
-: key?      emulator-uart-sr @ ;
+: key?          emulator-uart-sr @ ;
+: emit          emulator-uart-tx ! ;
+: key           wait-key emulator-uart-rx @ ;
 
-include ../../common/io.ft
-include ../cpus/cortex-m0/compiler.ft
+include ../../common/output.ft
+include ../../common/input.ft
+include ../dictionary/full.ft
+::stc:: include ../common/threading-stc.ft
+::dtc:: include ../common/threading-dtc.ft
+include ../../common/exception.ft
+include ../../common/control-flow.ft
+include ../common/compiler.ft
+include ../../common/interpret.ft
 include ../../common/utils.ft
 
-: cold          abort ;
+include ../janus/init.ft
+
+code rom-dump   $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
+                $3604 $B402 $2180 $B402 $BEAB end-code
+: save-vars     latest @ init-latest i! dp @ init-dp i! vp @ init-vp i! ;
+: save          bl word dup c@ 0= if
+                  ." missing start word, not saving" drop exit then
+                find 0= if ." not found, not saving" drop exit then
+                save-vars
+                0 here rom-dump ;
+
+: cold          setup-vars ." CoreForth-0 " .threading ."  ready" cr hex abort ;
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
+::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!
+
+include ../janus/save-image.ft
+
+::dtc:: s" thumbulator-dtc.bin" save-bin
+::stc:: s" thumbulator-stc.bin" save-bin
