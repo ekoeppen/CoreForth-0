@@ -27,3 +27,8 @@
 : list          latest begin @ ?dup while
                   dup link> hex. space dup link>name count type cr
                 repeat ;
+
+: .s            depth 0= if exit then
+                dup u.
+                sp@ begin dup s0 cell- < while dup @ u. cell+ repeat drop ;
+: .r            rp@ begin dup r0 < while dup @ u. cell+ repeat drop ;
