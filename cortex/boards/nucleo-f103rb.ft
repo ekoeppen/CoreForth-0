@@ -22,12 +22,21 @@ tram tvp !
 tram $00001000 + t, 0 t,
 trom $00000400 + torg
 
-::dtc::  $10  buffer: #docol
-::dtc::  $10  buffer: #dodoes
+::dtc::   $10 buffer: #docol
+::dtc::   $10 buffer: #dodoes
          $1FC buffer: psp
              variable s0
          $1FC buffer: rsp
              variable r0
+
+          $40 buffer: rxb
+             variable rx-head
+             variable rx-tail
+
+          $40 buffer: txb
+             variable tx-head
+             variable tx-tail
+
 
 include ../cpus/cortex-m3/armv7-m-primitives.ft
 ::stc:: include ../cpus/cortex-m3/threading-stc.ft
@@ -39,11 +48,50 @@ include ../cpus/stm32f10x/rcc.ft
 include ../cpus/stm32f10x/flash.ft
 include ../cpus/stm32f10x/gpio.ft
 include ../cpus/stm32f10x/usart.ft
+include ../cpus/cortex-m3/nvic.ft
 include ../dictionary/common.ft
 
-: emit          USART2_DR c! begin USART2_SR @ %10000000 and until ;
-: key?          USART2_SR @ %00100000 and ;
-: key           begin key? until USART2_DR c@ ;
+: rbuf-ptr@    @ + c@ ;
+: rbuf-ptr!    @ + c! ;
+: rbuf-ptr++   dup @ 1+ $3F and swap ! ;
+
+: txb-empty?     tx-head @ tx-tail @ xor not ;
+: rxb-empty?     rx-head @ rx-tail @ xor not ;
+
+: !txb-empty?    tx-head @ tx-tail @ xor ;
+: !rxb-empty?    rx-head @ rx-tail @ xor ;
+
+: usart2-tx-handler
+                %10000000 USART2_SR bit@ !txb-empty? and if
+                  txb tx-tail rbuf-ptr@ USART2_DR !
+                  tx-tail rbuf-ptr++
+                else
+                 %10000000 USART2_CR1 bic!
+                then
+                ;
+
+: usart2-rx-handler
+                %00100000 USART2_SR bit@ if
+                  USART2_DR @ rxb rx-head rbuf-ptr!
+                  rx-head rbuf-ptr++
+                then
+                ;
+
+i: usart2-handler
+                usart2-tx-handler
+                usart2-rx-handler
+                ;i
+
+: emit          !txb-empty? if begin wfi txb-empty? until then
+                txb tx-head rbuf-ptr!
+                tx-head rbuf-ptr++
+                %10000000 USART2_CR1 bis!
+                ;
+
+: key?          !rxb-empty? ;
+: key           rxb-empty? if begin wfi !rxb-empty? until then
+                rxb rx-tail rbuf-ptr@
+                rx-tail rbuf-ptr++ ;
 
 include ../../common/output.ft
 include ../../common/input.ft
@@ -62,7 +110,10 @@ $400 constant #page
                 %00100000000000000000 RCC_APB1ENR !
                 GPIOA_CRL dup @ $FFFF00FF and $4B00 or swap !
                 #69 USART2_BRR !
-                %00000010000000001100 USART2_CR1 ! ;
+                %00000010000010101101 USART2_CR1 !
+                0 dup dup dup tx-head ! tx-tail ! rx-head ! rx-tail !
+                %1000000 NVIC_SETENA_BASE cell+ bis!
+                ;
 
 : reset         $05FA0004 $E000ED0C ! ;
 
@@ -139,6 +190,8 @@ include ../janus/init.ft
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
 ::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!
+
+t' usart2-handler 1+ trom $000000D8 + t!
 
 include ../janus/save-image.ft
 
