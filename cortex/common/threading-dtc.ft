@@ -11,8 +11,8 @@
 code dodoes     $b480 $4677 $3f01 $683f $CF20 $4728 end-code
 
 : ,dodoes       ['] dodoes ,bl ;
-: ,dodata       $F846 h, $0D04 h, $4678 h, $3008 h, $cf20 h, $4728 h, 4 allot ;
-: ,docon        $F846 h, $0D04 h, $4801 h, $cf20 h, $4728 h, 2 allot ;
+: ,dodata       $3e04 h, $6030 h, $4678 h, $3008 h, $cf20 h, $4728 h, 4 allot ;
+: ,docon        $3e04 h, $6030 h, $4801 h, $cf20 h, $4728 h, 2 allot ;
 : (does>)       here latest @ link> #8 + org ,dodoes r> , org ;
 
 : (s")          r> count 2dup + aligned >r ;
