@@ -203,7 +203,7 @@ include ../janus/init.ft
                 save-vars ;
 : restore       restore-vars erase-dictspace ;
 
-: cold          setup-vars 64mhz setup-hw +led
+: cold          s0 sp! r0 rp! setup-vars 64mhz setup-hw
                 ." CoreForth-0 " .threading ."  ready" cr
                 txb u. tx-head u. tx-tail u. cr
                 rxb u. rx-tail u. cr
