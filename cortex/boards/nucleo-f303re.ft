@@ -2,10 +2,6 @@
 
 ::host::
 
-include ../janus/threading.ft
-
-next-arg set-threading-type
-
 include ../janus/compiler.ft
 
 \ -- Target -------------------------------------------------------------------
