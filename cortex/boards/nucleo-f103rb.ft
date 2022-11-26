@@ -2,6 +2,7 @@
 
 ::host::
 
+include ../../../tether.ft
 include ../janus/compiler.ft
 
 \ -- Target -------------------------------------------------------------------
@@ -99,13 +100,26 @@ include ../../common/control-flow.ft
 include ../common/compiler.ft
 include ../../common/interpret.ft
 include ../../common/utils.ft
+include ../common/tether.ft
 
 $400 constant #page
 
-: setup-hw      %00000000000000000100 RCC_APB2ENR !
+: +pll          %1000000000000000000000000 RCC_CR bis! ;
+: -pll          %1000000000000000000000000 RCC_CR bic! ;
+: pllmul!       #18 lshift RCC_CFGR tuck @ $FFC3FFFF and or swap ! ;
+: sysclk-src!   RCC_CFGR tuck @ $FFFFFFF0 and or swap ! ;
+: flash-latency!
+                FLASH_ACR tuck @ $FFFFFFF0 and or swap ! ;
+
+: 32mhz         1 flash-latency!
+                6 pllmul!
+                +pll
+                2 sysclk-src! ;
+
+: setup-hw      32mhz %00000000000000000100 RCC_APB2ENR !
                 %00100000000000000000 RCC_APB1ENR !
                 GPIOA_CRL dup @ $FFFF00FF and $4B00 or swap !
-                #69 USART2_BRR !
+                #278 USART2_BRR !
                 %00000010000010101101 USART2_CR1 !
                 0 dup dup dup tx-head ! tx-tail ! rx-head ! rx-tail !
                 %1000000 NVIC_SETENA_BASE cell+ bis!
@@ -178,11 +192,17 @@ include ../janus/init.ft
                 ." CoreForth-0 " .threading ."  ready" cr
                 0 source-id !
 ::stc::         init-dp @ backup-dp @ = if dict-space org then
-                hex abort ;
+                hex
+::tethered::    4 emit tether-loop
+                abort ;
 
 \ -- Host ---------------------------------------------------------------------
 
 ::host::
+
+include ../janus/tether.ft
+
+::tethered:: tether
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
 ::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!

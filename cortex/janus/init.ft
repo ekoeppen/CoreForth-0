@@ -11,6 +11,7 @@ $3CC constant init-vp
 ::dtc::         ['] next #docol 2 cells + cell move
 ::dtc::         ['] dodoes #dodoes 3 cells move
 ::dtc::         true
+::itc::         true
 ::stc::         false
                 ram? !  ;
 
@@ -22,3 +23,8 @@ $3CC constant init-vp
 ::dtc::                 $4668 $3880 $0006 $4f02 $cf20 $1c6d $4728
 ::dtc::                 $ffff $03c0 $0000 end-code
 ::dtc:: : .threading ." [DTC]" ;
+
+::itc:: t: reset-handler
+::itc::                 $4668 th, $3880 th, $0006 th, $4f02 th, $cf20 th, $682c th, $46a7 th,
+::itc::                 $ffff th, $03c0 th, $0000 th,
+::itc:: : .threading ." [ITC]" ;

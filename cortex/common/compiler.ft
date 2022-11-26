@@ -29,10 +29,6 @@ variable state
 : words         latest begin @ ?dup while
                   dup link>name count type space
                 repeat ;
-: list          latest begin @ ?dup while
-                  dup link> hex. space dup link>name count type cr
-                repeat ;
-
 : postpone      bl word find 0< if literal postpone ,call
                 else ,call then ; immediate
 : [']           ' postpone literal ; immediate

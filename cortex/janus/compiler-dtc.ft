@@ -1,0 +1,7 @@
+:noname     $3e04 th, $6030 th, $4801 th, $cf20 th, $4728 th, 2 tallot ; is t,docon
+:noname     s" docol" tfind ,bl ; is t,enter
+:noname     s" doirq" tfind ,bl ; is t,doirq
+:noname     $cf20 th, $4728 th, ; is t,next
+:noname     s" exit" tfwdref ; is t,exit
+:noname     s" irqexit" tfwdref ; is t,irqexit
+:noname     1+ t, ; is t,call

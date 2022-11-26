@@ -26,6 +26,7 @@ trom $00000400 + torg
              variable r0
 
           $40 buffer: rxb
+             variable rx-head
              variable rx-tail
 
           $40 buffer: txb
@@ -42,15 +43,14 @@ trom $00000400 + torg
         $38C constant backup-vp
 
    $08020000 constant end-of-flash
-
+        $400 constant #page
 
 include ../cpus/cortex-m3/armv7-m-primitives.ft
-
 ::stc:: include ../cpus/cortex-m3/threading-stc.ft
 ::dtc:: include ../cpus/cortex-m3/threading-dtc.ft
-
 include ../common/core.ft
 include ../../common/core.ft
+include ../dictionary/common.ft
 
 include ../cpus/cortex-m3/nvic.ft
 include ../cpus/stm32f303x/rcc.ft
@@ -58,29 +58,50 @@ include ../cpus/stm32f303x/dma.ft
 include ../cpus/stm32f303x/flash.ft
 include ../cpus/stm32f303x/gpio.ft
 include ../cpus/stm32f303x/usart.ft
-include ../dictionary/common.ft
+
+: +led          %100000 GPIOA_BSRR ! ;
+: -led          %100000 GPIOA_BRR ! ;
 
 : rbuf-ptr@    @ + c@ ;
 : rbuf-ptr!    @ + c! ;
 : rbuf-ptr++   dup @ 1+ $3F and swap ! ;
 
-i: usart2-handler
-                %10000000 USART2_ISR bit@ tx-head @ tx-tail @ xor and if
+: txb-empty?     tx-head @ tx-tail @ xor not ;
+: rxb-empty?     rx-head @ rx-tail @ xor not ;
+
+: !txb-empty?    tx-head @ tx-tail @ xor ;
+: !rxb-empty?    rx-head @ rx-tail @ xor ;
+
+: usart2-tx-handler
+                %10000000 USART2_ISR bit@ !txb-empty? and if
                   txb tx-tail rbuf-ptr@ USART2_TDR !
                   tx-tail rbuf-ptr++
                 else
                  %10000000 USART2_CR1 bic!
                 then
+                ;
+
+: usart2-rx-handler
+                %00100000 USART2_ISR bit@ if
+                  USART2_RDR @ rxb rx-head rbuf-ptr!
+                  rx-head rbuf-ptr++
+                then
+                ;
+
+i: usart2-handler
+                usart2-tx-handler
+                usart2-rx-handler
                 ;i
 
-: emit          begin tx-head @ tx-tail @ = until
+: emit          !txb-empty? if begin wfi txb-empty? until then
                 txb tx-head rbuf-ptr!
                 tx-head rbuf-ptr++
                 %10000000 USART2_CR1 bis!
                 ;
 
-: key?          $40 DMA1_CNDTR6 @ - rx-tail @ xor ;
-: key           begin key? until
+: dma-key?      $40 DMA1_CNDTR6 @ - rx-tail @ xor ;
+: irq-key?      !rxb-empty? ;
+: key           rxb-empty? if begin wfi !rxb-empty? until then
                 rxb rx-tail rbuf-ptr@
                 rx-tail rbuf-ptr++ ;
 
@@ -112,15 +133,12 @@ include ../../common/utils.ft
                 2 sysclk-src! ;
 
 : 64mhz         2 flash-latency!
-                #64 / 2 - pllmul!
+                #64 4 / 2 - pllmul!
                 +pll
                 2 sysclk-src! ;
 
-: +led          %100000 GPIOA_BSRR ! ;
-: -led          %100000 GPIOA_BRR ! ;
-
 : setup-dma     %1 RCC_AHBENR bis!
-                %10100000 DMA1_CCR6 !
+                %10100010 DMA1_CCR6 !
                 USART2_RDR DMA1_CPAR6 !
                 rxb DMA1_CMAR6 !
                 $40 DMA1_CNDTR6 !
@@ -133,20 +151,16 @@ include ../../common/utils.ft
                 GPIOA_MODER dup @ $FFFFFF0F and $A0 or swap !
                 GPIOA_AFRL dup @ $FFFF00FF and $7700 or swap !
                 #80000000 #115200 / 5 + #10 / USART2_BRR !
-                %00000000000000001101 USART2_CR1 !
-                0 dup dup tx-head ! tx-tail ! rx-tail !
+                %10101101 USART2_CR1 !
+                0 dup dup dup tx-head ! tx-tail ! rx-head ! rx-tail !
                 %1000000 NVIC_SETENA_BASE cell+ bis!
                 ;
 
 : setup-hw      %00100000000000000000 RCC_AHBENR !
                 GPIOA_MODER dup @ $FFFFF3FF and $400 or swap !
-                +led
                 setup-uart2
-                setup-dma
                 ;
 
-
-$400 constant #page
 
 : flash-busy?   1 FLASH_SR bit@ ;
 : await-flash-idle
@@ -201,8 +215,6 @@ include ../janus/init.ft
 
 : cold          s0 sp! r0 rp! setup-vars 64mhz setup-hw
                 ." CoreForth-0 " .threading ."  ready" cr
-                txb u. tx-head u. tx-tail u. cr
-                rxb u. rx-tail u. cr
                 0 source-id !
 ::stc::         init-dp @ backup-dp @ = if dict-space org then
                 hex abort ;

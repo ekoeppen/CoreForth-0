@@ -18,6 +18,11 @@ tram tvp !
 tram $00001000 + t, 0 t,
 trom $00000400 + torg
 
+include ../cpus/cortex-m0/armv6-m-primitives.ft
+::stc:: include ../cpus/cortex-m0/threading-stc.ft
+::dtc:: include ../cpus/cortex-m0/threading-dtc.ft
+::itc:: include ../cpus/cortex-m0/threading-itc.ft
+
   $10 buffer:  #docol
   $10 buffer:  #dodoes
   $7C buffer:  psp
@@ -25,9 +30,6 @@ trom $00000400 + torg
   $7C buffer:  rsp
       variable r0
 
-include ../cpus/cortex-m0/armv6-m-primitives.ft
-::stc:: include ../cpus/cortex-m0/threading-stc.ft
-::dtc:: include ../cpus/cortex-m0/threading-dtc.ft
 include ../common/core.ft
 include ../../common/core.ft
 include ../dictionary/common.ft
@@ -47,6 +49,7 @@ include ../../common/input.ft
 include ../dictionary/full.ft
 ::stc:: include ../common/threading-stc.ft
 ::dtc:: include ../common/threading-dtc.ft
+::itc:: include ../common/threading-itc.ft
 include ../../common/exception.ft
 include ../../common/control-flow.ft
 include ../common/compiler.ft
@@ -77,3 +80,4 @@ include ../janus/save-image.ft
 
 ::dtc:: s" thumbulator-dtc.bin" save-bin
 ::stc:: s" thumbulator-stc.bin" save-bin
+::itc:: s" thumbulator-itc.bin" save-bin

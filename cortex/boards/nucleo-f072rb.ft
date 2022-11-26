@@ -2,6 +2,7 @@
 
 ::host::
 
+include ../../../tether.ft
 include ../janus/compiler.ft
 
 \ -- Target -------------------------------------------------------------------
@@ -17,6 +18,11 @@ tram tvp !
 
 tram $00004000 + t, 0 t,
 trom $00000400 + torg
+
+include ../cpus/cortex-m0/armv6-m-primitives.ft
+::stc:: include ../cpus/cortex-m0/threading-stc.ft
+::dtc:: include ../cpus/cortex-m0/threading-dtc.ft
+::itc:: include ../cpus/cortex-m0/threading-itc.ft
 
 ::dtc::   $10 buffer: #docol
 ::dtc::   $10 buffer: #dodoes
@@ -45,9 +51,6 @@ trom $00000400 + torg
    $08020000 constant end-of-flash
         $400 constant #page
 
-include ../cpus/cortex-m0/armv6-m-primitives.ft
-::stc:: include ../cpus/cortex-m0/threading-stc.ft
-::dtc:: include ../cpus/cortex-m0/threading-dtc.ft
 include ../common/core.ft
 include ../../common/core.ft
 include ../dictionary/common.ft
@@ -105,13 +108,21 @@ include ../../common/input.ft
 include ../dictionary/full.ft
 ::stc:: include ../common/threading-stc.ft
 ::dtc:: include ../common/threading-dtc.ft
+::itc:: include ../common/threading-itc.ft
 include ../../common/exception.ft
 include ../../common/control-flow.ft
 include ../common/compiler.ft
 include ../../common/interpret.ft
 include ../../common/utils.ft
+include ../common/tether.ft
 
 include ../janus/init.ft
+
+: 48mhz         %1 FLASH_ACR bis!
+                %1010000000000000000000 RCC_CFGR bis!
+                %1000000000000000000000000 RCC_CR bis!
+                %10 RCC_CFGR bis!
+                ;
 
 : usart2-src!   #16 lshift RCC_CFGR3 tuck @ $FFFCFFFF and or swap ! ;
 
@@ -129,21 +140,28 @@ include ../janus/init.ft
 
 : setup-hw      %00100000000000000000 RCC_AHBENR !
                 GPIOA_MODER dup @ $FFFFF3FF and $400 or swap !
+                48mhz
                 setup-uart2
                 +usart2-irq
                 ;
 
+::tethered:: : abort ;
 
 : dict-space    backup-dp @ #page + #page 1- invert and ;
-: cold          s0 sp! r0 rp! setup-vars setup-hw
+: cold          s0 sp! r0 rp! halt setup-vars setup-hw
                 ." CoreForth-0 " .threading ."  ready" cr
-                0 source-id !
+                0 source-id ! hex
 ::stc::         init-dp @ backup-dp @ = if dict-space org then
-                hex abort ;
+::tethered::    4 emit tether-loop
+                abort ;
 
 \ -- Host ---------------------------------------------------------------------
 
 ::host::
+
+include ../janus/tether.ft
+
+tether
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
 ::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!
@@ -153,4 +171,5 @@ include ../janus/save-image.ft
 t' usart2-handler 1+ trom $000000b0 + t!
 
 ::dtc:: s" nucleo-f072rb-dtc.hex" save-hex
+::itc:: s" nucleo-f072rb-itc.hex" save-hex
 ::stc:: s" nucleo-f072rb-stc.hex" save-hex

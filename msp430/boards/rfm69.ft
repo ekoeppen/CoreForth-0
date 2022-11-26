@@ -1,3 +1,40 @@
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+create #info $100 allot         #info $100 $ff fill
+create #vectors $40 allot       #vectors $40 $ff fill
+
+:noname     th, ; is t,call
+:noname     $12B0 th, s" docon" tfwdref ; is t,docon
+:noname     $12B0 th, s" docol" tfwdref ; is t,enter
+:noname     ; is t,next
+:noname     s" exit" tfwdref ; is t,exit
+:noname     s" lit" tfwdref ; is t,lit
+:noname     s" branch" tfwdref ; is t,branch
+:noname     s" ?branch" tfwdref ; is t,?branch
+:noname     ( c-addr n -- : compile word header into the target image )
+            talign
+            there tlast @ th, tlast !
+            there >target pack$
+            dup c@ tuck 1+ tallot talign
+                swap $40 or swap c! ; is thead
+:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tcell + dup tc@ $3F and + 1+ taligned ; is tlink>
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$0000C000 to trom
+$00000200 to tram
+        2 to tcell
+
+trom tdp !
+tram tvp !
+
+include ../cpus/msp430-primitives.ft
+
 $1000 constant info
 
 $1000 constant 'turnkey
@@ -10,29 +47,22 @@ $100C constant save-init
 
 $003E buffer: rs   variable r0
 $003E buffer: ps   variable s0
-$0080 buffer: tib
-$0080 constant tib#
 $0010 buffer: tx-buffer
 $0010 constant tx-buffer#
 
-variable latest
-variable dp
-variable vp
-variable state
-variable (source)
-variable source#
-variable >in
-variable base
-variable hp
-variable handler
-
 $0400 constant ram-top
 
-include ../core.ft
-
-code emit       $b3e2 $0003 $27fd $47c2 $0067 $4437 $4530 end-code
-code key        $b3d2 $0003 $27fd $8324 $4784 $0000 $4257 $0066 $4530 end-code
-code key?       $8324 $4784 $0000 $b3d2 $0003 $2002 $4307 $4530 $4337 $4530 end-code
+include ../../common/core.ft
+include ../../common/dictionary.ft
+include ../../common/output.ft
+include ../../common/input.ft
+include ../../common/exception.ft
+include ../../common/eventloop.ft
+include ../../common/timeout.ft
+include ../compiler.ft
+include ../../common/control-flow.ft
+include ../../common/interpret.ft
+include ../../common/utils.ft
 
 include ../cpus/msp430g2x53/sfr.fs
 include ../cpus/msp430g2x53/wdt.fs
@@ -43,12 +73,7 @@ include ../cpus/msp430g2x53/ports.fs
 include ../cpus/msp430g2x53/adc.fs
 include ../cpus/msp430g2x53/tlv.fs
 
-include ../../common/io.ft
-include ../compiler.ft
 include ../save.ft
-include ../../common/timeout.ft
-include ../../common/eventloop.ft
-include ../../common/utils.ft
 
 : (set-speed)   ( caldco calbc -- )
                 c@ BCSCTL1 c!   c@ DCOCTL c!   0 BCSCTL2 c! ;
@@ -56,6 +81,7 @@ include ../../common/utils.ft
 : set-speed-12mhz   CALDCO_12MHZ CALBC1_12MHZ (set-speed) ;
 : set-speed-8mhz    CALDCO_8MHZ CALBC1_8MHZ (set-speed) ;
 : set-speed-1mhz    CALDCO_1MHZ CALBC1_1MHZ (set-speed) ;
+: wdt>timeout   wdt/1s +wdt-ie eint ;
 
 : +led          %00100000 P2OUT bis! ;
 : -led          %00100000 P2OUT bic! ;
@@ -129,18 +155,18 @@ include ../../common/utils.ft
                 ADC10MEM @ ;
 
 : vcc           0 (vcc-adc@) dup $380 <
-                if 375 * else drop %0000000001000000 (vcc-adc@) 625 * then
+                if #375 * else drop %0000000001000000 (vcc-adc@) #625 * then
                 4 rshift ;
 
 code ntc-values $12b0 dovar
-                105 131 161 195 233 275 320 367
-                415 464 512 559 603 674 end-code
+                #105 #131 #161 #195 #233 #275 #320 #367
+                #415 #464 #512 #559 #603 #674 end-code
 
-: ntc           ntc-adc@ dup 105 < if -250 exit then
-                         dup 673 > if 400 exit then
+: ntc           ntc-adc@ dup #105 < if -#250 exit then
+                         dup #673 > if #400 exit then
                 ntc-values begin 2dup @ > while cell+ repeat
-                dup ntc-values - 2/ 1- 50 * 250 - -rot
-                dup @ swap cell- @ tuck - -rot - 50 * swap /
+                dup ntc-values - 2/ 1- #50 * #250 - -rot
+                dup @ swap cell- @ tuck - -rot - #50 * swap /
                 + ;
 
 : ntc.          base @ decimal ntc . base ! ;
@@ -188,7 +214,50 @@ code sensor-loop $12b0 dovar
                 blink
                 abort ;
 
+: setup-pointers
+                init-dp @ dp !
+                init-vp @ vp !
+                init-latest @ latest !  ;
+
+: cold          s0 sp! r0 rp! #16 base ! 0 state ! 0 handler !
+                setup-pointers
+                'turnkey @ ?dup if catch ?dup if ex. then
+                else abort
+                then
+                cold ;
+
 code vector-18  $c0f1 $00f8 $0000 $1300 end-code
 code vector-19  $c0f1 $00f8 $0000 $1300 end-code
 : vector-26     <irq 1 tick +! %0000000100000111 and %00001000 or irq> ;
 code vector-31  $4307 $4031 $0240 $4034 $027E $4020 cold end-code
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+variable fd
+
+t' turnkey dup              #info w!        #info $0C + w!
+tlast @ dup                 #info $02 + w!  #info $0E + w!
+tdp @ $200 + $FE00 and dup  #info $04 + w!  #info $10 + w!
+tvp @ dup                   #info $06 + w!  #info $12 + w!
+
+t' vector-18 #vectors #36 + w!
+t' vector-19 #vectors #38 + w!
+t' vector-26 #vectors #52 + w!
+t' vector-31 #vectors #62 + w!
+
+: save-bin ( mem mem-len name name-len -- )
+                w/o create-file throw >r
+                r@ write-file throw
+                r> close-file throw ;
+
+s" rfm69.hex" w/o create-file throw fd !
+$1000 #info $100 fd @ type-hex
+trom #target there trom - fd @ type-hex
+$ffc0 #vectors $40 fd @ type-hex
+fd @ close-file throw
+
+#info $100 s" rfm69-info.bin" save-bin
+#target there trom - s" rfm69-main.bin" save-bin
+#vectors $40 s" rfm69-vectors.bin" save-bin
