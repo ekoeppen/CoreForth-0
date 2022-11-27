@@ -148,7 +148,7 @@ include ../janus/init.ft
 ::tethered:: : abort ;
 
 : dict-space    backup-dp @ #page + #page 1- invert and ;
-: cold          s0 sp! r0 rp! halt setup-vars setup-hw
+: cold          s0 sp! r0 rp! setup-vars setup-hw
                 ." CoreForth-0 " .threading ."  ready" cr
                 0 source-id ! hex
 ::stc::         init-dp @ backup-dp @ = if dict-space org then

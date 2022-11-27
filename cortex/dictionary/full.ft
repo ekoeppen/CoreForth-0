@@ -1,6 +1,10 @@
 : link>flags    4 + ;
 : link>name     6 + ;
-: >body         $10 + ;
+
+::stc:: : >body         $10 + ;
+::dtc:: : >body         $10 + ;
+::itc:: : >body         cell+ ;
+
 : link>         link>name dup c@ + 1+ aligned ;
 : ,link         , ;
 : visible?      link>flags c@ visible-flag and 0= ;

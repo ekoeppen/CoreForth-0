@@ -52,7 +52,6 @@ variable state
 : defer!        swap 1+ swap cell+ i! ;
 : is            ' $468F4900 over i! defer! ; immediate
 
-: does>         postpone (does>) ; immediate
 : recurse       latest @ link> ,call ; immediate
 : [char]        char postpone literal ; immediate
 : s"            postpone (s")

@@ -1,16 +1,15 @@
 : ,call         , ;
 : ,enter        ['] docol ,call ;
-: ,next         $cf20 h, $682c h, $46a7 h,
+: ,next         $cf20 h, $682c h, $46a7 h, ;
 : ,exit         ['] exit ,call ;
 
-code dodoes     $b480 $4677 $3f01 $683f $CF20 $4728 end-code
-
-: ,dodoes       ['] dodoes , ;
+: ,dodoes       ['] dodoes 1+ , ;
 : ,dodata       ['] dodata , ;
 : ,docon        ['] docon , ;
 
 
-: (does>)       here latest @ link> #8 + org ,dodoes r> , org ;
+: (does>)       r> latest @ link> ! ;
+: does>         ['] (does>) , $4C00 h, $47A0 h, ,dodoes ; immediate
 
 : (s")          r> count 2dup + aligned >r ;
 
