@@ -5,4 +5,5 @@
 :noname     $BD00 th, ; is t,exit
 :noname     $BDF0 th, ; is t,irqexit
 ' ,bl is t,call
+:noname     s" (does>)" tfwdref ; is t,dodoes
 

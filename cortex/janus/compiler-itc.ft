@@ -6,3 +6,4 @@
 :noname     $b5f0 th, $467f th, $3706 th, t,next ; is t,doirq
 :noname     s" irqexit" tfind t, ; is t,irqexit
 :noname     t, ; is t,call
+:noname     s" (does>)" tfind t, $4C00 th, $47A0 th, s" dodoes" tfind 1+ t, ; is t,dodoes
