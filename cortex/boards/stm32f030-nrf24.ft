@@ -2,12 +2,12 @@
 
 ::host::
 
+::dtc:: cr ." *** DTC not supported ***" cr bye
+
 include ../../../tether.ft
 include ../janus/compiler.ft
 
-:noname     ( c-addr n -- : compile word header into the target image )
-            2drop talign
-            there tlast @ t, tlast ! ; is thead
+:noname     2drop talign there tlast @ t, tlast ! ; is thead
 
 \ -- Target -------------------------------------------------------------------
 
@@ -23,8 +23,10 @@ tram tvp !
 tram $00001000 + t, 0 t,
 trom $000000d0 + torg
 
-::dtc::   $10 buffer: #docol
-::dtc::   $10 buffer: #dodoes
+include ../cpus/cortex-m0/armv6-m-primitives.ft
+::stc:: include ../cpus/cortex-m0/threading-stc.ft
+::itc:: include ../cpus/cortex-m0/threading-itc.ft
+
           $FC buffer: psp
              variable s0
           $FC buffer: rsp
@@ -37,6 +39,13 @@ trom $000000d0 + torg
           $40 buffer: txb
              variable tx-head
              variable tx-tail
+
+include ../common/core.ft
+include ../../common/core.ft
+include ../dictionary/common.ft
+include ../dictionary/headerless.ft
+::stc:: include ../common/threading-stc.ft
+::itc:: include ../common/threading-itc.ft
 
 $E000E100 constant NVIC_SETENA_BASE
 
@@ -64,13 +73,6 @@ $40013008 constant SPI1_SR
 $4001300C constant SPI1_DR
 
 $40022000 constant FLASH_ACR
-
-include ../cpus/cortex-m0/armv6-m-primitives.ft
-::stc:: include ../cpus/cortex-m0/threading-stc.ft
-::dtc:: include ../cpus/cortex-m0/threading-dtc.ft
-include ../common/core.ft
-include ../../common/core.ft
-include ../dictionary/common.ft
 
 : +led          %10 GPIOA_BSRR ! ;
 : -led          %10 GPIOA_BRR ! ;
@@ -111,13 +113,7 @@ i: usart1-handler
                 rx-tail rbuf-ptr++ ;
 
 include ../../common/output.ft
-include ../dictionary/headerless.ft
-::stc:: include ../common/threading-stc.ft
-::dtc:: include ../common/threading-dtc.ft
-include ../../common/exception.ft
-include ../../common/control-flow.ft
-include ../common/compiler.ft
-include ../common/tether.ft
+::tethered:: include ../common/tether.ft
 
 $C0 constant init-start
 $C0 constant init-cold
@@ -126,10 +122,7 @@ $C8 constant init-dp
 $CC constant init-vp
 
 : setup-vars    init-latest @ latest ! init-dp @ (dp) ! init-vp @ vp !
-::dtc::         ['] docol #docol 2 cells move
-::dtc::         ['] next #docol 2 cells + cell move
-::dtc::         ['] dodoes #dodoes 3 cells move
-::dtc::         true
+::itc::         true
 ::stc::         false
                 ram? !  ;
 
@@ -140,6 +133,11 @@ $CC constant init-vp
 ::dtc::         $4668 $3880 $0006 $4f02 $cf20 $1c6d $4728
 ::dtc::         $ffff $00c0 $0000 end-code
 
+
+::itc:: t: reset-handler
+::itc::         $4668 th, $3880 th, $0006 th, $4f02 th, $cf20 th, $682c th, $46a7 th,
+::itc::         $ffff th, $03c0 th, $0000 th,
+
 : >spi>         begin %10 SPI1_SR bit@ until
                 SPI1_DR c!
                 begin %1 SPI1_SR bit@ until
@@ -148,6 +146,10 @@ $CC constant init-vp
 
 : spi>          0 >spi> ;
 : >spi          >spi> drop ;
+
+: -rf-ce        ;
+: +rf-ce        ;
+include ../../drivers/nrf24.ft
 
 : dump          >r dup cr hex. space begin
                 r@ while
@@ -189,14 +191,15 @@ $CC constant init-vp
                 setup-hw +led
                 ." CoreForth-0 ready" cr
                 hex
-                4 emit tether-loop ;
+::tethered::    4 emit tether-loop
+::untethered::  begin wfi again
+                ;
 
 \ -- Host ---------------------------------------------------------------------
 
 ::host::
 
-include ../janus/tether.ft
-
+::tethered:: include ../janus/tether.ft
 ::tethered:: tether
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
@@ -216,5 +219,5 @@ include ../janus/tether.ft
                 #target there trom - r@ write-file throw
                 r> close-file throw ;
 
-::dtc:: s" stm32f030-nrf24-dtc.bin" save-bin
 ::stc:: s" stm32f030-nrf24-stc.bin" save-bin
+::itc:: s" stm32f030-nrf24-itc.bin" save-bin
