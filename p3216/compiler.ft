@@ -1,18 +1,16 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab
 
-variable latest
-
 $0040 constant immediate-flag
 $0080 constant visible-flag
 
 : depth         s0 sp@ - /cell 1- ;
 : rdepth        r0 rp@ - /cell 1- ;
 : .s            sp@ depth 1- begin ?dup while
-                  swap dup @ . cell+ swap 1-
+                  swap dup @ hex. space cell+ swap 1-
                 repeat drop cr ;
 
 : .r            rp@ rdepth 1- begin ?dup while
-                  swap dup @ . cell+ swap 1-
+                  swap dup @ hex. space cell+ swap 1-
                 repeat drop cr ;
 
 : align         here aligned org ;
@@ -39,7 +37,6 @@ $0080 constant visible-flag
 : hide          latest-flags visible-flag invert and swap ! ;
 : reveal        latest-flags visible-flag or swap ! ;
 
-: ,call         , ;
 : literal       postpone lit , ; immediate
 
 variable state
@@ -49,20 +46,37 @@ variable state
 : compiling?    state @ ;
 : interpreting? state @ 0= ;
 
-: si=           ( c-addr1 c-addr2 -- f )
-                dup c@ 1+ begin >r 2dup ci@= r> tuck and while
-                  1- rot 1+ rot 1+ rot
-                repeat -rot 2drop 0= ;
+: si=           ( c-addr1 u1 c-addr2 u2 -- f )
+                rot over <> if drop 2drop 0 exit then
+                >r begin
+                  2dup ci@= r@ 0<> and while
+                  1+ swap 1+ swap
+                  r> 1- >r
+                repeat
+                2drop r> 0=
+                ;
 
-: find          >r latest begin
-                  @ dup if dup link>name r@ si= over visible? and
-                  else r@ swap true
-                  then
-                until rdrop
+: search-wordlist               ( c-addr u wid -- 0 | xt -1 | xt 1 )
+                @ >r begin
+                  2dup r@ link>name count si= r@ visible? and
+                  dup 0= if r> @ dup >r 0= or then
+                until 2drop r>
                 dup if
                   dup link>
                   swap immediate? not 1 or
                 then ;
+
+: find          0                               ( c-addr 0 )
+                #order @ 0 do
+                  over count                    ( c-addr 0 c-addr' u )
+                  i cells context + @           ( c-addr 0 c-addr' u wid )
+                  search-wordlist               ( c-addr 0; 0 | w 1 | q -1 )
+                  ?dup if                       ( c-addr 0; w 1 | w -1 )
+                    2swap 2drop leave           ( w 1 | w -1 )
+                  then                          ( c-addr 0 )
+                loop                            ( c-addr 0 | w 1 | w -1 )
+                ;
+
 : '             bl word find dup 0= if drop count type space $3F emit
                 else drop then ;
 : words         latest begin @ ?dup while
@@ -77,7 +91,7 @@ variable state
                 c@ 1+ allot align ; immediate
 : ."            postpone s" postpone type ; immediate
 
-: <builds       align   here latest dup @ ,link 0 , !
+: <builds       align   here get-current dup @ ,link 0 , !
                 bl word
                 dup dup c@ 1+ here swap move
                 c@ 1+ allot align ;

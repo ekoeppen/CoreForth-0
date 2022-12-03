@@ -135,7 +135,7 @@ include ../save.ft
 include ../../drivers/nrf24.ft
 include ../../drivers/nrf24-utils.ft
 
-: turnkey       setup-hw 0 source-id !
+: turnkey       setup-hw 0 (source-id) !
                 ." CoreForth-0 ready" cr
                 abort ;
 

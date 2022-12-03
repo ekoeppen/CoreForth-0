@@ -1,5 +1,5 @@
 : ex.           $45 emit $23 emit h.4 ;
-: prompt        source-id @ if exit then space [char] o emit [char] k emit cr ;
+: prompt        source-id if exit then space [char] o emit [char] k emit cr ;
 : interpret     begin  bl word dup c@ while      \ textadr
                   find ?dup if                    \ xt 1/-1
                     1+ interpreting? or              \ immed or interp?
@@ -18,11 +18,11 @@
 : refill        tib dup tib# xon accept xoff
                 source# ! (source) ! 0 >in ! true ;
 
-: quit          r0 rp! 0 state ! 0 source-id !
+: quit          r0 rp! 0 state ! 0 (source-id) !
                 begin
                   refill
                 while
-                  source-id @ 0= if space then
+                  source-id 0= if space then
                   ['] interpret catch
                   ?dup if
                     dup $fff3 <> if ex. postpone [ else drop then

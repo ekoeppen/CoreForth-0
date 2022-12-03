@@ -78,3 +78,15 @@ variable base
 
 : @cell+        ( a -- a' n ) dup cell+ swap @ ;
 : depth         s0 sp@ - /cell 1- ;
+
+: (do)          swap r> -rot >r >r >r ;
+: i             rp@ cell+ @ ;
+: j             rp@ 3 cells + @ ;
+: unloop        r> rdrop rdrop >r ;
+: (loop)        r> r> 1+ dup r@ =
+                if drop rdrop true else >r false then
+                swap >r ;
+: (+loop)       r> r> rot + dup r@ <
+                if drop rdrop true else >r false then
+                swap >r ;
+: leave         unloop rdrop ;

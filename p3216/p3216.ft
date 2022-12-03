@@ -16,6 +16,7 @@
             there >target pack$ c@ 1+ tallot talign ; is thead
 :noname     tlast @ tcell + dup t@ $40 or swap t! ; is timmediate
 :noname     tcell + tcell + dup tc@ + taligned ; is tlink>
+:noname     s" (does>)" tfind t, ; is t,dodoes
 
 \ -- Target -------------------------------------------------------------------
 
@@ -35,6 +36,7 @@ $FC buffer:  rsp
 $FC buffer:  psp
     variable s0
 
+
 $40 constant init-latest
 $44 constant init-dp
 $48 constant init-vp
@@ -45,11 +47,15 @@ include ../common/dictionary.ft
 include ../common/output.ft
 include ../common/input.ft
 include ../common/exception.ft
+include search-ext.ft
 include compiler.ft
 include ../common/control-flow.ft
 include ../common/interpret.ft
 include ../common/utils.ft
 
+: .s            sp@ begin dup s0 cell- <= while dup @ u. cell+ repeat drop ;
+
+include files.ft
 $ffffffff constant max-uint
 $7fffffff constant max-int
 $80000000 constant min-int
@@ -62,13 +68,16 @@ $80000000 constant mid-uint+1
 : */            >r m* r> sm/rem swap drop ;
 : */mod         >r m* r> sm/rem ;
 
-: setup-pointers    init-latest @ latest !
+: setup-pointers    init-latest @ forth-wordlist !
                     init-dp @ dp !
-                    init-vp @ vp ! ;
+                    init-vp @ vp !
+                    only forth definitions
+                    ;
 
 : cold          s0 sp! r0 rp!
                 0 state ! 0 handler !
                 setup-pointers
+                ." CoreForth p3212 ready" cr
                 hex abort
                 bye ;
 

@@ -86,7 +86,7 @@ include ../../common/utils.ft
                 then
                 cold ;
 
-: turnkey       0 source-id !
+: turnkey       0 (source-id) !
                 ." CoreForth-0 ready" cr
                 abort ;
 

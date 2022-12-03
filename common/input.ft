@@ -1,13 +1,14 @@
       variable >in
       variable source#
       variable (source)
-      variable source-id
+      variable (source-id)
   $80 buffer:  tib
   $80 constant tib#
 
 : wp            pad $40 + ;
 : source        (source) @ source# @ ;
 : source@       (source) @ >in @ + c@ ;
+: source-id     (source-id) @ ;
 : >>source      1 >in +! ;
 : in-source?    >in @ source# @ < ;
 : skip          begin source@ over = in-source? and while >>source repeat drop ;
@@ -22,7 +23,7 @@
                 over + 1- over
                 begin key
                 dup $0A <> while
-                  source-id @ 0= if dup emit then
+                  source-id 0= if dup emit then
                   dup 8 = if  drop 1-  >r over r> umax
                           else  over c!  1+ over umin
                   then

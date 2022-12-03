@@ -1,0 +1,21 @@
+: read-line     swap dup >r 0 do
+                  dup getc dup 0< over #10 = or if
+                    drop 2drop i dup 0<> 0 unloop rdrop exit
+                  then
+                  rot tuck i + c! swap
+                loop
+                2drop r> true 0
+                ;
+
+: included      source-id >r
+                open-file drop (source-id) !
+                begin
+                  tib dup tib# (source-id) @ read-line drop while
+                  evaluate
+                repeat
+                drop
+                source-id close-file drop
+                r> (source-id) !
+                ;
+
+: include       bl word count included ;
