@@ -17,10 +17,7 @@
 :noname     tlast @ tcell + dup t@ $40 or swap t! ; is timmediate
 :noname     tcell + tcell + dup tc@ + taligned ; is tlink>
 :noname     s" (does>)" tfind t, ; is t,dodoes
-
-\ -- Target -------------------------------------------------------------------
-
-::target::
+:noname     ; is t,docode
 
 $00000000 to trom
 $00018000 to tram
@@ -30,6 +27,10 @@ trom tdp !
 tram tvp !
 
 $80 torg
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
 
 $FC buffer:  rsp
     variable r0
@@ -47,15 +48,16 @@ include ../common/dictionary.ft
 include ../common/output.ft
 include ../common/input.ft
 include ../common/exception.ft
+include input.ft
 include search-ext.ft
 include compiler.ft
 include ../common/control-flow.ft
 include ../common/interpret.ft
 include ../common/utils.ft
+include files.ft
 
 : .s            sp@ begin dup s0 cell- <= while dup @ u. cell+ repeat drop ;
 
-include files.ft
 $ffffffff constant max-uint
 $7fffffff constant max-int
 $80000000 constant min-int
@@ -78,8 +80,11 @@ $80000000 constant mid-uint+1
                 0 state ! 0 handler !
                 setup-pointers
                 ." CoreForth p3212 ready" cr
-                hex abort
-                bye ;
+                hex
+                argc @ 2 > if 2 arg included
+                else abort bye
+                then
+                ;
 
 ::host::
 

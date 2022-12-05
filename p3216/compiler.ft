@@ -32,12 +32,13 @@ $0080 constant visible-flag
 
 : (s")          r> count 2dup + aligned >r ;
 
-: latest-flags  ( -- addr f ) latest @ link>flags dup @ ;
+: latest-flags  ( -- addr f ) get-current @ link>flags dup @ ;
 : immediate     latest-flags immediate-flag or swap ! ;
 : hide          latest-flags visible-flag invert and swap ! ;
 : reveal        latest-flags visible-flag or swap ! ;
 
 : literal       postpone lit , ; immediate
+: parse-name    bl word count ;
 
 variable state
 
@@ -46,7 +47,7 @@ variable state
 : compiling?    state @ ;
 : interpreting? state @ 0= ;
 
-: si=           ( c-addr1 u1 c-addr2 u2 -- f )
+: stri=         ( c-addr1 u1 c-addr2 u2 -- f )
                 rot over <> if drop 2drop 0 exit then
                 >r begin
                   2dup ci@= r@ 0<> and while
@@ -56,9 +57,19 @@ variable state
                 2drop r> 0=
                 ;
 
+: str=          ( c-addr1 u1 c-addr2 u2 -- f )
+                rot over <> if drop 2drop 0 exit then
+                >r begin
+                  2dup c@ swap c@ = r@ 0<> and while
+                  1+ swap 1+ swap
+                  r> 1- >r
+                repeat
+                2drop r> 0=
+                ;
+
 : search-wordlist               ( c-addr u wid -- 0 | xt -1 | xt 1 )
                 @ >r begin
-                  2dup r@ link>name count si= r@ visible? and
+                  2dup r@ link>name count stri= r@ visible? and
                   dup 0= if r> @ dup >r 0= or then
                 until 2drop r>
                 dup if
@@ -79,7 +90,7 @@ variable state
 
 : '             bl word find dup 0= if drop count type space $3F emit
                 else drop then ;
-: words         latest begin @ ?dup while
+: words         context @ begin @ ?dup while
                   dup link>name count type space
                 repeat ;
 
@@ -91,25 +102,31 @@ variable state
                 c@ 1+ allot align ; immediate
 : ."            postpone s" postpone type ; immediate
 
-: <builds       align   here get-current dup @ ,link 0 , !
-                bl word
+: (link)        align here get-current dup @ ,link 0 , ! ;
+
+: <builds       (link) bl word
                 dup dup c@ 1+ here swap move
                 c@ 1+ allot align ;
 
 : :             <builds ,enter hide ] ;
 : ;             ,exit reveal [ ; immediate
-: :noname       align latest @ here latest ! ]  , here ; immediate
+: :noname       0 , here ,enter ] ; immediate
 
 : create        <builds ,dodata reveal ;
 : constant      <builds ,docon align , reveal ;
 : variable      <builds ,docon align vp dup @ dup , cell+ swap ! reveal ;
 : buffer:       <builds ,docon align vp dup @ dup , rot + swap ! reveal ;
 
-\ : defer         <builds $46F7 h, 6 allot reveal ; immediate
-\ : defer!        swap 1+ swap cell+ ! ;
-\ : is            ' $468F4900 over ! defer! ; immediate
-
-: (does>)       here latest @ link> #8 + org ,dodoes r> ,call org ;
+: (does>)       here get-current @ link> #8 + org ,dodoes r> ,call org ;
 : does>         postpone (does>) ; immediate
-: recurse       latest @ link> ,call ; immediate
+: recurse       get-current @ link> ,call ; immediate
 : [char]        char postpone literal ; immediate
+
+: value         <builds ,docon align vp tuck @ ! dup @ , cell swap +! reveal does> @ ;
+: to            bl word find 0= throw 4 cells + @ ! ;
+
+: undefined     ." *** undefined deferred word called ***" bye ;
+: defer         <builds ,docon align
+                ['] undefined vp tuck @ ! dup @ , cell swap +! reveal
+                does> @ execute ;
+: is            to ;

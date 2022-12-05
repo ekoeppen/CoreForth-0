@@ -1,7 +1,11 @@
+: write-file    drop 2drop 1 ;
+: create-file   drop 2drop 1 ;
+
+: get-dir       s" ." count ;
+
 : read-line     swap dup >r 0 do
-                  dup getc dup 0< over #10 = or if
-                    drop 2drop i dup 0<> 0 unloop rdrop exit
-                  then
+                  dup getc dup 0< if drop 2drop i false 0 unloop rdrop exit then
+                           dup #10 = if drop 2drop i true 0 unloop rdrop exit then
                   rot tuck i + c! swap
                 loop
                 2drop r> true 0
@@ -10,7 +14,8 @@
 : included      source-id >r
                 open-file drop (source-id) !
                 begin
-                  tib dup tib# (source-id) @ read-line drop while
+                  tib dup tib# source-id read-line drop while
+                  2dup type cr
                   evaluate
                 repeat
                 drop
@@ -19,3 +24,13 @@
                 ;
 
 : include       bl word count included ;
+
+: arg           pad $100 rot (arg) pad swap ;
+: argc          (argc) pad tuck ! ;
+
+: emit-file     swap putc ;
+: key-file      getc ;
+
+0 constant r/w
+1 constant r/o
+2 constant w/o
