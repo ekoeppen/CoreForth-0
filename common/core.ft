@@ -1,6 +1,7 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab
 
 variable base
+variable (source-id)
 
 : -rot          rot rot ;
 : 2drop         drop drop ;
@@ -26,6 +27,7 @@ variable base
 : umax          2dup u< if swap then drop ;
 : min           2dup > if swap then drop ;
 : max           2dup < if swap then drop ;
+: bounds        over + swap ;
 
 : 2@            dup cell+ @ swap @ ;
 : 2!            swap over ! cell+ ! ;
@@ -75,6 +77,8 @@ variable base
 : octal         #8 base ! ;
 : decimal       #10 base ! ;
 : hex           #16 base ! ;
+
+: source-id     (source-id) @ ;
 
 : @cell+        ( a -- a' n ) dup cell+ swap @ ;
 : depth         s0 sp@ - /cell 1- ;

@@ -1,14 +1,12 @@
       variable >in
       variable source#
       variable (source)
-      variable (source-id)
   $80 buffer:  tib
   $80 constant tib#
 
 : wp            pad $40 + ;
 : source        (source) @ source# @ ;
 : source@       (source) @ >in @ + c@ ;
-: source-id     (source-id) @ ;
 : >>source      1 >in +! ;
 : in-source?    >in @ source# @ < ;
 : skip          begin source@ over = in-source? and while >>source repeat drop ;
@@ -42,7 +40,7 @@
 : >number       ( u addr u --  u' addr' u' )
                 setbase
                 begin dup while
-                  over c@ digit? 0= if drop exit then
+                  over c@ uppercase digit? 0= if drop exit then
                   >r rot base @ * r> + -rot
                   1/string
                 repeat ;

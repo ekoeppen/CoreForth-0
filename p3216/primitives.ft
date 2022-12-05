@@ -147,8 +147,8 @@ code h!         $3023 $ffff \ move r3, $ffff
                 $1104 $0030 \ and r1, r1, r3
                 $200c $0000 \ load r2, [r0]
                 $2204 $0040 \ and r2, r2, r4
-                $0005 $0020 \ or r0, r0, r2
-                $100d $0000 \ store r0, [r1]
+                $1105 $0020 \ or r1, r1, r2
+                $100d $0000 \ store r1, [r0]
                 end-code
 
 code c!         $3023 $00ff \ move r3, $ff
@@ -409,28 +409,6 @@ code trace      $0c0c $0020 \ load r0, [r12++]
                 $003f $0005 \ syscall r0, r0, #5
                 end-code
 
-code open-file  $1c0c $0020 \ load r1, [r12++]
-                $0c0c $0000 \ load r0, [r12]
-                $013f $0006 \ syscall r0, r1, #6
-                $0c0d $0000 \ store r0, [r12]
-                $1c0d $0030 \ store r1, [--r12]
-                end-code
-
-code close-file $0c0c $0020 \ load r0, [r12]
-                $003f $0007 \ syscall r0, r0, #7
-                $0c0d $0000 \ store r0, [r12]
-                end-code
-
-code getc       $0c0c $0000 \ load r0, [r12]
-                $003f $0008 \ syscall r0, r0, #8
-                $0c0d $0000 \ store r0, [r12]
-                end-code
-
-code putc       $1c0c $0020 \ load r1, [r12++]
-                $0c0c $0020 \ load r0, [r12++]
-                $013f $0009 \ syscall r0, r1, #9
-                end-code
-
 code negate     $0c0c $0000 \ load r0, [r12]
                 $0007 $0000 \ not r0, r0
                 $0028 $0001 \ add r0, r0, #1
@@ -457,9 +435,44 @@ code d+         $3c0c $0020 \ load r3, [r12++]
                 $4430 $0002 \ rshift r4, r4, #2
                 $4424 $0001 \ and r4, r4, #1
                 $1108 $0040 \ add r1, r1, r4
-                $0c0d $0030 \ store r0, [r--12]
-                $1c0d $0030 \ store r1, [r--12]
+                $0c0d $0030 \ store r0, [--r12]
+                $1c0d $0030 \ store r1, [--r12]
                 end-code
+
+code open-file  $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0000 \ load r0, [r12]
+                $013f $0006 \ syscall r0, r1, #6
+                $0c0d $0000 \ store r0, [r12]
+                $1c0d $0030 \ store r1, [--r12]
+                end-code
+
+code close-file $0c0c $0020 \ load r0, [r12]
+                $003f $0007 \ syscall r0, r0, #7
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code getc       $0c0c $0000 \ load r0, [r12]
+                $003f $0008 \ syscall r0, r0, #8
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code putc       $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0020 \ load r0, [r12++]
+                $013f $0009 \ syscall r0, r1, #9
+                end-code
+
+code (argc)      $003f $000a \ syscall r0, r0, #10
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code (arg)      $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $2c0c $0000 \ load r2, [r12]
+                $013f $000b \ syscall r0, r1, #11
+                $2c0d $0000 \ store r2, [r12]
+                end-code
+
+: system        drop drop ;
 
 : u<            2dup swap not and 1 and >r
                 1 rshift swap 1 rshift swap - r> -  0< ;
@@ -479,3 +492,7 @@ code d+         $3c0c $0020 \ load r3, [r12++]
 : aligned       3 + $fffffffc and ;
 : depth         s0 sp@ - /cell ;
 : pick          1+ cells sp@ + @ ;
+
+: l!            ! ;
+: l@            @ ;
+: w!            h! ;
