@@ -1,5 +1,6 @@
-: write-file    drop 2drop 1 ;
-: create-file   drop 2drop 1 ;
+0 constant r/w
+0 constant w/o
+1 constant r/o
 
 : get-dir       s" ." count ;
 
@@ -12,10 +13,9 @@
                 ;
 
 : included      source-id >r
-                open-file drop (source-id) !
+                r/o open-file drop (source-id) !
                 begin
                   tib dup tib# source-id read-line drop while
-                  2dup type cr
                   evaluate
                 repeat
                 drop
@@ -30,7 +30,3 @@
 
 : emit-file     swap putc ;
 : key-file      getc ;
-
-0 constant r/w
-1 constant r/o
-2 constant w/o

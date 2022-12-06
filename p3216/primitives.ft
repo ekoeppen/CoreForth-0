@@ -439,14 +439,42 @@ code d+         $3c0c $0020 \ load r3, [r12++]
                 $1c0d $0030 \ store r1, [--r12]
                 end-code
 
-code open-file  $1c0c $0020 \ load r1, [r12++]
+code open-file  $2c0c $0020 \ load r2, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
                 $0c0c $0000 \ load r0, [r12]
                 $013f $0006 \ syscall r0, r1, #6
-                $0c0d $0000 \ store r0, [r12]
-                $1c0d $0030 \ store r1, [--r12]
+                $1c0d $0000 \ store r1, [r12]
+                $0c0d $0030 \ store r0, [--r12]
                 end-code
 
-code close-file $0c0c $0020 \ load r0, [r12]
+code write-file
+                $2c0c $0020 \ load r2, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0000 \ load r0, [r12]
+                $013f $000d \ syscall r0, r1, #13
+                $1c0d $0000 \ store r1, [r12]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code read-file
+                $2c0c $0020 \ load r2, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0000 \ load r0, [r12]
+                $013f $000e \ syscall r0, r1, #14
+                $1c0d $0000 \ store r1, [r12]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code create-file
+                $2c0c $0020 \ load r2, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $0c0c $0000 \ load r0, [r12]
+                $013f $000c \ syscall r0, r1, #12
+                $1c0d $0000 \ store r1, [r12]
+                $0c0d $0030 \ store r0, [--r12]
+                end-code
+
+code close-file $0c0c $0000 \ load r0, [r12]
                 $003f $0007 \ syscall r0, r0, #7
                 $0c0d $0000 \ store r0, [r12]
                 end-code
@@ -470,6 +498,13 @@ code (arg)      $0c0c $0020 \ load r0, [r12++]
                 $2c0c $0000 \ load r2, [r12]
                 $013f $000b \ syscall r0, r1, #11
                 $2c0d $0000 \ store r2, [r12]
+                end-code
+
+code (version)
+                $013f $000f \ syscall r0, r1, #15
+                $2c0d $0000 \ store r2, [--r12]
+                $1c0d $0030 \ store r1, [--r12]
+                $0c0d $0030 \ store r0, [--r12]
                 end-code
 
 : system        drop drop ;
