@@ -6,4 +6,4 @@
 :noname     $BDF0 th, ; is t,irqexit
 ' ,bl is t,call
 :noname     s" (does>)" tfwdref ; is t,dodoes
-
+:noname     ; is t,docode

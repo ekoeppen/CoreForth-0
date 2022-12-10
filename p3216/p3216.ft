@@ -32,10 +32,10 @@ $80 torg
 
 ::target::
 
-$FC buffer:  rsp
-    variable r0
-$FC buffer:  psp
-    variable s0
+$4000 buffer:  rsp
+      variable r0
+$4000 buffer:  psp
+      variable s0
 
 
 $40 constant init-latest
@@ -44,6 +44,7 @@ $48 constant init-vp
 
 include primitives.ft
 include ../common/core.ft
+include ../common/strings.ft
 include ../common/dictionary.ft
 include ../common/output.ft
 include ../common/input.ft
@@ -56,14 +57,13 @@ include ../common/interpret.ft
 include ../common/utils.ft
 include files.ft
 
-: .s            sp@ begin dup s0 cell- <= while dup @ u. cell+ repeat drop ;
-
 $ffffffff constant max-uint
 $7fffffff constant max-int
 $80000000 constant min-int
 $7fffffff constant mid-uint
 $80000000 constant mid-uint+1
 
+: .s            sp@ begin dup s0 cell- <= while dup @ u. cell+ repeat drop ;
 : m*            u* s>d ;
 : um*           u* s>d ;
 
@@ -78,11 +78,14 @@ $80000000 constant mid-uint+1
 
 : cold          s0 sp! r0 rp!
                 0 state ! 0 handler !
+                0 include-stack# !
                 setup-pointers
-                ." CoreForth p3212 ready" cr
-                hex
-                argc @ 2 > if 2 arg included
-                else abort bye
+                argc @ 2 > if
+                  2 arg included
+                else
+                  ." CoreForth p3212 ready" cr
+                  hex
+                  abort
                 then
                 ;
 
@@ -115,9 +118,8 @@ t' docon $64 t!
 t' dovar $68 t!
 t' dodoes $6C t!
 
-: save-bin         ( filename name-len -- )
-                    w/o create-file throw >r
+: save-bin          s" p3216.bin" w/o create-file throw >r
                     #target there r@ write-file throw
                     r> close-file throw ;
 
-s" p3216.bin" save-bin
+save-bin

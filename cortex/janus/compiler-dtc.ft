@@ -6,3 +6,4 @@
 :noname     s" irqexit" tfwdref ; is t,irqexit
 :noname     1+ t, ; is t,call
 :noname     s" (does>)" tfwdref ; is t,dodoes
+:noname     ; is t,docode

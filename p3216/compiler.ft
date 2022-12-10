@@ -97,7 +97,11 @@ variable state
 : postpone      bl word find 0< if literal postpone ,call
                 else ,call then ; immediate
 : [']           ' postpone literal ; immediate
-: s"            postpone (s")
+
+$100 buffer: (s#)
+
+: s"            interpreting? if [char] " word count >r (s#) r@ cmove (s#) r> exit then
+                postpone (s")
                 [char] " word dup dup c@ 1+ here swap move
                 c@ 1+ allot align ; immediate
 : ."            postpone s" postpone type ; immediate
