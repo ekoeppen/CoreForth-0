@@ -57,13 +57,14 @@ include ../common/interpret.ft
 include ../common/utils.ft
 include files.ft
 
+: .s sp@ begin dup s0 <> while dup @ u. cell+ repeat drop ;
+
 $ffffffff constant max-uint
 $7fffffff constant max-int
 $80000000 constant min-int
 $7fffffff constant mid-uint
 $80000000 constant mid-uint+1
 
-: .s            sp@ begin dup s0 cell- <= while dup @ u. cell+ repeat drop ;
 : m*            u* s>d ;
 : um*           u* s>d ;
 
@@ -79,12 +80,12 @@ $80000000 constant mid-uint+1
 : cold          s0 sp! r0 rp!
                 0 state ! 0 handler !
                 0 include-stack# !
+                hex
                 setup-pointers
                 argc @ 2 > if
                   2 arg included
                 else
                   ." CoreForth p3212 ready" cr
-                  hex
                   abort
                 then
                 ;

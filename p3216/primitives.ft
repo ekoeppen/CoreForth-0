@@ -1,3 +1,5 @@
+code p3216      end-code
+
 code next       $ea0c $0020 \ load r14, [r10++]
                 $fe03 $0000 \ move r15, r14
                 end-code
