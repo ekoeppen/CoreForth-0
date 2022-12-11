@@ -1,0 +1,15 @@
+include setup.ft
+include tester.ft
+include prelimtest.ft
+include core.ft
+include math-sym.ft
+include dict-memory.ft
+include parsing.ft
+include defining.ft
+include compile.ft
+include pictured-out.ft
+include in-out.ft
+include move.ft
+include dict-order.ft
+include final.ft
+
