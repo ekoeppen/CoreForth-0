@@ -20,7 +20,7 @@
 :noname     ; is t,docode
 
 $00000000 to trom
-$00018000 to tram
+$00020000 to tram
         4 to tcell
 
 trom tdp !
