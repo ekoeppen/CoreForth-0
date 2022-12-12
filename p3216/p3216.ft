@@ -20,7 +20,7 @@
 :noname     ; is t,docode
 
 $00000000 to trom
-$00020000 to tram
+$00000000 to tram
         4 to tcell
 
 trom tdp !
@@ -33,14 +33,13 @@ $80 torg
 ::target::
 
 $4000 buffer:  rsp
-      variable r0
+there constant r0
 $4000 buffer:  psp
-      variable s0
+there constant s0
 
 
 $40 constant init-latest
 $44 constant init-dp
-$48 constant init-vp
 
 include primitives.ft
 include ../common/core.ft
@@ -74,15 +73,13 @@ $80000000 constant mid-uint+1
 
 : setup-pointers    init-latest @ forth-wordlist !
                     init-dp @ dp !
-                    init-vp @ vp !
                     only forth definitions
                     ;
 
-: cold          s0 sp! r0 rp!
-                0 state ! 0 handler !
+: cold          0 state ! 0 handler !
                 0 include-stack# !
-                hex
                 setup-pointers
+                hex
                 argc @ 2 > if
                   2 arg included
                 else
@@ -113,7 +110,6 @@ t' cold                 #15 tcell * t!
 
 tlast @ $40 t!
 tdp @   $44 t!
-tvp @   $48 t!
 
 t' docol $60 t!
 t' docon $64 t!

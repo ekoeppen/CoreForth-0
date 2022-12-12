@@ -117,20 +117,18 @@ $100 buffer: (s#)
 : :noname       0 , here ,enter ] ; immediate
 
 : create        <builds ,dodata reveal ;
-: constant      <builds ,docon align , reveal ;
-: variable      <builds ,docon align vp dup @ dup , cell+ swap ! reveal ;
-: buffer:       <builds ,docon align vp dup @ dup , rot + swap ! reveal ;
+: constant      <builds ,docon , reveal ;
+: variable      <builds ,dodata cell allot reveal ;
+: buffer:       <builds ,dodata allot reveal ;
 
 : (does>)       here get-current @ link> #8 + org ,dodoes r> ,call org ;
 : does>         postpone (does>) ; immediate
 : recurse       get-current @ link> ,call ; immediate
 : [char]        char postpone literal ; immediate
 
-: value         <builds ,docon align vp tuck @ ! dup @ , cell swap +! reveal does> @ ;
-: to            bl word find 0= throw 4 cells + @ ! ;
+: value         <builds ,dodata , reveal does> @ ;
+: to            bl word find 0= throw 4 cells + ! ;
 
 : undefined     ." *** undefined deferred word called ***" bye ;
-: defer         <builds ,docon align
-                ['] undefined vp tuck @ ! dup @ , cell swap +! reveal
-                does> @ execute ;
+: defer         <builds ,dodata ['] undefined , reveal does> @ execute ;
 : is            to ;

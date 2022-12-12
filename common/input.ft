@@ -3,8 +3,8 @@
       variable (source)
   $80 buffer:  tib
   $80 constant tib#
+  $80 buffer:  wp
 
-: wp            pad $40 + ;
 : source        (source) @ source# @ ;
 : source@       (source) @ >in @ + c@ ;
 : >>source      1 >in +! ;

@@ -2,7 +2,7 @@
 0 constant w/o
 1 constant r/o
 
-$8000 buffer: #include-stack
+$2000 buffer: #include-stack
 variable include-stack#
 $400 buffer: tmp-path
 
