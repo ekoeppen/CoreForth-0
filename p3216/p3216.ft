@@ -55,9 +55,10 @@ include compiler.ft
 include ../common/control-flow.ft
 include ../common/interpret.ft
 include ../common/utils.ft
-include files.ft
 
 : .s sp@ begin dup s0 <> while dup @ u. cell+ repeat drop ;
+
+include files.ft
 
 $ffffffff constant max-uint
 $7fffffff constant max-int

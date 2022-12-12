@@ -32,13 +32,19 @@ $400 buffer: tmp-path
 
 : basename      dup$ [char] / find<$ if 1+ dup >r - r> rot + swap exit then ;
 
-: make-path     ( c-addr n c-addr n -- )
-                include-stack@ append$
-                [char] / cappend$ swap$ append$
+: make-path     ( c-addr-t n-t c-addr-s n-s -- c-addr-t n-t+n-s)
+                over$ 0> swap c@ [char] / <> and if
+                  include-stack@ append$
+                  [char] / cappend$ swap$ append$
+                else drop$
+                then
                 dup$ dirname >include-stack
                 ;
 
-: get-dir       pad dup #512 pwd ;
+: get-dir       over swap pwd ;
+
+\ Copy the absolute path for a given absolute or relative path to
+\ a string:
 
 : read-line     swap dup >r 0 do
                   dup getc dup 0< if drop 2drop i false 0 unloop rdrop exit then

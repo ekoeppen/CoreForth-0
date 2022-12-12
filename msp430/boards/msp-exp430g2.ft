@@ -23,10 +23,7 @@ create #vectors $40 allot       #vectors $40 $ff fill
                 swap $40 or swap c! ; is thead
 :noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
 :noname     tcell + dup tc@ $3F and + 1+ taligned ; is tlink>
-
-\ -- Target -------------------------------------------------------------------
-
-::target::
+:noname     ; is t,docode
 
 $0000C000 to trom
 $00000200 to tram
@@ -34,6 +31,10 @@ $00000200 to tram
 
 trom tdp !
 tram tvp !
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
 
 include ../cpus/msp430-primitives.ft
 
