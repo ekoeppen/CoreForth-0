@@ -155,3 +155,7 @@ code key?       $8324 $4784 $0000 $b3d2 $0003 $2002 $4307 $4530 $4337 $4530 end-
 : /mod          >r dup 0< r> sm/rem ;
 : */mod         >r m* r> sm/rem ;
 : */            */mod swap drop ;
+
+variable (source-id)
+
+: source-id     (source-id) @ ;

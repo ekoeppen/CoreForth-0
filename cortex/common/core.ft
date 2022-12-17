@@ -1,3 +1,9 @@
+variable (source-id)
+variable (sink-id)
+
+: source-id     (source-id) @ ;
+: sink-id       (sink-id) @ ;
+
 : negate        invert 1+ ;
 : pick          ?dup if 1- cells sp@ + @ else dup then ;
 : dnegate       not >r not 1 m+ r> + ;

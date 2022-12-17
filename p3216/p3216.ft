@@ -43,20 +43,22 @@ $44 constant init-dp
 
 include primitives.ft
 include ../common/core.ft
+include input-output.ft
 include ../common/strings.ft
 include ../common/dictionary.ft
 include ../common/output.ft
 include ../common/input.ft
+
+: .s sp@ begin dup s0 <> while dup @ u. cell+ repeat drop ;
+
 include ../common/exception.ft
-include input.ft
 include search-ext.ft
 include compiler.ft
 include ../common/control-flow.ft
 include ../common/interpret.ft
 include ../common/utils.ft
-
-: .s sp@ begin dup s0 <> while dup @ u. cell+ repeat drop ;
-
+include pty.ft
+include tether.ft
 include files.ft
 
 $ffffffff constant max-uint
@@ -78,6 +80,7 @@ $80000000 constant mid-uint+1
 
 : cold          0 state ! 0 handler !
                 0 include-stack# !
+                0 (source-id) !   1 (sink-id) !
                 setup-pointers
                 hex
                 argc @ 2 > if
@@ -116,8 +119,18 @@ t' docon $64 t!
 t' dovar $68 t!
 t' dodoes $6C t!
 
+
+
 : save-bin          s" p3216.bin" w/o create-file throw >r
                     #target there r@ write-file throw
                     r> close-file throw ;
 
-save-bin
+::tethered::   tether-port count
+::tethered::   #target
+::tethered::   target#
+::tethered::   trom
+::tethered::   tcell
+::tethered::   meta-wordlist target-wordlist forth-wordlist
+::tethered::   tether-connect
+
+::untethered:: save-bin

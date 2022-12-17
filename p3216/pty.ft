@@ -1,0 +1,12 @@
+: (pty)         ( --  fd )
+                2 posix-openpt
+                  dup grantpt throw
+                  dup unlockpt throw
+                  ." PTY opened on " dup pad $100 rot ptsname pad swap type cr
+                ;
+
+: pty           ( 1 | 0 -- )
+                if (pty) dup (sink-id) ! (source-id) ! abort
+                else 0 (source-id) ! 1 (sink-id) ! abort
+                then
+                ;

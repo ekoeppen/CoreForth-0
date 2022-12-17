@@ -1,0 +1,117 @@
+variable tether-fd
+variable tether-buf
+variable (meta-wordlist)
+variable (target-wordlist)
+variable (host-wordlist)
+variable trom
+variable tcell
+variable #target
+variable #target-shadow
+variable target#
+
+: >tether-byte  $FF and tether-buf tuck c! 1 tether-fd @
+                write-file abort" failed to write" ;
+: tether-byte>  tether-buf dup 1 tether-fd @
+                read-file abort" failed to read"
+                0= abort" read zero bytes"
+                c@ ;
+
+: >tether-word  tether-buf tuck ! 4 tether-fd @
+                write-file abort" failed to write" ;
+
+: tether-word>  tether-buf dup 4 tether-fd @
+                read-file abort" failed to read"
+                0= abort" read zero bytes"
+                @ ;
+
+: tether-word>_ tether-byte>
+                tether-byte> #8 lshift +
+                tether-byte> #16 lshift +
+                tether-byte> #24 lshift + ;
+
+: tether-store  tether-word> tether-word> swap ! ;
+: tether-fetch  tether-word> @ >tether-word ;
+: tether-number tether-word> ;
+: tether-exec   tether-word> execute ;
+
+: tether-cmd    dup [char] ! = if drop tether-store false exit then
+                dup [char] @ = if drop tether-fetch false exit then
+                dup [char] # = if drop tether-number false exit then
+                [char] X = if tether-exec false exit then
+                true
+                ;
+
+: tether-listen (pty) dup tether-fd ! (sink-id) !
+                begin tether-byte> tether-cmd 4 >tether-byte until
+                tether-fd @ close-file throw ;
+
+: open          2 open-file throw dup
+                tether-fd !
+                cf-make-raw throw
+                ;
+
+: await-done    begin tether-byte> dup 4 <> while emit repeat drop ;
+
+: send-delta    target# @ 0 do
+                  #target-shadow @ i + @ tuck #target @ i + @ <> if
+                    [char] ! >tether-byte
+                    trom @ i + >tether-word
+                    >tether-word
+                    await-done
+                  else drop
+                  then
+                tcell @ +loop
+                ;
+
+: reset-delta   #target @ #target-shadow @ target# @ cmove ;
+                ;
+
+: is-meta?      (meta-wordlist) @ search-wordlist ;
+: is-target?    (target-wordlist) @ search-wordlist ;
+: is-host?      (host-wordlist) @ search-wordlist ;
+
+: target-execute
+                [char] X >tether-byte
+                >tether-word
+                await-done
+                ;
+: target-number ?number 0= if drop [char] ? emit cr exit then
+                [char] # >tether-byte
+                >tether-word
+                await-done
+                ;
+
+: do-meta       magenta +fg-color execute -fg-color ;
+: do-target     >body @ target-execute ;
+: do-host       blue +fg-color execute -fg-color ;
+
+: handle-word   dup count is-meta? if do-meta drop exit then
+                dup count is-target? if do-target drop exit then
+                dup count is-host? if do-host drop exit then
+                target-number
+                ;
+
+: shadow.       #target-shadow @ 40 dumpw ;
+: target.       #target @ 40 dumpw ;
+: untether      bye ;
+
+: tether-connect   ( #port port# #target target# trom tcell meta-wordlist target-wordlist host-wordlist -- )
+                .s cr
+                0 (source-id) !   1 (sink-id) !
+                (host-wordlist) ! (target-wordlist) ! (meta-wordlist) !
+                tcell !
+                trom !
+                here #target-shadow ! dup target# ! allot
+                #target !
+                2dup open
+                cr ." Tethered to " type cr
+                begin
+                  reset-delta
+                  refill space while
+                  begin bl word dup c@ while handle-word repeat drop
+                  send-delta
+                  ." ok " .s cr
+                repeat
+                tether-fd @ close-file drop
+                quit
+                ;

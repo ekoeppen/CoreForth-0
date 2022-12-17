@@ -1,0 +1,31 @@
+variable (source-id)
+variable (sink-id)
+
+: source-id     (source-id) @ ;
+: sink-id       (sink-id) @ ;
+
+: emit          sink-id swap putc ;
+: key           source-id begin
+                  dup getc dup 0< while
+                  drop
+                repeat nip ;
+
+: emit-file     swap putc 0 ;
+: key-file      getc ;
+
+0 constant black
+1 constant red
+2 constant green
+3 constant yellow
+4 constant blue
+5 constant magenta
+6 constant cyan
+7 constant white
+
+: -fg-color         #27 emit [char] [ emit [char] 0 emit [char] emit ;
+: +fg-color         #27 emit [char] [ emit
+                    dup 8 < if #48 + [char] 3
+                    else #40 + [char] 9
+                    then emit emit [char] m emit ;
+: hi-color          8 + ;
+

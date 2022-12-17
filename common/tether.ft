@@ -19,4 +19,4 @@
                 [char] X = if tether-exec then
                 ;
 
-: tether-loop   begin key tether-cmd 4 emit again ;
+: tether-loop   begin key bye tether-cmd 4 emit again ;

@@ -4,7 +4,6 @@
 
 ::dtc:: cr ." *** DTC not supported ***" cr bye
 
-include ../../../tether.ft
 include ../janus/compiler.ft
 
 :noname     2drop talign there tlast @ t, tlast ! ; is thead
@@ -113,7 +112,7 @@ i: usart1-handler
                 rx-tail rbuf-ptr++ ;
 
 include ../../common/output.ft
-::tethered:: include ../common/tether.ft
+::tethered:: include ../../common/tether.ft
 
 $C0 constant init-start
 $C0 constant init-cold
@@ -191,16 +190,12 @@ include ../../drivers/nrf24.ft
                 setup-hw +led
                 ." CoreForth-0 ready" cr
                 hex
-::tethered::    4 emit tether-loop
-::untethered::  begin wfi again
+                begin wfi again
                 ;
 
 \ -- Host ---------------------------------------------------------------------
 
 ::host::
-
-::tethered:: include ../janus/tether.ft
-::tethered:: tether
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
 ::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!

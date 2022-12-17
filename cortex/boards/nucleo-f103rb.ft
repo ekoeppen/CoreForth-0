@@ -2,7 +2,6 @@
 
 ::host::
 
-include ../../../tether.ft
 include ../janus/compiler.ft
 
 \ -- Target -------------------------------------------------------------------
@@ -100,7 +99,6 @@ include ../../common/control-flow.ft
 include ../common/compiler.ft
 include ../../common/interpret.ft
 include ../../common/utils.ft
-include ../common/tether.ft
 
 $400 constant #page
 
@@ -190,7 +188,6 @@ include ../janus/init.ft
 
 : cold          s0 sp! r0 rp! setup-vars setup-hw
                 ." CoreForth-0 " .threading ."  ready" cr
-                0 (source-id) !
 ::stc::         init-dp @ backup-dp @ = if dict-space org then
                 hex
 ::tethered::    4 emit tether-loop
@@ -199,10 +196,6 @@ include ../janus/init.ft
 \ -- Host ---------------------------------------------------------------------
 
 ::host::
-
-include ../janus/tether.ft
-
-::tethered:: tether
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
 ::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!

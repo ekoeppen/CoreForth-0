@@ -2,7 +2,6 @@
 
 ::host::
 
-include ../../../tether.ft
 include ../janus/compiler.ft
 
 $08000000 to trom
@@ -114,7 +113,6 @@ include ../../common/control-flow.ft
 include ../common/compiler.ft
 include ../../common/interpret.ft
 include ../../common/utils.ft
-include ../common/tether.ft
 
 include ../janus/init.ft
 
@@ -150,7 +148,7 @@ include ../janus/init.ft
 : dict-space    backup-dp @ #page + #page 1- invert and ;
 : cold          s0 sp! r0 rp! setup-vars setup-hw
                 ." CoreForth-0 " .threading ."  ready" cr
-                0 (source-id) ! hex
+                hex
 ::stc::         init-dp @ backup-dp @ = if dict-space org then
 ::tethered::    4 emit tether-loop
                 abort ;
@@ -158,10 +156,6 @@ include ../janus/init.ft
 \ -- Host ---------------------------------------------------------------------
 
 ::host::
-
-include ../janus/tether.ft
-
-tether
 
 ::dtc:: t' #docol $0C + t@ t' ,enter 8 + t!
 ::dtc:: t' #dodoes $0C + t@ t' ,dodoes 8 + t!

@@ -8,31 +8,33 @@ $400 buffer: tmp-path
 
 : include-stack #include-stack include-stack# @ ;
 
-: include-stack@
+: include-stack@   ( -- #path path# )
                 include-stack dup$ [char] : find<$ 0= if drop$ s" ." exit then
                 1+ tail$
                 ;
 
-: >include-stack
+: >include-stack   ( #path path# -- )
                 include-stack [char] : cappend$ dup include-stack# !
                 swap$ append$ include-stack# ! drop
                 ;
 
-: include-stack>
+: include-stack>   ( -- #path #path# )
                 include-stack dup$ [char] : find<$ 0= if drop$ s" ." exit then
                 dup >r 1+ tail$ r> include-stack# !
                 ;
 
-: dirname       dup$ [char] / find<$ if
+: dirname       ( -- #dir dir# )
+                dup$ [char] / find<$ if
                   ?dup if nip else drop$ s" /" then
                 else
                   drop$ s" ."
                 then
                 ;
 
-: basename      dup$ [char] / find<$ if 1+ dup >r - r> rot + swap exit then ;
+: basename      ( -- #basename basename# )
+                dup$ [char] / find<$ if 1+ dup >r - r> rot + swap exit then ;
 
-: make-path     ( c-addr-t n-t c-addr-s n-s -- c-addr-t n-t+n-s)
+: make-path     ( #result #result-max #rel-path rel-path# -- #result result# )
                 over$ 0> swap c@ [char] / <> and if
                   include-stack@ append$
                   [char] / cappend$ swap$ append$
@@ -41,7 +43,8 @@ $400 buffer: tmp-path
                 dup$ dirname >include-stack
                 ;
 
-: get-dir       over swap pwd ;
+: get-dir       ( -- #dir dir# )
+                over swap pwd ;
 
 \ Copy the absolute path for a given absolute or relative path to
 \ a string:
@@ -55,14 +58,14 @@ $400 buffer: tmp-path
                 ;
 
 : included      source-id >r
-                tmp-path 0 make-path r/o open-file throw (source-id) !
+                tmp-path 0 make-path r/o open-file abort" file not found" (source-id) !
                 begin
-                  tib dup tib# source-id read-line throw while
+                  tib dup tib# source-id read-line abort" error readline line" while
                   \ dup$ type cr
                   ['] evaluate catch if ex. space tib >in @ type cr bye then
                 repeat
                 2drop
-                source-id close-file throw
+                source-id close-file abort" error closing file"
                 r> (source-id) !
                 include-stack> drop$
                 ;
@@ -71,6 +74,3 @@ $400 buffer: tmp-path
 
 : arg           pad $100 rot (arg) pad swap ;
 : argc          (argc) pad tuck ! ;
-
-: emit-file     swap putc ;
-: key-file      getc ;

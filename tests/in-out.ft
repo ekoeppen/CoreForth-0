@@ -25,7 +25,7 @@ T{ OUTPUT-TEST -> }T
 
 
 \ ------------------------------------------------------------------------
-TESTING INPUT: ACCEPT
+\ TESTING INPUT: ACCEPT
 
 CREATE ABUF 50 CHARS ALLOT
 
@@ -36,4 +36,4 @@ CREATE ABUF 50 CHARS ALLOT
    ABUF SWAP TYPE [CHAR] " EMIT CR
 ;
 
-T{ ACCEPT-TEST -> }T
+\ T{ ACCEPT-TEST -> }T

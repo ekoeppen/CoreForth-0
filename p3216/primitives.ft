@@ -538,6 +538,35 @@ code version    $013f $000f \ syscall r0, r1, #15
                 $0c0d $0030 \ store r0, [--r12]
                 end-code
 
+code grantpt    $0c0c $0000 \ load r0, [r12]
+                $003f $0012 \ syscall r0, r0, #18
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code unlockpt   $0c0c $0000 \ load r0, [r12]
+                $003f $0013 \ syscall r0, r0, #19
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code ptsname    $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0020 \ load r1, [r12++]
+                $2c0c $0000 \ load r2, [r12]
+                $013f $0014 \ syscall r0, r1, #20
+                $2c0d $0000 \ store r2, [r12]
+                end-code
+
+code posix-openpt
+                $0c0c $0000 \ load r0, [r12]
+                $003f $0015 \ syscall r0, r0, #21
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
+code cf-make-raw
+                $0c0c $0000 \ load r0, [r12]
+                $003f $0016 \ syscall r0, r0, #22
+                $0c0d $0000 \ store r0, [r12]
+                end-code
+
 : system        drop drop ;
 
 : u<            2dup swap not and 1 and >r
