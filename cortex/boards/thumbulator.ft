@@ -67,7 +67,7 @@ code rom-dump   $6831 $6030 $0008 $0001 $6830 $3604 $B402 $0001 $6830
                 save-vars
                 0 here rom-dump ;
 
-: cold          setup-vars ." CoreForth-0 " .threading ."  ready" cr hex abort ;
+: cold          0 (source-id) ! setup-vars ." CoreForth-0 " .threading ."  ready" cr hex abort ;
 
 \ -- Host ---------------------------------------------------------------------
 

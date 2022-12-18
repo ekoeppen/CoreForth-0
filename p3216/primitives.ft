@@ -567,6 +567,12 @@ code cf-make-raw
                 $0c0d $0000 \ store r0, [r12]
                 end-code
 
+code set-speed  $0c0c $0020 \ load r0, [r12++]
+                $1c0c $0000 \ load r1, [r12]
+                $013f $0017 \ syscall r0, r1, #23
+                $1c0d $0000 \ store r1, [r12]
+                end-code
+
 : system        drop drop ;
 
 : u<            2dup swap not and 1 and >r

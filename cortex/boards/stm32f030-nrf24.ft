@@ -186,11 +186,12 @@ include ../../drivers/nrf24.ft
                 ;
 
 : cold          s0 sp! r0 rp!
-                setup-vars
+                0 (source-id) ! setup-vars
                 setup-hw +led
                 ." CoreForth-0 ready" cr
                 hex
-                begin wfi again
+::tethered::    4 emit tether-listen
+::untethered::  begin wfi again
                 ;
 
 \ -- Host ---------------------------------------------------------------------

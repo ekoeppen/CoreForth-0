@@ -22,7 +22,7 @@ variable (sink-id)
 6 constant cyan
 7 constant white
 
-: -fg-color         #27 emit [char] [ emit [char] 0 emit [char] emit ;
+: -fg-color         #27 emit [char] [ emit [char] 0 emit [char] m emit ;
 : +fg-color         #27 emit [char] [ emit
                     dup 8 < if #48 + [char] 3
                     else #40 + [char] 9

@@ -24,11 +24,6 @@ variable target#
                 0= abort" read zero bytes"
                 @ ;
 
-: tether-word>_ tether-byte>
-                tether-byte> #8 lshift +
-                tether-byte> #16 lshift +
-                tether-byte> #24 lshift + ;
-
 : tether-store  tether-word> tether-word> swap ! ;
 : tether-fetch  tether-word> @ >tether-word ;
 : tether-number tether-word> ;
@@ -45,9 +40,9 @@ variable target#
                 begin tether-byte> tether-cmd 4 >tether-byte until
                 tether-fd @ close-file throw ;
 
-: open          2 open-file throw dup
-                tether-fd !
-                cf-make-raw throw
+: open          2 open-file abort" failed to open port"
+                dup tether-fd !
+                cf-make-raw abort" failed to set raw mode"
                 ;
 
 : await-done    begin tether-byte> dup 4 <> while emit repeat drop ;
@@ -95,21 +90,20 @@ variable target#
 : target.       #target @ 40 dumpw ;
 : untether      bye ;
 
-: tether-connect   ( #port port# #target target# trom tcell meta-wordlist target-wordlist host-wordlist -- )
-                .s cr
+: tether-connect   ( #port port# speed #target target# trom tcell meta-wordlist target-wordlist host-wordlist -- )
                 0 (source-id) !   1 (sink-id) !
                 (host-wordlist) ! (target-wordlist) ! (meta-wordlist) !
                 tcell !
                 trom !
                 here #target-shadow ! dup target# ! allot
                 #target !
-                2dup open
+                >r 2dup open r> tether-fd @ set-speed abort" failed to set line speed"
                 cr ." Tethered to " type cr
                 begin
-                  reset-delta
+                  \ reset-delta
                   refill space while
                   begin bl word dup c@ while handle-word repeat drop
-                  send-delta
+                  \ send-delta
                   ." ok " .s cr
                 repeat
                 tether-fd @ close-file drop

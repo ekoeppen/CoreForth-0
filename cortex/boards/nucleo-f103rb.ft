@@ -186,7 +186,7 @@ include ../janus/init.ft
                 save-vars ;
 : restore       restore-vars erase-dictspace ;
 
-: cold          s0 sp! r0 rp! setup-vars setup-hw
+: cold          s0 sp! r0 rp! 0 (source-id) ! setup-vars setup-hw
                 ." CoreForth-0 " .threading ."  ready" cr
 ::stc::         init-dp @ backup-dp @ = if dict-space org then
                 hex
