@@ -4,6 +4,7 @@
 
 ::dtc:: cr ." *** DTC not supported ***" cr bye
 
+include ../../common/tether.ft
 include ../janus/compiler.ft
 
 :noname     2drop talign there tlast @ t, tlast ! ; is thead

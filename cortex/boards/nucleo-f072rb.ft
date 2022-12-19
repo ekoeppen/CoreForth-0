@@ -115,6 +115,7 @@ include ../../common/interpret.ft
 include ../../common/utils.ft
 
 include ../janus/init.ft
+::tethered:: include ../../common/tether.ft
 
 : 48mhz         %1 FLASH_ACR bis!
                 %1010000000000000000000 RCC_CFGR bis!
@@ -148,9 +149,9 @@ include ../janus/init.ft
 : dict-space    backup-dp @ #page + #page 1- invert and ;
 : cold          s0 sp! r0 rp! 0 (source-id) ! setup-vars setup-hw
                 ." CoreForth-0 " .threading ."  ready" cr
-                hex
 ::stc::         init-dp @ backup-dp @ = if dict-space org then
-::tethered::    4 emit tether-loop
+::tethered::    ." Starting tethering..." cr tether-listen
+                hex
                 abort ;
 
 \ -- Host ---------------------------------------------------------------------
@@ -167,3 +168,11 @@ t' usart2-handler 1+ trom $000000b0 + t!
 ::dtc:: s" nucleo-f072rb-dtc.hex" save-hex
 ::itc:: s" nucleo-f072rb-itc.hex" save-hex
 ::stc:: s" nucleo-f072rb-stc.hex" save-hex
+
+::tethered:: : start-tether  tether-port dup c@ 0= if drop exit then
+::tethered::   count #115200
+::tethered::   #target target# trom tcell
+::tethered::   meta-wordlist target-wordlist forth-wordlist
+::tethered::   tether-connect ;
+
+::tethered:: start-tether

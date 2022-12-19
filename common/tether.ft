@@ -1,22 +1,26 @@
-: >tether-word  dup #24 rshift emit
-                dup #16 rshift emit
-                dup #8 rshift emit
-                emit ;
+: >tether-byte  $FF and emit ;
+: tether-byte>  key ;
 
-: tether-word>  key
-                #8 lshift key +
-                #8 lshift key +
-                #8 lshift key + ;
+: >tether-word  dup tether-byte>
+                dup #8 rshift tether-byte>
+                dup #16 rshift tether-byte>
+                #24 rshift tether-byte> ;
+
+: tether-word>  tether-byte>
+                tether-byte> #8 lshift +
+                tether-byte> #16 lshift +
+                tether-byte> #24 lshift + ;
 
 : tether-store  tether-word> tether-word> swap ! ;
 : tether-fetch  tether-word> @ >tether-word ;
 : tether-number tether-word> ;
 : tether-exec   tether-word> execute ;
 
-: tether-cmd    dup [char] ! = if drop tether-store exit then
-                dup [char] @ = if drop tether-fetch exit then
-                dup [char] # = if drop tether-number exit then
-                [char] X = if tether-exec then
+: tether-cmd    dup [char] ! = if drop tether-store false exit then
+                dup [char] @ = if drop tether-fetch false exit then
+                dup [char] # = if drop tether-number false exit then
+                [char] X = if tether-exec false exit then
+                true
                 ;
 
-: tether-loop   begin key bye tether-cmd 4 emit again ;
+: tether-listen begin tether-byte> tether-cmd 4 >tether-byte until ;

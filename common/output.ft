@@ -1,4 +1,4 @@
-   $10 buffer: (hp)
+   $20 buffer: (hp)
       variable hp
   $20 constant bl
 
@@ -9,12 +9,12 @@
 : xon           $11 emit ;
 : xoff          $13 emit ;
 
-: <#            (hp) $10 + hp ! ;
+: <#            (hp) $20 + hp ! ;
 : hold          1 hp -! hp @ c! ;
 : >digit        dup 9 > 7 and + #48 + ;
 : #             base @ u/mod swap >digit hold ;
 : #s            begin # dup 0= until ;
-: #>            drop hp @ (hp) $10 + over - ;
+: #>            drop hp @ (hp) $20 + over - ;
 : sign          0< if $2D hold then ;
 : (u.)          base @ u/mod ?dup if recurse then >digit emit ;
 : u.            (u.) space ;

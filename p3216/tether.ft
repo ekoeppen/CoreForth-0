@@ -48,7 +48,8 @@ variable target#
 : await-done    begin tether-byte> dup 4 <> while emit repeat drop ;
 
 : send-delta    target# @ 0 do
-                  #target-shadow @ i + @ tuck #target @ i + @ <> if
+                  #target @ i + @ tuck #target-shadow @ i + @ <> if
+                    i hex. space dup hex. cr
                     [char] ! >tether-byte
                     trom @ i + >tether-word
                     >tether-word
@@ -59,7 +60,6 @@ variable target#
                 ;
 
 : reset-delta   #target @ #target-shadow @ target# @ cmove ;
-                ;
 
 : is-meta?      (meta-wordlist) @ search-wordlist ;
 : is-target?    (target-wordlist) @ search-wordlist ;
@@ -90,13 +90,24 @@ variable target#
 : target.       #target @ 40 dumpw ;
 : untether      bye ;
 
-: tether-connect   ( #port port# speed #target target# trom tcell meta-wordlist target-wordlist host-wordlist -- )
-                0 (source-id) !   1 (sink-id) !
-                (host-wordlist) ! (target-wordlist) ! (meta-wordlist) !
+: set-wordlists ( meta-wordlist target-wordlist host-wordlist -- )
+                rot dup (meta-wordlist) !
+                rot dup (target-wordlist) !
+                rot dup (host-wordlist) !
+                3 set-order
+                ;
+
+: set-shadow    ( #target target# org cell# -- )
                 tcell !
                 trom !
                 here #target-shadow ! dup target# ! allot
                 #target !
+                ;
+
+: tether-connect   ( #port port# speed #target target# org cell# meta-wordlist target-wordlist host-wordlist -- )
+                0 (source-id) !   1 (sink-id) !
+                set-wordlists
+                set-shadow
                 >r 2dup open r> tether-fd @ set-speed abort" failed to set line speed"
                 cr ." Tethered to " type cr
                 begin

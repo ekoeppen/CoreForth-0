@@ -126,7 +126,8 @@ t' dodoes $6C t!
 
 ::untethered:: save-bin
 
-::tethered:: : start-tether  tether-port dup c@ 0= if drop exit then
+::tethered:: : start-tether
+::tethered::   tether-port dup c@ 0= if drop exit then
 ::tethered::   count #115200
 ::tethered::   #target target# trom tcell
 ::tethered::   meta-wordlist target-wordlist forth-wordlist
