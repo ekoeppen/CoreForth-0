@@ -78,6 +78,11 @@ variable base
 : decimal       #10 base ! ;
 : hex           #16 base ! ;
 
+variable (source-id)
+variable (sink-id)
+: source-id     (source-id) @ ;
+: sink-id       (sink-id) @ ;
+
 : @cell+        ( a -- a' n ) dup cell+ swap @ ;
 : depth         s0 sp@ - /cell 1- ;
 
