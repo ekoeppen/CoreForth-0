@@ -1,0 +1,106 @@
+\ vim:ft=forth:ts=2:sw=2:expandtab
+
+\ ## Subroutine Threaded Forth
+\
+\ ### Register usage
+\ 
+\ temp: r16, r17
+\ PSP: Y
+\ RSP: SP
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+cr
+
+variable 'reset
+variable 'next
+variable 'docol
+variable 'docon
+variable 'exit
+variable 'start
+
+:noname     $c000 'next @ there - 2/ 1- $fff and or th, ; is t,call
+:noname     ; is t,docon
+:noname     ; is t,enter
+:noname     ; is t,doirq
+:noname     $9508 th, ; is t,next
+:noname     $9508 th, ; is t,exit
+:noname     $9518 th, ; is t,irqexit
+:noname     s" (does>)" tfwdref ; is t,dodoes
+:noname     ; is t,docode
+:noname     s" lit" tfwdref ; is t,lit
+:noname     s" branch" tfwdref ; is t,branch
+:noname     s" ?branch" tfwdref ; is t,?branch
+:noname     ( c-addr n -- : compile word header into the target image )
+            talign
+            there tlast @ t, tlast !
+            $ff7f th,
+            there >target pack$ c@ 1+ tallot talign ; is thead
+:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tcell + tcell 2/ + dup tc@ + taligned ; is tlink>
+
+
+$00000000 to trom
+$00008000 to tram
+        2 to tcell
+
+trom tdp !
+tram tvp !
+
+$100 torg
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+code branch     end-code
+code ?branch    end-code
+
+code lit        end-code
+code exit       $9508 end-code
+
+there 'start !
+$0000 th,
+
+there 'next !
+$01fd th, $9185 th, $9195 th, $9612 th, $01fc th, $9105 th, $9115 th, $01f8 th,
+$95f6 th, $95e7 th, $9409 th, 
+
+there 'reset !
+$e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
+$a0 'start @ $0f and or tc, $e0 'start @ $f0 and 4 rshift or tc,
+$b0 'start @ 8 rshift $0f and or tc, $e0 'start @ $f0 and #12 rshift or tc,
+$c000 'next @ there - 2/ 1- $fff and or th,
+
+there 'docol !
+$93ba th, $93aa th, $01dc th, $9612 th,
+$c000 'next @ there - 2/ 1- $fff and or th,
+
+there 'docon !
+$01fc th, $9632 th, $9105 th, $9115 th, $931f th, $930f th,
+$c000 'next @ there - 2/ 1- $fff and or th,
+
+code bye $9588 end-code
+
+: nop ;
+: quit 0 if $40 emit $40 emit $0d emit $0a emit then
+  bye ;
+
+::host::
+
+'reset @ 2/ 1- $c000 + #target w!
+t' quit 'start @ >target w! 
+
+: save-bin          s" avr.bin" w/o create-file throw >r
+                    #target there r@ write-file throw
+                    r> close-file throw ;
+variable hex-fd
+
+s" avr.hex" w/o create-file throw hex-fd !
+trom #target there trom - hex-fd @ type-hex
+hex-fd @ close-file throw
+
+save-bin
+

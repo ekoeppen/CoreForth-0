@@ -1,5 +1,19 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab
 
+\ ## Indirect Threaded Forth
+\
+\ ### Register usage
+\ 
+\ temp: r16, r17
+\ W: r24, r25
+\ IP: X
+\ SP: SP
+\ RP: Y
+\ 
+\ ### DOCOL / Enter
+\ IP points to next word in the caller
+\ W points to CFA
+
 \ -- Host ---------------------------------------------------------------------
 
 ::host::
@@ -42,16 +56,6 @@ $100 torg
 \ -- Target -------------------------------------------------------------------
 
 ::target::
-
-\ -- Register usage:
-\ temp: r16, r17
-\ W: r24, r25
-\ IP: X
-\ SP: SP
-\ RP: Y
-\ -- DOCOL / Enter:
-\ IP points to next word in the caller
-\ W points to CFA
 
 there 'start !
 $0000 th,
