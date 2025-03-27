@@ -48,13 +48,14 @@ variable target#
 : await-done    begin tether-byte> dup 4 <> while emit repeat drop ;
 
 : send-delta    target# @ 0 do
-                  #target @ i + @ tuck #target-shadow @ i + @ <> if
-                    i hex. space dup hex. cr
+                  #target-shadow @ i + @ #target @ i + @ 2dup <> if
+                    i hex. space 2dup swap hex. space hex. cr
                     [char] ! >tether-byte
                     trom @ i + >tether-word
                     >tether-word
                     await-done
-                  else drop
+                    drop
+                  else 2drop
                   then
                 tcell @ +loop
                 ;
@@ -90,11 +91,12 @@ variable target#
 : target.       #target @ 40 dumpw ;
 : untether      bye ;
 
-: set-wordlists ( meta-wordlist target-wordlist host-wordlist -- )
-                rot dup (meta-wordlist) !
-                rot dup (target-wordlist) !
+: set-wordlists ( host-wordlist target-wordlist meta-wordlist -- )
                 rot dup (host-wordlist) !
+                rot dup (target-wordlist) !
+                rot dup (meta-wordlist) !
                 3 set-order
+                order
                 ;
 
 : set-shadow    ( #target target# org cell# -- )
@@ -102,19 +104,20 @@ variable target#
                 trom !
                 here #target-shadow ! dup target# ! allot
                 #target !
+                $12000 target# !
                 ;
 
-: tether-connect   ( #port port# speed #target target# org cell# meta-wordlist target-wordlist host-wordlist -- )
+: tether-connect   ( #port port# speed #target target# org cell# host-wordlist target-wordlist meta-wordlist -- )
                 0 (source-id) !   1 (sink-id) !
                 set-wordlists
                 set-shadow
                 >r 2dup open r> tether-fd @ set-speed abort" failed to set line speed"
                 cr ." Tethered to " type cr
                 begin
-                  \ reset-delta
+                  reset-delta
                   refill space while
                   begin bl word dup c@ while handle-word repeat drop
-                  \ send-delta
+                  send-delta
                   ." ok " .s cr
                 repeat
                 tether-fd @ close-file drop

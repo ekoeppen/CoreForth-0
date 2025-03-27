@@ -85,7 +85,7 @@ $80000000 constant mid-uint+1
                 argc @ 2 > if
                   2 arg included
                 else
-                  ." CoreForth p3212 ready" cr
+                  ." CoreForth p3216 ready" cr
                   abort
                 then
                 ;
@@ -118,7 +118,8 @@ t' docon $64 t!
 t' dovar $68 t!
 t' dodoes $6C t!
 
-
+#target hex. space there hex. space there >target hex. space
+tlast @ hex. space tdp @ hex. cr
 
 : save-bin          s" p3216.bin" w/o create-file throw >r
                     #target there r@ write-file throw
@@ -127,10 +128,11 @@ t' dodoes $6C t!
 ::untethered:: save-bin
 
 ::tethered:: : start-tether
+::tethered::   meta-wordlist hex. cr target-wordlist hex. cr forth-wordlist hex. cr
 ::tethered::   tether-port dup c@ 0= if drop exit then
 ::tethered::   count #115200
 ::tethered::   #target target# trom tcell
-::tethered::   meta-wordlist target-wordlist forth-wordlist
+::tethered::   forth-wordlist target-wordlist meta-wordlist
 ::tethered::   tether-connect ;
 
 ::tethered:: start-tether
