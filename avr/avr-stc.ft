@@ -18,9 +18,7 @@ cr
 variable 'reset
 variable 'start
 
-:noname     dup there - 2/ 1- dup abs $800 < if $fff and $d000 or th, drop
-			else drop $940e th, 2/ th, 
-			then ; is t,call
+:noname     dup there - 2/ 1- dup abs $800 < if $fff and $d000 or th, drop else drop $940e th, 2/ th,  then ; is t,call
 :noname     s" docon" tfwdref ; is t,docon
 :noname     ; is t,enter
 :noname     ; is t,doirq
