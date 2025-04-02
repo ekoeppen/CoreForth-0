@@ -1,0 +1,106 @@
+\ -----------------------------------------------------------------------------
+\ -- Logical operators
+
+code and        $91e9 $91f9 $23ae $23bf end-code
+code or         $91e9 $91f9 $2bae $2bbf end-code
+code invert     $95a0 $95b0  end-code
+code not        $efef $27ae $27be end-code
+code xor        $91e9 $91f9 $27ae $27bf end-code
+code aligned    $9611 $7fae end-code
+
+code bis!       end-code
+code bic!       end-code
+code xor!       end-code
+code bis        end-code
+code bic        end-code
+code bit@       end-code
+
+\ -----------------------------------------------------------------------------
+\ -- Arithmetic
+
+code +          $91e9 $91f9 $0fae $1fbf end-code
+code -          $91e9 $91f9 $1bea $0bfb $01df end-code
+code u/mod      $9189 $9199 $2766 $1b77 $e101 $1f88 $1f99 $950a
+                $f421 $937a $936a $01dc $9508 $1f66 $1f77 $1b6a
+                $0b7b $f420 $0f6a $1f7b $9488 $cfef $9408 $cfed end-code            
+code um/mod     end-code
+code abs        $23bb $f00a $9508 $95a0 $95b0 $9611 end-code
+
+code 1+         $9611 end-code
+code 2+         $9612 end-code
+code 4+         $9614 end-code
+code 1-         $9711 end-code
+code 2-         $9712 end-code
+code 4-         $9714 end-code
+code char+      $9611 end-code
+code cell+      $9612 end-code
+code char-      $9711 end-code
+code cell-      $9712 end-code
+code 2/         $95b5 $95a7 end-code
+code 2*         $0faa $1fbb end-code
+code cells      $95b6 $95a7 end-code
+code chars      end-code
+code cell       $93ba $93aa $e0a2 $e0b0 end-code
+code /cell      $95b6 $95a7 end-code
+
+code lshift     $2fea $2beb $91e9 $91f9 $f021 $0fee $1fff $9711
+                $f7e1 $01df end-code
+code rshift     $2fea $2beb $91e9 $91f9 $f021 $95f6 $95e7 $9711
+                $f7e1 $01df end-code
+code shl        $0faa $1fbb end-code
+code shr        $95b6 $95a7 end-code
+
+code 0=         $2bab $f019 $e0a0 $e0b0 $9508 $9711 end-code
+code 0<>        $2bab $f019 $efaf $efbf $9508 $9508 end-code
+code 0<         $23bb $e0a0 $e0b0 $f00a $9508 $9711 end-code
+code 0>         $23bb $e0a0 $e0b0 $f40a $9508 $9711 end-code
+code =          $9189 $9199 $1ba8 $0bb9 $f019 $e0a0 $e0b0 $9508 $9711 end-code
+code <          $9189 $9199 $1b8a $0b9b $e0a0 $e0b0 $f00a $9508 $efaf $efbf end-code
+\ code >          $9189 $9199 $1b8a $0b9b $e0a0 $e0b0 $f40a $9508 $efaf $efbf end-code
+code u<         end-code
+code m+         end-code
+
+code um*        $9149 $9159 $01bd $2422 $9f75 $01d0 $9f64 $0180
+                $9f74 $0d10 $1da1 $1db2 $9f56 $0d10 $1da1 $1db2
+                $931a $930a end-code
+code m*         $9149 $9159 $01bd $2422 $0275 $01d0 $9f64 $0180
+                $0374 $09b2 $0d10 $1da1 $1db2 $0356 $09b2 $0d10
+                $1da1 $1db2 $931a $930a end-code
+                
+code negate     $efef $27ae $27be $9611 end-code
+
+: true          $ffff ;
+: false         0 ;
+: 0<=           0> negate ;
+: 0>=           0< negate ;
+
+: tuck          swap over ;
+: 2swap         rot >r rot r> ;
+
+: ?negate       0< if negate then ;
+: dnegate       swap invert swap invert 1 m+ ;
+: ?dnegate      0< if dnegate then ;
+: dabs          dup ?dnegate ;
+: u*            um* drop ;
+: *             m* drop ;
+
+: h!            ! ;
+: h@            @ ;
+: sm/rem        2dup xor >r
+                over >r abs >r dabs r> um/mod
+                swap r> ?negate  swap r> ?negate ;
+
+: /mod          >r dup 0< r> sm/rem ;
+: */mod         >r m* r> sm/rem ;
+: */            */mod swap drop ;
+
+: count         dup 1+ swap c@ ;
+
+code (s")       $91ff $91ef $0fee $1fff $01df $91a5 $e0b0 $93fa
+                $93ea $0fea $1ffb $95f6 $95e7 $9631 $7fee $93ef
+                $93ff end-code
+
+: emit          UDR0 c! ;
+code key        end-code
+code key?       end-code
+
