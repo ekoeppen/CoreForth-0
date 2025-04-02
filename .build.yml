@@ -1,0 +1,11 @@
+image: alpine/edge
+packages:
+  - build-base
+secrets:
+  - ca99d209-296a-41b7-9eda-454250e4b901
+environment:
+  REPO: CoreForth-0
+sources:
+  - https://git.sr.ht/~ekoeppen/build-scripts
+tasks:
+  - mirror-to-github: ./build-scripts/github-mirror $REPO
