@@ -91,26 +91,24 @@ code emit $910f $911f $9110 $00c0 $9300 $00c6 end-code
 code bye $9588 end-code
 
 : nop ;
-: quit 0 if $40 emit $40 emit $0d emit $0a emit then
+: quit 1 if $40 emit $40 emit $0d emit $0a emit then
   bye ;
 
 ::host::
 
-." next " 'next @ . cr
-." reset " 'reset @ . cr
-." docol " 'docol @ . cr
+: stats
+   ." next " 'next @ . cr
+   ." reset " 'reset @ . cr
+   ." docol " 'docol @ . cr
+   ;
 
 'reset @ 2/ 1- $c000 + #target w!
 t' quit 'start @ >target w! 
 
-: save-bin          s" avr.bin" w/o create-file throw >r
-                    #target there r@ write-file throw
-                    r> close-file throw ;
 variable hex-fd
 
 s" avr.hex" w/o create-file throw hex-fd !
 trom #target there trom - hex-fd @ type-hex
 hex-fd @ close-file throw
 
-save-bin
-
+stats

@@ -68,6 +68,7 @@ code m*         $9149 $9159 $01bd $2422 $0275 $01d0 $9f64 $0180
                 $1da1 $1db2 $931a $930a end-code
                 
 code negate     $efef $27ae $27be $9611 end-code
+code execute    $01fd $91a9 $91b9 $95f6 $95e7 $9509 end-code
 
 : true          $ffff ;
 : false         0 ;
@@ -94,13 +95,10 @@ code negate     $efef $27ae $27be $9611 end-code
 : */mod         >r m* r> sm/rem ;
 : */            */mod swap drop ;
 
-: count         dup 1+ swap c@ ;
-
 code (s")       $91ff $91ef $0fee $1fff $01df $91a5 $e0b0 $93fa
                 $93ea $0fea $1ffb $95f6 $95e7 $9631 $7fee $93ef
                 $93ff end-code
 
-: emit          UDR0 c! ;
-code key        end-code
-code key?       end-code
-
+: emit          begin UCSR0A c@ %00100000 and until UDR0 c! ;
+: key?          UCSR0A c@ %10000000 and ;
+: key           begin key? until UDR0 c@ ;

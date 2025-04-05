@@ -90,3 +90,77 @@ $C4 constant UBRR0
 $C4 constant UBRR0L 
 $C5 constant UBRR0H 
 $C6 constant UDR0 
+
+code >PINB $b9a3 $91a9 $91b9 end-code
+code >DDRB $b9a4 $91a9 $91b9 end-code
+code >PORTB $b9a5 $91a9 $91b9 end-code
+code >PINC $b9a6 $91a9 $91b9 end-code
+code >DDRC $b9a7 $91a9 $91b9 end-code
+code >PORTC $b9a8 $91a9 $91b9 end-code
+code >PIND $b9a9 $91a9 $91b9 end-code
+code >DDRD $b9aA $91a9 $91b9 end-code
+code >PORTD $b9aB $91a9 $91b9 end-code
+code >TIFR0 $baa5 $91a9 $91b9 end-code
+code >TIFR1 $baa6 $91a9 $91b9 end-code
+code >TIFR2 $baa7 $91a9 $91b9 end-code
+code >PCIFR $baaB $91a9 $91b9 end-code
+code >EIFR $baaC $91a9 $91b9 end-code
+code >EIMSK $baaD $91a9 $91b9 end-code
+code >GPIOR0 $baaE $91a9 $91b9 end-code
+code >EECR $baaF $91a9 $91b9 end-code
+code >EEDR $bda0 $91a9 $91b9 end-code
+code >EEARL $bda1 $91a9 $91b9 end-code
+code >EEARH $bda2 $91a9 $91b9 end-code
+code >GTCCR $bda3 $91a9 $91b9 end-code
+code >TCCR0A $bda4 $91a9 $91b9 end-code
+code >TCCR0B $bda5 $91a9 $91b9 end-code
+code >TCNT0 $bda6 $91a9 $91b9 end-code
+code >OCR0A $bda7 $91a9 $91b9 end-code
+code >OCR0B $bda8 $91a9 $91b9 end-code
+code >GPIOR1 $bdaA $91a9 $91b9 end-code
+code >GPIOR2 $bdaB $91a9 $91b9 end-code
+code >SPCR $bdaC $91a9 $91b9 end-code
+code >SPSR $bdaD $91a9 $91b9 end-code
+code >SPDR $bdaE $91a9 $91b9 end-code
+code >ACSR $bfa0 $91a9 $91b9 end-code
+code >SMCR $bfa3 $91a9 $91b9 end-code
+code >MCUSR $bfa4 $91a9 $91b9 end-code
+code >MCUCR $bfa5 $91a9 $91b9 end-code
+code >SPMCSR $bfa7 $91a9 $91b9 end-code
+
+code PINB> $b1a3 $e0b0 end-code
+code DDRB> $b1a4 $e0b0 end-code
+code PORTB> $b1a5 $e0b0 end-code
+code PINC> $b1a6 $e0b0 end-code
+code DDRC> $b1a7 $e0b0 end-code
+code PORTC> $b1a8 $e0b0 end-code
+code PIND> $b1a9 $e0b0 end-code
+code DDRD> $b1aA $e0b0 end-code
+code PORTD> $b1aB $e0b0 end-code
+code TIFR0> $b3a5 $e0b0 end-code
+code TIFR1> $b3a6 $e0b0 end-code
+code TIFR2> $b3a7 $e0b0 end-code
+code PCIFR> $b3aB $e0b0 end-code
+code EIFR> $b3aC $e0b0 end-code
+code EIMSK> $b3aD $e0b0 end-code
+code GPIOR0> $b3aE $e0b0 end-code
+code EECR> $b3aF $e0b0 end-code
+code EEDR> $b5a0 $e0b0 end-code
+code EEARL> $b5a1 $e0b0 end-code
+code EEARH> $b5a2 $e0b0 end-code
+code GTCCR> $b5a3 $e0b0 end-code
+code TCCR0A> $b5a4 $e0b0 end-code
+code TCCR0B> $b5a5 $e0b0 end-code
+code TCNT0> $b5a6 $e0b0 end-code
+code OCR0A> $b5a7 $e0b0 end-code
+code OCR0B> $b5a8 $e0b0 end-code
+code GPIOR1> $b5aA $e0b0 end-code
+code GPIOR2> $b5aB $e0b0 end-code
+code SPCR> $b5aC $e0b0 end-code
+code SPSR> $b5aD $e0b0 end-code
+code SPDR> $b5aE $e0b0 end-code
+code ACSR> $b6a0 $e0b0 end-code
+code SMCR> $b6a3 $e0b0 end-code
+code MCUSR> $b6a4 $e0b0 end-code
+code MCUCR> $b6a5 $e0b0 end-code
+code SPMCSR> $b6a7 $e0b0 end-code

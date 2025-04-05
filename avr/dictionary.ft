@@ -1,0 +1,24 @@
+: link>name     cell+ ;
+: link>flags    cell+ ;
+: visible?      link>flags c@ %10000000 and not ;
+: immediate?    link>flags c@ %01000000 and not ;
+: link>         link>name dup c@ %00111111 and + 1+ aligned ;
+
+variable latest
+
+: si=           ( c-addr1 c-addr2 -- f )
+                dup c@ 1+ begin >r 2dup ci@= r> tuck and while
+                  1- rot 1+ rot 1+ rot
+                repeat -rot 2drop 0= ;
+
+: find          >r latest begin
+                  @ dup if dup link>name r@ si= over visible? and
+                  else r@ swap true
+                  then
+                until rdrop
+                dup if
+                  dup link>
+                  swap immediate? not 1 or
+                then
+                ;
+
