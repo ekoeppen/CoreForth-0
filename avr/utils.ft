@@ -1,0 +1,30 @@
+: dump          >r dup cr h.4 space begin
+                r@ while
+                  dup c@ h.2 space 1+
+                  r> 1- dup $10 mod 0= over and if cr over h.4 space then >r
+                repeat rdrop drop ;
+
+: dumph         >r dup cr h.4 space begin
+                r@ while
+                  dup h@ h.4 space 2+
+                  r> 1- dup $8 mod 0= over and if cr over h.4 space then >r
+                repeat rdrop drop ;
+
+: dumpw dumph ;
+
+: b.8'          base @ swap binary
+                <# # # # # [char] ' hold # # # # #> type base ! ;
+: b.16'         base @ swap dup 8 rshift b.8' [char] ' emit b.8' base ! ;
+
+: delay         begin ?dup while 1- repeat ;
+
+: list          latest begin @ ?dup while
+                  dup link> hex. space dup link>name count type cr
+                repeat ;
+
+: .s            depth 0= if exit then
+                dup u.
+                sp@ cell+ begin dup s0 cell- < while dup @ u. cell+ repeat drop ;
+
+: .r            rp@ begin dup r0 < while dup 1+ @ h.4 space cell+ repeat drop ;
+
