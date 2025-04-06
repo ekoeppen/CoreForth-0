@@ -3,7 +3,7 @@
 \ ## Subroutine Threaded Forth
 \
 \ ### Register usage
-\ 
+\
 \ temp: r16, r17
 \ TOS: X (r26, r27)
 \ PSP: Y (r28, r29)
@@ -14,9 +14,6 @@
 ::host::
 
 cr
-
-variable 'reset
-variable 'start
 
 :noname     dup there - 2/ 1- dup abs $800 < if $fff and $d000 or th, drop else drop $940e th, 2/ th,  then ; is t,call
 :noname     s" docon" tfwdref ; is t,docon
@@ -38,23 +35,18 @@ variable 'start
 
 
 $00000000 to trom
-$00000800 to tram
+$00000200 to tram
         2 to tcell
 
 trom tdp !
 tram tvp !
 
-$900 torg
+$910 torg
+
 
 \ -- Target -------------------------------------------------------------------
 
 ::target::
-
-there 'reset !
-$e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
-there 'start !
-$e0e0 th, $e0f0 th,
-$9409 th,
 
 \ -----------------------------------------------------------------------------
 \ -- Compiler and control flow
@@ -66,7 +58,6 @@ code ?branch    $91ff $91ef $2f0a $2f1b $91a9 $91b9 $2b01 $f021
                 $9516 $9507 $930f $931f end-code
 code lit        $93ba $93aa $91ff $91ef $0fee $1fff $91a5 $91b5
                 $95f6 $95e7 $93ef $93ff end-code
-code exit       $9508 end-code
 code docon      $93ba $93aa $91ff $91ef $0fee $1fff $91a5 $91b5 end-code
 code nop        end-code
 
@@ -79,75 +70,73 @@ code drop       $91a9 $91b9 end-code
 code swap       $01fd $91a9 $91b9 $93fa $93ea end-code
 code over       $01fe $93ba $93aa $91a1 $91b1 end-code
 code rot        $9119 $9109 $91e9 $91f9 $930a $931a $93ba $93aa $01df end-code
-code ?dup       $2b01 $f011 $93ba $93aa end-code
+code ?dup       $018d $2b01 $f011 $93ba $93aa end-code
 code nip        $9622 end-code
 
-code >r         $91ef $91ff $93bf $93af $91a9 $91b9 $93ff $93ef end-code
+code >r         $91ef $91ff $93af $93bf $91a9 $91b9 $93ff $93ef end-code
 code r>         $91ef $91ff $93ba $93aa $91bf $91af $93ff $93ef end-code
-code r@         $93ba $93aa $b7ed $b7fe $9631 $91b1 $91a1 end-code
+code r@         $93ba $93aa $b7ed $b7fe $9633 $91b1 $91a1 end-code
 code rdrop      $91ef $91ff $910f $910f $93ff $93ef end-code
 
 code sp@        $93ba $93aa $01de end-code
-code rp@        $93ba $93aa $b7ad $b7be end-code
+code rp@        $93ba $93aa $b7ad $b7be $9612 end-code
 code sp!        $01ed end-code
-code rp!        $910f $911f $91a9 $91b9 $bfad $bfbe $931f $930f end-code
+code rp!        $91ff $91ef $bfad $bfbe $91a9 $91b9 $9409 end-code
 
 code bswap      $2f0b $2fba $2fa0 end-code
 
 \ -----------------------------------------------------------------------------
 \ -- Machine interface
 
-code bye        $9588 end-code
+code bye       $9588 end-code
 
-$8ff constant s0
-$8bf constant r0
+$900 constant init-latest
+$902 constant init-dp
+$904 constant init-vp
+
+$8ff constant  r0
+$8bf constant  s0
 
 include atmega328p.ft
 include memory-mega.ft
 include core.ft
 include ../common/core.ft
 include ../common/dictionary.ft
-include compiler.ft
 include ../common/output.ft
+include dictionary.ft
+include compiler.ft
+include ../common/utils.ft
 include ../common/input.ft
 include ../common/exception.ft
 include ../common/control-flow.ft
-include dictionary.ft
 include ../common/interpret.ft
 
-: uart-init
-   #25 UBRR0L c! 0 UBRR0H c!
-   %00011000 UCSR0B c!
-   %00000110 UCSR0C c!
-   ;
+: uart-init    #25 UBRR0L c! 0 UBRR0H c!
+               %00011000 UCSR0B c!
+               %00000110 UCSR0C c! ;
+: led-init     %00100000 >DDRB ;
+: led-set      %00100000 >PORTB ;
+: led-toggle   %00100000 >PINB ;
+: led-clear    %00000000 >PORTB ;
 
-: led-init   %00100000 >DDRB ;
-: led-set    %00100000 >PORTB ;
-: led-toggle %00100000 >PINB ;
-: led-clear  %00000000 >PORTB ;
+: setup-pointers
+               init-latest @ latest !
+               init-dp @ dp !
+               init-vp @ vp !
+               ;
 
-: hello
-            led-init
-            s" Hello, World!" type cr 
-            begin key emit led-toggle again
-            ;
-
-: cold      t[ $e008 , $bf0e , $ef0f , $bf0d , $ebcf , $e0d8 , ]t
-            uart-init
-            quit bye ;
+: cold         t[ $e008 , $bf0e , $ef0f , $bf0d , $ebcf , $e0d8 , ]t
+               uart-init hex
+               setup-pointers
+               0 (source-id) !
+               quit
+               bye ;
 
 
 ::host::
 
 $940c #target w! t' cold 2/ #target 2 + w!
-
-\ $940c #target w!
-\ 'reset @ 2/ #target 2 + w!
-
-\ $e0e0 t' quit 2/ $000f and or
-\       t' quit 2/ $00f0 and 4 lshift or 'start @ >target w!
-\ $e0f0 t' quit 2/ 8 rshift $000f and or
-\       t' quit 2/ 4 rshift $0f00 and or 'start @ 2 + >target w!
+tlast @ $900 >target w!
 
 variable hex-fd
 

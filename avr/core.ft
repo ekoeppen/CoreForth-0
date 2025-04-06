@@ -55,9 +55,8 @@ code 0<>        $2bab $f019 $efaf $efbf $9508 $9508 end-code
 code 0<         $23bb $e0a0 $e0b0 $f00a $9508 $9711 end-code
 code 0>         $23bb $e0a0 $e0b0 $f40a $9508 $9711 end-code
 code =          $9189 $9199 $1ba8 $0bb9 $f019 $e0a0 $e0b0 $9508 $9711 end-code
-code <          $9189 $9199 $1b8a $0b9b $e0a0 $e0b0 $f00a $9508 $efaf $efbf end-code
-\ code >          $9189 $9199 $1b8a $0b9b $e0a0 $e0b0 $f40a $9508 $efaf $efbf end-code
-code u<         end-code
+code <          $9189 $9199 $179b $078a $e0a0 $e0b0 $f00c $9508 $9711 end-code
+code u<         $9189 $9199 $179b $078a $e0a0 $e0b0 $f008 $9508 $9711 end-code
 code m+         end-code
 
 code um*        $9149 $9159 $01bd $2422 $9f75 $01d0 $9f64 $0180
