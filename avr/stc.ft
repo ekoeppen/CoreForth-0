@@ -53,8 +53,8 @@ $910 torg
 
 code branch     $91ff $91ef $0fee $1fff $9105 $9115 $9516 $9507
                 $930f $931f end-code
-code ?branch    $91ff $91ef $2f0a $2f1b $91a9 $91b9 $2b01 $f021
-                $9631 $93ef $93ff $9508 $0fee $1fff $9105 $9115
+code ?branch    $91ff $91ef $018d $91a9 $91b9 $2b01 $f021 $9631
+                $93ef $93ff $9508 $0fee $1fff $9105 $9115
                 $9516 $9507 $930f $931f end-code
 code lit        $93ba $93aa $91ff $91ef $0fee $1fff $91a5 $91b5
                 $95f6 $95e7 $93ef $93ff end-code
