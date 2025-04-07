@@ -2,7 +2,7 @@
 \ -- Memory operations
 
 code c@         $01fd $e0b0 $30f9 $f010 $91a5 $9508 $91a1 end-code
-code c!         $01fd $9189 $9199 $91a9 $91b9 $30f9 $f008 $9508 $8380 end-code
+code c!         $01fd $9109 $9119 $91a9 $91b9 $30f9 $f008 $9508 $8300 end-code
 code @          $01fd $30f9 $f018 $91a5 $91b5 $9508 $91a1 $91b1 end-code
-code !          $01fd $9189 $9199 $91a9 $91b9 $30f9 $f008 $9508 $9381 $9391 end-code
+code !          $01fd $9109 $9119 $91a9 $91b9 $30f9 $f008 $9508 $9301 $9311 end-code
 

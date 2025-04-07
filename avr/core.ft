@@ -53,9 +53,9 @@ code 0=         $2bab $f019 $e0a0 $e0b0 $9508 $9711 end-code
 code 0<>        $2bab $f019 $efaf $efbf $9508 $9508 end-code
 code 0<         $23bb $e0a0 $e0b0 $f00a $9508 $9711 end-code
 code 0>         $23bb $e0a0 $e0b0 $f40a $9508 $9711 end-code
-code =          $9189 $9199 $1ba8 $0bb9 $f019 $e0a0 $e0b0 $9508 $9711 end-code
-code <          $9189 $9199 $179b $078a $e0a0 $e0b0 $f00c $9508 $9711 end-code
-code u<         $9189 $9199 $179b $078a $e0a0 $e0b0 $f008 $9508 $9711 end-code
+code =          $9109 $9119 $1ba0 $0bb1 $f019 $e0a0 $e0b0 $9508 $9711 end-code
+code <          $9109 $9119 $171b $070a $e0a0 $e0b0 $f00c $9508 $9711 end-code
+code u<         $9109 $9119 $171b $070a $e0a0 $e0b0 $f008 $9508 $9711 end-code
 code m+         $9129 $9139 $9109 $9119 $e050 $e040 $0fa0 $1fb1
                 $1f24 $1f35 $93ba $93aa $01d9 end-code
 
@@ -67,7 +67,6 @@ code m*         $9149 $9159 $01bd $2422 $0275 $01d0 $9f64 $0180
                 $1da1 $1db2 $931a $930a end-code
                 
 code negate     $efef $27ae $27be $9611 end-code
-code execute    $01fd $91a9 $91b9 $95f6 $95e7 $9509 end-code
 
 : true          $ffff ;
 : false         0 ;

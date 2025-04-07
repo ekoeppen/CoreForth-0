@@ -4,11 +4,11 @@
 \
 \ ### Register usage
 \ 
-\ temp: r16, r17
-\ W: r24, r25
-\ IP: X
-\ SP: Y
-\ RP: SP
+\ IP:     r25:r24
+\ W:      r23:r22
+\ SP: SP
+\ RP: Y   r29:r28
+\ TOS: X  r27:r26
 \ 
 \ ### DOCOL / Enter
 \ IP points to next word in the caller
@@ -37,10 +37,9 @@ variable 'start
 :noname     s" ?branch" tfwdref ; is t,?branch
 :noname     talign
             there tlast @ t, tlast !
-            $0080 th,
             there >target pack$ c@ 1+ tallot talign ; is thead
-:noname     tlast @ tcell + dup t@ $40 or swap t! ; is timmediate
-:noname     tcell + tcell + dup tc@ + taligned ; is tlink>
+:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tcell + dup tc@ + 1+ taligned ; is tlink>
 :noname     s" (does>)" tfind th, ; is t,dodoes
 :noname     there 2 + th, ; is t,docode
 
@@ -51,48 +50,64 @@ $00008000 to tram
 trom tdp !
 tram tvp !
 
-$100 torg
+$10 torg
 
 \ -- Target -------------------------------------------------------------------
 
 ::target::
 
+\ -----------------------------------------------------------------------------
+\ -- Compiler and control flow
+
 there 'start !
 $0000 th,
 
 there 'next !
-$01fd th, $9185 th, $9195 th, $9612 th, $01fc th, $9105 th, $9115 th, $01f8 th,
-$95f6 th, $95e7 th, $9409 th, 
+$01fc th, $15f9 th, $f018 th, $9165 th, $9175 th, $c002 th, $9161 th, $9171 th,
+$01cf th, $01fb th, $9105 th, $9115 th, $01f8 th, $95f6 th, $95e7 th, $9409 th,
+
+there 'docol !
+$939f th, $938f th, $01cb th, $9602 th, $c000 'next @ there - 2/ 1- $fff and or th,
 
 there 'reset !
 $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
-$a0 'start @ $0f and or tc, $e0 'start @ $f0 and 4 rshift or tc,
-$b0 'start @ 8 rshift $0f and or tc, $e0 'start @ $f0 and #12 rshift or tc,
+$80 'start @ $0f and or tc, $e0 'start @ $f0 and 4 rshift or tc,
+$90 'start @ 8 rshift $0f and or tc, $e0 'start @ $f0 and #12 rshift or tc,
 $c000 'next @ there - 2/ 1- $fff and or th,
 
-there 'docol !
-$93ba th, $93aa th, $01dc th, $9612 th,
-$c000 'next @ there - 2/ 1- $fff and or th,
+code exit      $918f $919f end-code
+code lit       $01fc $93ba $93aa $91a5 $91b5 $01cf end-code
+code nop       end-code
 
-there 'docon !
-$01fc th, $9632 th, $9105 th, $9115 th, $931f th, $930f th,
-$c000 'next @ there - 2/ 1- $fff and or th,
+\ -----------------------------------------------------------------------------
+\ -- Stack operations
 
-code exit $91a9 $91b9 end-code
-code branch $01fd $91a5 $91b5 end-code
-code ?branch $910f $911f $2b01 $f421 $01fd $91a5 $91b5 $c001 $9612 end-code
-code halt $cfff end-code
-code lit $01fd $9105 $9115 $931f $930f $9612 end-code
-code @ $91ef $91ff $9101 $9111 $930f $931f end-code
-code ! $91ef $91ff $910f $911f $9301 $9311 end-code
-code c@ $91ef $91ff $9101 $e010 $930f $931f end-code
-code c! $91ef $91ff $910f $911f $e010 $9301 $9311 end-code
-code emit $910f $911f $9110 $00c0 $9300 $00c6 end-code
-code bye $9588 end-code
+code dup       $93ba $93aa end-code
+code 2dup      $01fe $9101 $9111 $93ba $93aa $931a $930a end-code
+code drop      $91a9 $91b9 end-code
+code swap      $01fd $91a9 $91b9 $93fa $93ea end-code
+code over      $01fe $93ba $93aa $91a1 $91b1 end-code
+code rot       $9119 $9109 $91e9 $91f9 $930a $931a $93ba $93aa $01df end-code
+code ?dup      $018d $2b01 $f011 $93ba $93aa end-code
+code nip       $9622 end-code
 
-: nop ;
-: quit 1 if $40 emit $40 emit $0d emit $0a emit then
-  bye ;
+code bswap     $2f0b $2fba $2fa0 end-code
+
+\ -----------------------------------------------------------------------------
+\ -- Machine interface
+
+code bye       $9588 end-code
+
+$900 constant  init-latest
+$902 constant  init-dp
+$904 constant  init-vp
+
+$8ff constant  r0
+$8bf constant  s0
+
+include memory-mega.ft
+
+: quit         $1234 $5678 nip $abcd bye ;
 
 ::host::
 

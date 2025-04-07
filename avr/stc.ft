@@ -60,6 +60,7 @@ code lit        $93ba $93aa $91ff $91ef $0fee $1fff $91a5 $91b5
                 $95f6 $95e7 $93ef $93ff end-code
 code docon      $93ba $93aa $91ff $91ef $0fee $1fff $91a5 $91b5 end-code
 code nop        end-code
+code execute    $01fd $91a9 $91b9 $95f6 $95e7 $9509 end-code
 
 \ -----------------------------------------------------------------------------
 \ -- Stack operations
