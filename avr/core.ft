@@ -1,4 +1,16 @@
 \ -----------------------------------------------------------------------------
+\ -- Stack manipulation
+
+code dup        $93ba $93aa end-code
+code 2dup       $01fe $9101 $9111 $93ba $93aa $931a $930a end-code
+code drop       $91a9 $91b9 end-code
+code swap       $01fd $91a9 $91b9 $93fa $93ea end-code
+code over       $01fe $93ba $93aa $91a1 $91b1 end-code
+code rot        $9119 $9109 $91e9 $91f9 $930a $931a $93ba $93aa $01df end-code
+code ?dup       $018d $2b01 $f011 $93ba $93aa end-code
+code nip        $9622 end-code
+
+\ -----------------------------------------------------------------------------
 \ -- Logical operators
 
 code and        $91e9 $91f9 $23ae $23bf end-code
@@ -7,6 +19,7 @@ code invert     $95a0 $95b0  end-code
 code not        $efef $27ae $27be end-code
 code xor        $91e9 $91f9 $27ae $27bf end-code
 code aligned    $9611 $7fae end-code
+code bswap      $2f0b $2fba $2fa0 end-code
 
 code bis!       end-code
 code bic!       end-code
@@ -20,10 +33,10 @@ code bit@       end-code
 
 code +          $91e9 $91f9 $0fae $1fbf end-code
 code -          $91e9 $91f9 $1bea $0bfb $01df end-code
-code u/mod      $9189 $9199 $2766 $1b77 $e101 $1f88 $1f99 $950a
-                $f421 $937a $936a $01dc $9508 $1f66 $1f77 $1b6a
-                $0b7b $f420 $0f6a $1f7b $9488 $cfef $9408 $cfed end-code            
-code abs        $23bb $f00a $9508 $95a0 $95b0 $9611 end-code
+code u/mod      $9129 $9139 $2744 $1b55 $e101 $1f22 $1f33 $950a
+                $f421 $935a $934a $01d9 $c00b $1f44 $1f55 $1b4a
+                $0b5b $f420 $0f4a $1f5b $9488 $cfef $9408 $cfed end-code
+code abs        $23bb $f00a $c003 $95a0 $95b0 $9611 end-code
 
 code 1+         $9611 end-code
 code 2+         $9612 end-code
@@ -49,13 +62,13 @@ code rshift     $2fea $2beb $91e9 $91f9 $f021 $95f6 $95e7 $9711
 code shl        $0faa $1fbb end-code
 code shr        $95b6 $95a7 end-code
 
-code 0=         $2bab $f019 $e0a0 $e0b0 $9508 $9711 end-code
-code 0<>        $2bab $f019 $efaf $efbf $9508 $9508 end-code
-code 0<         $23bb $e0a0 $e0b0 $f00a $9508 $9711 end-code
-code 0>         $23bb $e0a0 $e0b0 $f40a $9508 $9711 end-code
-code =          $9109 $9119 $1ba0 $0bb1 $f019 $e0a0 $e0b0 $9508 $9711 end-code
-code <          $9109 $9119 $171b $070a $e0a0 $e0b0 $f00c $9508 $9711 end-code
-code u<         $9109 $9119 $171b $070a $e0a0 $e0b0 $f008 $9508 $9711 end-code
+code 0=         $2bab $f019 $e0a0 $e0b0 $c001 $9711 end-code
+code 0<>        $2bab $f011 $efaf $efbf end-code
+code 0<         $23bb $e0a0 $e0b0 $f00a $c001 $9711 end-code
+code 0>         $23bb $e0a0 $e0b0 $f40a $c001 $9711 end-code
+code =          $9109 $9119 $1ba0 $0bb1 $f019 $e0a0 $e0b0 $c001 $9711 end-code
+code <          $9109 $9119 $1b0a $0b1b $e0a0 $e0b0 $f00a $c002 $efaf $efbf end-code
+code u<         $9109 $9119 $171b $070a $e0a0 $e0b0 $f008 $c001 $9711 end-code
 code m+         $9129 $9139 $9109 $9119 $e050 $e040 $0fa0 $1fb1
                 $1f24 $1f35 $93ba $93aa $01d9 end-code
 
@@ -65,7 +78,7 @@ code um*        $9149 $9159 $01bd $2422 $9f75 $01d0 $9f64 $0180
 code m*         $9149 $9159 $01bd $2422 $0275 $01d0 $9f64 $0180
                 $0374 $09b2 $0d10 $1da1 $1db2 $0356 $09b2 $0d10
                 $1da1 $1db2 $931a $930a end-code
-                
+
 code negate     $efef $27ae $27be $9611 end-code
 
 : true          $ffff ;
@@ -98,10 +111,6 @@ code um/mod     $9129 $9139 $9109 $9119 $e140 $0f00 $1f11 $1f22
 
 : */mod         >r m* r> sm/rem ;
 : */            */mod swap drop ;
-
-code (s")       $91ff $91ef $0fee $1fff $01df $91a5 $e0b0 $93fa
-                $93ea $0fea $1ffb $95f6 $95e7 $9631 $7fee $93ef
-                $93ff end-code
 
 : emit          begin UCSR0A c@ %00100000 and until UDR0 c! ;
 : key?          UCSR0A c@ %10000000 and ;

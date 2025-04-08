@@ -6,8 +6,8 @@
 \ 
 \ IP:     r25:r24
 \ W:      r23:r22
-\ SP: SP
-\ RP: Y   r29:r28
+\ SP: Y   r29:r28
+\ RP: SP
 \ TOS: X  r27:r26
 \ 
 \ ### DOCOL / Enter
@@ -44,13 +44,13 @@ variable 'start
 :noname     there 2 + th, ; is t,docode
 
 $00000000 to trom
-$00008000 to tram
+$00000200 to tram
         2 to tcell
 
 trom tdp !
 tram tvp !
 
-$10 torg
+$910 torg
 
 \ -- Target -------------------------------------------------------------------
 
@@ -69,29 +69,39 @@ $01cf th, $01fb th, $9105 th, $9115 th, $01f8 th, $95f6 th, $95e7 th, $9409 th,
 there 'docol !
 $939f th, $938f th, $01cb th, $9602 th, $c000 'next @ there - 2/ 1- $fff and or th,
 
+there 'docon !
+$93ba th,  $93aa th,  $01fb th,  $9632 th,  $91a5 th,  $91b5 th,
+$c000 'next @ there - 2/ 1- $fff and or th,
+
 there 'reset !
 $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
 $80 'start @ $0f and or tc, $e0 'start @ $f0 and 4 rshift or tc,
 $90 'start @ 8 rshift $0f and or tc, $e0 'start @ $f0 and #12 rshift or tc,
 $c000 'next @ there - 2/ 1- $fff and or th,
 
-code exit      $918f $919f end-code
-code lit       $01fc $93ba $93aa $91a5 $91b5 $01cf end-code
-code nop       end-code
+code branch     $01fc $9185 $9195 end-code
+code ?branch    $2bab $91a9 $91b9 $f421 $01fc $9185 $9195 $c001 $9602 end-code
+code exit       $918f $919f end-code
+code lit        $01fc $93ba $93aa $91a5 $91b5 $01cf end-code
+code nop        end-code
+code execute    $01fd $01bd $91a9 $91b9 $9105 $9115 $01f8 $95f6 $95e7
+                $9409 end-code
 
 \ -----------------------------------------------------------------------------
 \ -- Stack operations
 
-code dup       $93ba $93aa end-code
-code 2dup      $01fe $9101 $9111 $93ba $93aa $931a $930a end-code
-code drop      $91a9 $91b9 end-code
-code swap      $01fd $91a9 $91b9 $93fa $93ea end-code
-code over      $01fe $93ba $93aa $91a1 $91b1 end-code
-code rot       $9119 $9109 $91e9 $91f9 $930a $931a $93ba $93aa $01df end-code
-code ?dup      $018d $2b01 $f011 $93ba $93aa end-code
-code nip       $9622 end-code
+code >r         $93bf $93af $91a9 $91b9 end-code
+code r>         $93ba $93aa $91af $91bf end-code
+code r@         $93ba $93aa $b7ed $b7fe $9631 $91a1 $91b1 end-code
+code rdrop      $910f $911f end-code
 
-code bswap     $2f0b $2fba $2fa0 end-code
+code sp@        $93ba $93aa $01de end-code
+code rp@        $93ba $93aa $b7ad $b7be end-code
+code sp!        $01ed end-code
+code rp!        $bfad $bfbe $91a9 $91b9 end-code
+
+code (s")       $01fc $91a5 $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee
+                $01cf end-code
 
 \ -----------------------------------------------------------------------------
 \ -- Machine interface
@@ -105,9 +115,39 @@ $904 constant  init-vp
 $8ff constant  r0
 $8bf constant  s0
 
+include atmega328p.ft
 include memory-mega.ft
+include core.ft
+include ../common/core.ft
+include ../common/dictionary.ft
+include ../common/output.ft
+include dictionary.ft
+include compiler.ft
+include utils.ft
+include ../common/input.ft
+include ../common/exception.ft
+include ../common/control-flow.ft
+include ../common/interpret.ft
 
-: quit         $1234 $5678 nip $abcd bye ;
+: uart-init    #25 UBRR0L c! 0 UBRR0H c!
+               %00011000 UCSR0B c!
+               %00000110 UCSR0C c! ;
+: led-init     %00100000 >DDRB ;
+: led-set      %00100000 >PORTB ;
+: led-toggle   %00100000 >PINB ;
+: led-clear    %00000000 >PORTB ;
+
+: setup-pointers
+               init-latest @ latest !
+               init-dp @ dp !
+               init-vp @ vp !
+               ;
+
+: cold         hex uart-init
+               setup-pointers
+               0 (source-id) !
+               quit
+               bye ;
 
 ::host::
 
@@ -115,10 +155,12 @@ include memory-mega.ft
    ." next " 'next @ . cr
    ." reset " 'reset @ . cr
    ." docol " 'docol @ . cr
+   ." docon " 'docon @ . cr
    ;
 
-'reset @ 2/ 1- $c000 + #target w!
-t' quit 'start @ >target w! 
+$940c #target w! 'reset @ 2/ #target 2 + w!
+tlast @ $900 >target w!
+t' cold 'start @ >target w!
 
 variable hex-fd
 

@@ -65,15 +65,6 @@ code execute    $01fd $91a9 $91b9 $95f6 $95e7 $9509 end-code
 \ -----------------------------------------------------------------------------
 \ -- Stack operations
 
-code dup        $93ba $93aa end-code
-code 2dup       $01fe $9101 $9111 $93ba $93aa $931a $930a end-code
-code drop       $91a9 $91b9 end-code
-code swap       $01fd $91a9 $91b9 $93fa $93ea end-code
-code over       $01fe $93ba $93aa $91a1 $91b1 end-code
-code rot        $9119 $9109 $91e9 $91f9 $930a $931a $93ba $93aa $01df end-code
-code ?dup       $018d $2b01 $f011 $93ba $93aa end-code
-code nip        $9622 end-code
-
 code >r         $91ef $91ff $93af $93bf $91a9 $91b9 $93ff $93ef end-code
 code r>         $91ef $91ff $93ba $93aa $91bf $91af $93ff $93ef end-code
 code r@         $93ba $93aa $b7ed $b7fe $9633 $91b1 $91a1 end-code
@@ -84,7 +75,9 @@ code rp@        $93ba $93aa $b7ad $b7be $9612 end-code
 code sp!        $01ed end-code
 code rp!        $91ff $91ef $bfad $bfbe $91a9 $91b9 $9409 end-code
 
-code bswap      $2f0b $2fba $2fa0 end-code
+code (s")       $91ff $91ef $0fee $1fff $01df $91a5 $e0b0 $93fa
+                $93ea $0fea $1ffb $95f6 $95e7 $9631 $7fee $93ef
+                $93ff end-code
 
 \ -----------------------------------------------------------------------------
 \ -- Machine interface
