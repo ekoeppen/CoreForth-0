@@ -1,6 +1,7 @@
 : link>name     cell+ ;
 : link>flags    cell+ ;
-: visible?      link>flags c@ %10000000 and not ;
+: hidden?       link>flags c@ %10000000 and ;
+: visible?      hidden? not ;
 : immediate?    link>flags c@ %01000000 and not ;
 : link>         link>name dup c@ %00111111 and + 1+ aligned ;
 

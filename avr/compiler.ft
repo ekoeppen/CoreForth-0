@@ -1,6 +1,6 @@
 variable state
 
-: ,call         ;
+: ,call         , ;
 : literal       postpone lit , ; immediate
 
 : [             false state ! ; immediate

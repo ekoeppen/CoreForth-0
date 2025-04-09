@@ -27,21 +27,21 @@ variable 'docon
 variable 'exit
 variable 'start
 
-:noname     th, ; is t,call
-:noname     'docon @ th, ; is t,docon
-:noname     'docol @ th, ; is t,enter
-:noname     s" exit" tfwdref ; is t,exit
-:noname     $940c th, 'next @ 2/ th, ; is t,next
-:noname     s" lit" tfwdref ; is t,lit
-:noname     s" branch" tfwdref ; is t,branch
-:noname     s" ?branch" tfwdref ; is t,?branch
+:noname     t, ; is t,call
+:noname     s" docon" tfind t, ; is t,docon
+:noname     s" docol" tfind t, ; is t,enter
+:noname     s" exit" tfind t, ; is t,exit
+:noname     $940c t, s" next" tfind 2/ t, ; is t,next
+:noname     s" lit" tfind t, ; is t,lit
+:noname     s" branch" tfind t, ; is t,branch
+:noname     s" ?branch" tfind t, ; is t,?branch
 :noname     talign
             there tlast @ t, tlast !
             there >target pack$ c@ 1+ tallot talign ; is thead
 :noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
 :noname     tcell + dup tc@ + 1+ taligned ; is tlink>
-:noname     s" (does>)" tfind th, ; is t,dodoes
-:noname     there 2 + th, ; is t,docode
+:noname     s" (does>)" tfind t, ; is t,dodoes
+:noname     there 2 + t, ; is t,docode
 
 $00000000 to trom
 $00000200 to tram
@@ -62,22 +62,17 @@ $910 torg
 there 'start !
 $0000 th,
 
-there 'next !
-$01fc th, $15f9 th, $f018 th, $9165 th, $9175 th, $c002 th, $9161 th, $9171 th,
-$01cf th, $01fb th, $9105 th, $9115 th, $01f8 th, $95f6 th, $95e7 th, $9409 th,
-
-there 'docol !
-$939f th, $938f th, $01cb th, $9602 th, $c000 'next @ there - 2/ 1- $fff and or th,
-
-there 'docon !
-$93ba th,  $93aa th,  $01fb th,  $9632 th,  $91a5 th,  $91b5 th,
-$c000 'next @ there - 2/ 1- $fff and or th,
-
-there 'reset !
-$e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
-$80 'start @ $0f and or tc, $e0 'start @ $f0 and 4 rshift or tc,
-$90 'start @ 8 rshift $0f and or tc, $e0 'start @ $f0 and #12 rshift or tc,
-$c000 'next @ there - 2/ 1- $fff and or th,
+t: next         $01fc th, $15f9 th, $f018 th, $9165 th, $9175 th, $c002 th,
+                $9161 th, $9171 th, $01cf th, $01fb th, $9105 th, $9115 th,
+                $01f8 th, $95f6 th, $95e7 th, $9409 th,
+t: docol        $939f th, $938f th, $01cb th, $9602 th,
+                $c000 t' next there - 2/ 1- $fff and or th,
+t: docon        $93ba th, $93aa th, $01fb th, $9632 th, $91a5 th, $91b5 th,
+                $c000 t' next there - 2/ 1- $fff and or th,
+t: reset        $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
+                $80 'start @ $0f and or tc, $e0 'start @ $f0 and 4 rshift or tc,
+                $90 'start @ 8 rshift $0f and or tc, $e0 'start @ $f0 and #12 rshift or tc,
+                $c000 t' next there - 2/ 1- $fff and or th,
 
 code branch     $01fc $9185 $9195 end-code
 code ?branch    $2bab $91a9 $91b9 $f421 $01fc $9185 $9195 $c001 $9602 end-code
@@ -85,7 +80,7 @@ code exit       $918f $919f end-code
 code lit        $01fc $93ba $93aa $91a5 $91b5 $01cf end-code
 code nop        end-code
 code execute    $01fd $01bd $91a9 $91b9 $9105 $9115 $01f8 $95f6 $95e7
-                $9409 end-code
+                $9409 end-code \ :TODO: Handle code in RAM
 
 \ -----------------------------------------------------------------------------
 \ -- Stack operations
@@ -151,14 +146,7 @@ include ../common/interpret.ft
 
 ::host::
 
-: stats
-   ." next " 'next @ . cr
-   ." reset " 'reset @ . cr
-   ." docol " 'docol @ . cr
-   ." docon " 'docon @ . cr
-   ;
-
-$940c #target w! 'reset @ 2/ #target 2 + w!
+$940c #target w! t' reset 2/ #target 2 + w!
 tlast @ $900 >target w!
 t' cold 'start @ >target w!
 
@@ -167,5 +155,3 @@ variable hex-fd
 s" avr.hex" w/o create-file throw hex-fd !
 trom #target there trom - hex-fd @ type-hex
 hex-fd @ close-file throw
-
-stats
