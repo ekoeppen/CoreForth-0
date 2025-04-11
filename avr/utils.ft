@@ -10,7 +10,7 @@
                   r> 1- dup $8 mod 0= over and if cr over h.4 space then >r
                 repeat rdrop drop ;
 
-: dumpw dumph ;
+: dumpw         dumph ;
 
 : b.8'          base @ swap binary
                 <# # # # # [char] ' hold # # # # #> type base ! ;
@@ -19,7 +19,7 @@
 : delay         begin ?dup while 1- repeat ;
 
 : list          latest begin @ ?dup while
-                  dup link> hex. space dup link>name count type cr
+                  dup link> hex. space dup link>name count %00111111 and type cr
                 repeat ;
 
 : .s            depth 0= if exit then

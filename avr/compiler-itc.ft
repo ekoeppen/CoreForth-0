@@ -1,0 +1,39 @@
+: align         here aligned org ;
+: >body         2 cells + ;
+: ,link         , ;
+: '             bl word find dup 0= if drop count type space $3F emit else drop then ;
+: words         latest begin @ ?dup while
+                  dup link>name count $3F and type space
+                repeat ;
+
+: ,enter        ['] docol , ;
+: ,docon        ['] docon , ;
+: ,dovar        ['] dovar , ;
+: ,exit         ['] exit , ;
+
+: immediate     %01000000 latest @ link>flags bis! ;
+: reveal        %10000000 latest @ link>flags bic! ;
+: hide          %10000000 latest @ link>flags bis! ;
+: postpone      bl word find 0< if literal postpone ,call
+                else ,call then ; immediate
+: [']           ' postpone literal ; immediate
+
+: <builds       align   here latest dup @ ,link   !
+                bl word
+                dup dup c@ 1+
+                    over %10000000 swap bis!
+                    here swap move
+                c@ %00111111 and 1+ allot align ;
+: :             <builds ,enter hide ] ;
+: ;             ,exit reveal [ ; immediate
+: :noname       align latest @ here dup latest ! ,enter ] ; immediate
+
+: create        <builds ,dovar reveal ;
+: constant      <builds ,docon , reveal ;
+: variable      <builds ,dovar cell alloc reveal ;
+: buffer:       <builds ,dovar alloc reveal ;
+
+: recurse       latest @ link> ,call ; immediate
+: [char]        char postpone literal ; immediate
+: ."            postpone s" postpone type ; immediate
+

@@ -21,13 +21,6 @@ code xor        $91e9 $91f9 $27ae $27bf end-code
 code aligned    $9611 $7fae end-code
 code bswap      $2f0b $2fba $2fa0 end-code
 
-code bis!       end-code
-code bic!       end-code
-code xor!       end-code
-code bis        end-code
-code bic        end-code
-code bit@       end-code
-
 \ -----------------------------------------------------------------------------
 \ -- Arithmetic
 
@@ -50,7 +43,7 @@ code char-      $9711 end-code
 code cell-      $9712 end-code
 code 2/         $95b5 $95a7 end-code
 code 2*         $0faa $1fbb end-code
-code cells      $95b6 $95a7 end-code
+code cells      $0faa $1fbb end-code
 code chars      end-code
 code cell       $93ba $93aa $e0a2 $e0b0 end-code
 code /cell      $95b6 $95a7 end-code
@@ -115,3 +108,8 @@ code um/mod     $9129 $9139 $9109 $9119 $e140 $0f00 $1f11 $1f22
 : emit          begin UCSR0A c@ %00100000 and until UDR0 c! ;
 : key?          UCSR0A c@ %10000000 and ;
 : key           begin key? until UDR0 c@ ;
+
+: bis!          tuck c@ or swap c! ;
+: bic!          swap invert over c@ and swap c! ;
+: xor!          tuck c@ xor swap c! ;
+: bit@          c@ and 0<> ;

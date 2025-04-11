@@ -1,19 +1,31 @@
+variable latest
+variable dp
+
 : link>name     cell+ ;
 : link>flags    cell+ ;
 : hidden?       link>flags c@ %10000000 and ;
 : visible?      hidden? not ;
-: immediate?    link>flags c@ %01000000 and not ;
+: immediate?    link>flags c@ %01000000 and ;
 : link>         link>name dup c@ %00111111 and + 1+ aligned ;
 
-variable latest
+: here          dp @ ;
+: allot         here + dp ! ;
+: org           dp ! ;
+: ,             here ! cell allot ;
+: c,            here c! 1 allot ;
+: alloc         dp +! ;
+: pad           dp @ $10 + aligned ;
 
-: si=           ( c-addr1 c-addr2 -- f )
-                dup c@ 1+ begin >r 2dup ci@= r> tuck and while
-                  1- rot 1+ rot 1+ rot
-                repeat -rot 2drop 0= ;
+: len=          ( c-addr c-addr -- f ) c@ $3F and swap c@ $3F and = ;
+: dict-compare  ( c-addr1 c-addr2 -- f )
+                2dup len= 0= if 2drop 0 exit then
+                swap 1+ swap count begin ?dup while
+                  -rot 2dup ci@= 0= if 2drop drop 0 exit then
+                  1+ swap 1+ rot 1-
+                repeat 2drop -1 ;
 
 : find          >r latest begin
-                  @ dup if dup link>name r@ si= over visible? and
+                  @ dup if dup link>name r@ dict-compare over visible? and
                   else r@ swap true
                   then
                 until rdrop

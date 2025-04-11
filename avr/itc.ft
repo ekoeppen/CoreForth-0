@@ -38,7 +38,7 @@ variable 'start
 :noname     talign
             there tlast @ t, tlast !
             there >target pack$ c@ 1+ tallot talign ; is thead
-:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname     tlast @ tcell + dup tc@ %01000000 or swap tc! ; is timmediate
 :noname     tcell + dup tc@ + 1+ taligned ; is tlink>
 :noname     s" (does>)" tfind t, ; is t,dodoes
 :noname     there 2 + t, ; is t,docode
@@ -62,25 +62,30 @@ $910 torg
 there 'start !
 $0000 th,
 
-t: next         $01fc th, $15f9 th, $f018 th, $9165 th, $9175 th, $c002 th,
+t: next         $01fc th, $30f9 th, $f018 th, $9165 th, $9175 th, $c002 th,
                 $9161 th, $9171 th, $01cf th, $01fb th, $9105 th, $9115 th,
                 $01f8 th, $95f6 th, $95e7 th, $9409 th,
 t: docol        $939f th, $938f th, $01cb th, $9602 th,
                 $c000 t' next there - 2/ 1- $fff and or th,
-t: docon        $93ba th, $93aa th, $01fb th, $9632 th, $91a5 th, $91b5 th,
+t: docon        $93ba th, $93aa th, $01fb th, $9632 th, $30f9 th, $f018 th, $91a5 th, $91b5 th,
+                $c002 th, $91a1 th, $91b1 th,
+                $c000 t' next there - 2/ 1- $fff and or th,
+t: dovar        $93ba th, $93aa th, $01db th, $9612 th,
                 $c000 t' next there - 2/ 1- $fff and or th,
 t: reset        $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
                 $80 'start @ $0f and or tc, $e0 'start @ $f0 and 4 rshift or tc,
                 $90 'start @ 8 rshift $0f and or tc, $e0 'start @ $f0 and #12 rshift or tc,
                 $c000 t' next there - 2/ 1- $fff and or th,
 
-code branch     $01fc $9185 $9195 end-code
-code ?branch    $2bab $91a9 $91b9 $f421 $01fc $9185 $9195 $c001 $9602 end-code
+code branch     $01fc $30f9 $f018 $9185 $9195 $c002 $9181 $9191 end-code
+code ?branch    $2bab $91a9 $91b9 $f449 $01fc $30f9 $f018 $9185
+                $9195 $c004 $9181 $9191 $c001 $9602 end-code
 code exit       $918f $919f end-code
-code lit        $01fc $93ba $93aa $91a5 $91b5 $01cf end-code
+code lit        $01fc $93ba $93aa $30f9 $f018 $91a5 $91b5 $c002
+                $91a1 $91b1 $01cf end-code
 code nop        end-code
-code execute    $01fd $01bd $91a9 $91b9 $9105 $9115 $01f8 $95f6 $95e7
-                $9409 end-code \ :TODO: Handle code in RAM
+code execute    $01fd $01bd $91a9 $91b9 $30f9 $f018 $9105 $9115 $c002
+                $9101 $9111 $01f8 $95f6 $95e7 $9409 end-code
 
 \ -----------------------------------------------------------------------------
 \ -- Stack operations
@@ -91,7 +96,7 @@ code r@         $93ba $93aa $b7ed $b7fe $9631 $91a1 $91b1 end-code
 code rdrop      $910f $911f end-code
 
 code sp@        $93ba $93aa $01de end-code
-code rp@        $93ba $93aa $b7ad $b7be end-code
+code rp@        $93ba $93aa $b7ad $b7be $9611 end-code
 code sp!        $01ed end-code
 code rp!        $bfad $bfbe $91a9 $91b9 end-code
 
@@ -102,10 +107,10 @@ code (s")       $01fc $91a5 $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee
 \ -- Machine interface
 
 code bye       $9588 end-code
+code break     $9598 end-code
 
 $900 constant  init-latest
 $902 constant  init-dp
-$904 constant  init-vp
 
 $8ff constant  r0
 $8bf constant  s0
@@ -114,7 +119,6 @@ include atmega328p.ft
 include memory-mega.ft
 include core.ft
 include ../common/core.ft
-include ../common/dictionary.ft
 include ../common/output.ft
 include dictionary.ft
 include compiler.ft
@@ -123,6 +127,7 @@ include ../common/input.ft
 include ../common/exception.ft
 include ../common/control-flow.ft
 include ../common/interpret.ft
+include compiler-itc.ft
 
 : uart-init    #25 UBRR0L c! 0 UBRR0H c!
                %00011000 UCSR0B c!
@@ -135,7 +140,6 @@ include ../common/interpret.ft
 : setup-pointers
                init-latest @ latest !
                init-dp @ dp !
-               init-vp @ vp !
                ;
 
 : cold         hex uart-init
@@ -149,6 +153,7 @@ include ../common/interpret.ft
 $940c #target w! t' reset 2/ #target 2 + w!
 tlast @ $900 >target w!
 t' cold 'start @ >target w!
+tvp @ $902 >target w!
 
 variable hex-fd
 
