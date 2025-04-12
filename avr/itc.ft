@@ -98,7 +98,7 @@ code rdrop      $910f $911f end-code
 code sp@        $93ba $93aa $01de end-code
 code rp@        $93ba $93aa $b7ad $b7be $9611 end-code
 code sp!        $01ed end-code
-code rp!        $bfad $bfbe $91a9 $91b9 end-code
+code rp!        $9711 $bfad $bfbe $91a9 $91b9 end-code
 
 code (s")       $01fc $91a5 $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee
                 $01cf end-code
