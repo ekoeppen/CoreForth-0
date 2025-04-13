@@ -21,6 +21,7 @@
                 over + 1- over
                 begin key
                 dup $0A <> while
+                  dup $7F = if drop 8 then
                   source-id 0= if dup emit then
                   dup 8 = if  drop 1-  >r over r> umax
                           else  over c!  1+ over umin
