@@ -20,11 +20,6 @@
 
 cr
 
-variable 'reset
-variable 'next
-variable 'docol
-variable 'docon
-variable 'exit
 variable 'start
 
 :noname     t, ; is t,call
@@ -51,6 +46,16 @@ variable 'start
             $940c t, s" next" tfind 2/ t, ; is t,doirq
 :noname     s" reti" tfind t, ; is t,irqexit
 
+: irq-handler! ( num handler -- )
+               2/
+               swap 1- 4 * #target +
+               $940c over w!
+               2 + w! ;
+
+: write-hex    s" avr.hex" w/o create-file throw >r
+               trom #target there trom - r@ type-hex
+               r> close-file throw ;
+
 $00000000 to trom
 $00000200 to tram
         2 to tcell
@@ -67,8 +72,7 @@ $910 torg
 \ -----------------------------------------------------------------------------
 \ -- Compiler and control flow
 
-there 'start !
-$0000 th,
+t: start_       $0000 th,
 
 t: next         $01fc th, $30f9 th, $f018 th, $9165 th, $9175 th, $c002 th,
                 $9161 th, $9171 th, $01cf th, $01fb th, $9105 th, $9115 th,
@@ -80,9 +84,13 @@ t: docon        $93ba th, $93aa th, $01fb th, $9632 th, $30f9 th, $f018 th, $91a
                 $c000 t' next there - 2/ 1- $fff and or th,
 t: dovar        $93ba th, $93aa th, $01db th, $9612 th,
                 $c000 t' next there - 2/ 1- $fff and or th,
+
+0 constant start
+
 t: reset        $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
-                $80 'start @ $0f and or tc, $e0 'start @ 4 rshift $0f and or tc,
-                $90 'start @ 8 rshift $0f and or tc, $e0 'start @ #12 rshift $0f and or tc,
+                t' start tcell +
+                $80 over $0f and or tc, $e0 over 4 rshift $0f and or tc,
+                $90 over 8 rshift $0f and or tc, #12 rshift $0f and $e0 or tc,
                 $c000 t' next there - 2/ 1- $fff and or th,
 
 code reti       $be3f $91ff $91ef $91df $91cf $91bf $91af $919f
@@ -164,20 +172,10 @@ include compiler-itc.ft
 
 ::host::
 
-: irq-handler! ( num handler -- )
-               2/
-               swap 1- 4 * #target +
-               $940c over w!
-               2 + w! ;
-
  #1 t' reset      irq-handler!
 
-tlast @ $900 >target w!
-t' cold 'start @ >target w!
-tvp @ $902 >target w!
+    tlast @ $900 >target w!
+t' cold t' start tcell + >target w!
+      tvp @ $902 >target w!
 
-variable hex-fd
-
-s" avr.hex" w/o create-file throw hex-fd !
-trom #target there trom - hex-fd @ type-hex
-hex-fd @ close-file throw
+write-hex
