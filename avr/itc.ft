@@ -22,29 +22,29 @@ cr
 
 variable 'start
 
-:noname     t, ; is t,call
-:noname     s" docon" tfwdref ; is t,docon
-:noname     s" docol" tfwdref ; is t,enter
-:noname     s" exit" tfwdref ; is t,exit
-:noname     $940c t, s" next" tfind 2/ t, ; is t,next
-:noname     s" lit" tfwdref ; is t,lit
-:noname     s" branch" tfwdref ; is t,branch
-:noname     s" ?branch" tfwdref ; is t,?branch
-:noname     talign
-            there tlast @ t, tlast !
-            there >target pack$ c@ 1+ tallot talign ; is thead
-:noname     tlast @ tcell + dup tc@ %01000000 or swap tc! ; is timmediate
-:noname     tcell + dup tc@ + 1+ taligned ; is tlink>
-:noname     s" (does>)" tfwdref ; is t,dodoes
-:noname     there 2 + t, ; is t,docode
-:noname     $920f t, $921f t, $922f t, $923f t, $930f t, $931f t, $932f t, $933f t,
-            $934f t, $935f t, $936f t, $937f t, $938f t, $939f t, $93af t, $93bf t,
-            $93cf t, $93df t, $93ef t, $93ff t, $b63f t,
-            there 8 + >r
-            $80 r@ $0f and or tc, $e0 r@ 4 rshift $0f and or tc,
-            $90 r@ 8 rshift $0f and or tc, $e0 r> #12 rshift $0f and or tc,
-            $940c t, s" next" tfind 2/ t, ; is t,doirq
-:noname     s" reti" tfind t, ; is t,irqexit
+:noname        t, ; is t,call
+:noname        s" docon" tfwdref ; is t,docon
+:noname        s" docol" tfwdref ; is t,enter
+:noname        s" exit" tfwdref ; is t,exit
+:noname        $940c t, s" next" tfind 2/ t, ; is t,next
+:noname        s" lit" tfwdref ; is t,lit
+:noname        s" branch" tfwdref ; is t,branch
+:noname        s" ?branch" tfwdref ; is t,?branch
+:noname        talign
+               there tlast @ t, tlast !
+               there >target pack$ c@ 1+ tallot talign ; is thead
+:noname        tlast @ tcell + dup tc@ %01000000 or swap tc! ; is timmediate
+:noname        tcell + dup tc@ + 1+ taligned ; is tlink>
+:noname        s" (does>)" tfwdref ; is t,dodoes
+:noname        there 2 + t, ; is t,docode
+:noname        $920f t, $921f t, $922f t, $923f t, $930f t, $931f t, $932f t, $933f t,
+               $934f t, $935f t, $936f t, $937f t, $938f t, $939f t, $93af t, $93bf t,
+               $93cf t, $93df t, $93ef t, $93ff t, $b63f t,
+               there 8 + >r
+               $80 r@ $0f and or tc, $e0 r@ 4 rshift $0f and or tc,
+               $90 r@ 8 rshift $0f and or tc, $e0 r> #12 rshift $0f and or tc,
+               $940c t, s" next" tfind 2/ t, ; is t,doirq
+:noname        s" reti" tfind t, ; is t,irqexit
 
 : irq-handler! ( num handler -- )
                2/
@@ -72,56 +72,56 @@ $910 torg
 \ -----------------------------------------------------------------------------
 \ -- Compiler and control flow
 
-t: start_       $0000 th,
+t: start_      $0000 th,
 
-t: next         $01fc th, $30f9 th, $f018 th, $9165 th, $9175 th, $c002 th,
-                $9161 th, $9171 th, $01cf th, $01fb th, $9105 th, $9115 th,
-                $01f8 th, $95f6 th, $95e7 th, $9409 th,
-t: docol        $939f th, $938f th, $01cb th, $9602 th,
-                $c000 t' next there - 2/ 1- $fff and or th,
-t: docon        $93ba th, $93aa th, $01fb th, $9632 th, $30f9 th, $f018 th, $91a5 th, $91b5 th,
-                $c002 th, $91a1 th, $91b1 th,
-                $c000 t' next there - 2/ 1- $fff and or th,
-t: dovar        $93ba th, $93aa th, $01db th, $9612 th,
-                $c000 t' next there - 2/ 1- $fff and or th,
+t: next        $01fc th, $30f9 th, $f018 th, $9165 th, $9175 th, $c002 th,
+               $9161 th, $9171 th, $01cf th, $01fb th, $9105 th, $9115 th,
+               $01f8 th, $95f6 th, $95e7 th, $9409 th,
+t: docol       $939f th, $938f th, $01cb th, $9602 th,
+               $c000 t' next there - 2/ 1- $fff and or th,
+t: docon       $93ba th, $93aa th, $01fb th, $9632 th, $30f9 th, $f018 th, $91a5 th, $91b5 th,
+               $c002 th, $91a1 th, $91b1 th,
+               $c000 t' next there - 2/ 1- $fff and or th,
+t: dovar       $93ba th, $93aa th, $01db th, $9612 th,
+               $c000 t' next there - 2/ 1- $fff and or th,
 
-0 constant start
+0 constant     start
 
-t: reset        $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
-                t' start tcell +
-                $80 over $0f and or tc, $e0 over 4 rshift $0f and or tc,
-                $90 over 8 rshift $0f and or tc, #12 rshift $0f and $e0 or tc,
-                $c000 t' next there - 2/ 1- $fff and or th,
+t: reset       $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
+               t' start tcell +
+               $80 over $0f and or tc, $e0 over 4 rshift $0f and or tc,
+               $90 over 8 rshift $0f and or tc, #12 rshift $0f and $e0 or tc,
+               $c000 t' next there - 2/ 1- $fff and or th,
 
-code reti       $be3f $91ff $91ef $91df $91cf $91bf $91af $919f
-                $918f $917f $916f $915f $914f $913f $912f $911f
-                $910f $903f $902f $901f $900f $9518 end-code
+code reti      $be3f $91ff $91ef $91df $91cf $91bf $91af $919f
+               $918f $917f $916f $915f $914f $913f $912f $911f
+               $910f $903f $902f $901f $900f $9518 end-code
 
-code branch     $01fc $30f9 $f018 $9185 $9195 $c002 $9181 $9191 end-code
-code ?branch    $2bab $91a9 $91b9 $f449 $01fc $30f9 $f018 $9185
-                $9195 $c004 $9181 $9191 $c001 $9602 end-code
-code exit       $918f $919f end-code
-code lit        $01fc $93ba $93aa $30f9 $f018 $91a5 $91b5 $c002
-                $91a1 $91b1 $01cf end-code
-code nop        end-code
-code execute    $01fd $01bd $91a9 $91b9 $30f9 $f018 $9105 $9115 $c002
-                $9101 $9111 $01f8 $95f6 $95e7 $9409 end-code
+code branch    $01fc $30f9 $f018 $9185 $9195 $c002 $9181 $9191 end-code
+code ?branch   $2bab $91a9 $91b9 $f449 $01fc $30f9 $f018 $9185
+               $9195 $c004 $9181 $9191 $c001 $9602 end-code
+code exit      $918f $919f end-code
+code lit       $01fc $93ba $93aa $30f9 $f018 $91a5 $91b5 $c002
+               $91a1 $91b1 $01cf end-code
+code nop       end-code
+code execute   $01fd $01bd $91a9 $91b9 $30f9 $f018 $9105 $9115 $c002
+               $9101 $9111 $01f8 $95f6 $95e7 $9409 end-code
 
 \ -----------------------------------------------------------------------------
 \ -- Stack operations
 
-code >r         $93bf $93af $91a9 $91b9 end-code
-code r>         $93ba $93aa $91af $91bf end-code
-code r@         $93ba $93aa $b7ed $b7fe $9631 $91a1 $91b1 end-code
-code rdrop      $910f $911f end-code
+code >r        $93bf $93af $91a9 $91b9 end-code
+code r>        $93ba $93aa $91af $91bf end-code
+code r@        $93ba $93aa $b7ed $b7fe $9631 $91a1 $91b1 end-code
+code rdrop     $910f $911f end-code
 
-code sp@        $93ba $93aa $01de end-code
-code rp@        $93ba $93aa $b7ad $b7be $9611 end-code
-code sp!        $01ed end-code
-code rp!        $9711 $bfad $bfbe $91a9 $91b9 end-code
+code sp@       $93ba $93aa $01de end-code
+code rp@       $93ba $93aa $b7ad $b7be $9611 end-code
+code sp!       $01ed end-code
+code rp!       $9711 $bfad $bfbe $91a9 $91b9 end-code
 
-code (s")       $01fc $91a5 $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee
-                $01cf end-code
+code (s")      $01fc $91a5 $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee
+               $01cf end-code
 
 \ -----------------------------------------------------------------------------
 \ -- Machine interface
@@ -172,7 +172,7 @@ include compiler-itc.ft
 
 ::host::
 
- #1 t' reset      irq-handler!
+ #1 t' reset irq-handler!
 
     tlast @ $900 >target w!
 t' cold t' start tcell + >target w!
