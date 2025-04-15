@@ -73,8 +73,8 @@ t: docon        $93ba th, $93aa th, $01fb th, $9632 th, $30f9 th, $f018 th, $91a
 t: dovar        $93ba th, $93aa th, $01db th, $9612 th,
                 $c000 t' next there - 2/ 1- $fff and or th,
 t: reset        $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
-                $80 'start @ $0f and or tc, $e0 'start @ $f0 and 4 rshift or tc,
-                $90 'start @ 8 rshift $0f and or tc, $e0 'start @ $f0 and #12 rshift or tc,
+                $80 'start @ $0f and or tc, $e0 'start @ 4 rshift $0f and or tc,
+                $90 'start @ 8 rshift $0f and or tc, $e0 'start @ #12 rshift $0f and or tc,
                 $c000 t' next there - 2/ 1- $fff and or th,
 
 code branch     $01fc $30f9 $f018 $9185 $9195 $c002 $9181 $9191 end-code
