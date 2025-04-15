@@ -28,19 +28,19 @@ variable 'exit
 variable 'start
 
 :noname     t, ; is t,call
-:noname     s" docon" tfind t, ; is t,docon
-:noname     s" docol" tfind t, ; is t,enter
-:noname     s" exit" tfind t, ; is t,exit
+:noname     s" docon" tfwdref ; is t,docon
+:noname     s" docol" tfwdref ; is t,enter
+:noname     s" exit" tfwdref ; is t,exit
 :noname     $940c t, s" next" tfind 2/ t, ; is t,next
-:noname     s" lit" tfind t, ; is t,lit
-:noname     s" branch" tfind t, ; is t,branch
-:noname     s" ?branch" tfind t, ; is t,?branch
+:noname     s" lit" tfwdref ; is t,lit
+:noname     s" branch" tfwdref ; is t,branch
+:noname     s" ?branch" tfwdref ; is t,?branch
 :noname     talign
             there tlast @ t, tlast !
             there >target pack$ c@ 1+ tallot talign ; is thead
 :noname     tlast @ tcell + dup tc@ %01000000 or swap tc! ; is timmediate
 :noname     tcell + dup tc@ + 1+ taligned ; is tlink>
-:noname     s" (does>)" tfind t, ; is t,dodoes
+:noname     s" (does>)" tfwdref ; is t,dodoes
 :noname     there 2 + t, ; is t,docode
 
 $00000000 to trom
