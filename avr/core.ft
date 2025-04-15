@@ -57,8 +57,8 @@ code shr        $95b6 $95a7 end-code
 
 code 0=         $2bab $f019 $e0a0 $e0b0 $c001 $9711 end-code
 code 0<>        $2bab $f011 $efaf $efbf end-code
-code 0<         $e000 $17b0 $07a0 $e0a0 $e0b0 $f00c $c001 $9711 end-code
-code 0>         $e000 $17b0 $07a0 $efaf $efbf $f011 $f00c $c001 $9611 end-code
+code 0<         $e000 $17a0 $07b0 $e0a0 $e0b0 $f00c $c001 $9711 end-code
+code 0>         $e000 $17a0 $07b0 $efaf $efbf $f011 $f00c $c001 $9611 end-code
 code =          $9109 $9119 $1ba0 $0bb1 $f019 $e0a0 $e0b0 $c001 $9711 end-code
 code <          $9109 $9119 $1b0a $0b1b $e0a0 $e0b0 $f00a $c002 $efaf $efbf end-code
 code u<         $9109 $9119 $171b $070a $e0a0 $e0b0 $f008 $c001 $9711 end-code
