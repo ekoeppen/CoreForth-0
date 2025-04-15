@@ -1,0 +1,38 @@
+: .timer TCCR0A 8 dump ;
+: timer-init
+                cli
+                led-init
+                $ff OCR0A c!
+                %00000010 TCCR0A c!
+                %00000101 TCCR0B c!
+                %00000010 TIMSK0 c!
+                ;
+: timer-loop    sei
+                begin
+                  $30 emit
+                  begin TIFR0 c@ 1 and until
+                  led-toggle
+                  $31 emit
+                again
+                ;
+
+i: t0-handler  nop ;i
+
+
+
+latest @ .
+OCR1B .
+PINB .
+TCCR0A 8 dump
+%00000101 TCCR0B c!
+%00000001 TIMSK0 c!
+%10000000 $5f c!
+sei
+cli
+$5f c@ .
+TIMSK0 c@ .
+TIFR0 c@ .
+
+::: host :::
+
+#17 t' t0-handler irq-handler!

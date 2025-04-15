@@ -42,6 +42,14 @@ variable 'start
 :noname     tcell + dup tc@ + 1+ taligned ; is tlink>
 :noname     s" (does>)" tfwdref ; is t,dodoes
 :noname     there 2 + t, ; is t,docode
+:noname     $920f t, $921f t, $922f t, $923f t, $930f t, $931f t, $932f t, $933f t,
+            $934f t, $935f t, $936f t, $937f t, $938f t, $939f t, $93af t, $93bf t,
+            $93cf t, $93df t, $93ef t, $93ff t, $b63f t,
+            there 8 + >r
+            $80 r@ $0f and or tc, $e0 r@ 4 rshift $0f and or tc,
+            $90 r@ 8 rshift $0f and or tc, $e0 r> #12 rshift $0f and or tc,
+            $940c t, s" next" tfind 2/ t, ; is t,doirq
+:noname     s" reti" tfind t, ; is t,irqexit
 
 $00000000 to trom
 $00000200 to tram
@@ -77,6 +85,10 @@ t: reset        $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
                 $90 'start @ 8 rshift $0f and or tc, $e0 'start @ #12 rshift $0f and or tc,
                 $c000 t' next there - 2/ 1- $fff and or th,
 
+code reti       $be3f $91ff $91ef $91df $91cf $91bf $91af $919f
+                $918f $917f $916f $915f $914f $913f $912f $911f
+                $910f $903f $902f $901f $900f $9518 end-code
+
 code branch     $01fc $30f9 $f018 $9185 $9195 $c002 $9181 $9191 end-code
 code ?branch    $2bab $91a9 $91b9 $f449 $01fc $30f9 $f018 $9185
                 $9195 $c004 $9181 $9191 $c001 $9602 end-code
@@ -108,6 +120,8 @@ code (s")       $01fc $91a5 $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee
 
 code bye       $9588 end-code
 code break     $9598 end-code
+code sei       $9478 end-code
+code cli       $94f8 end-code
 
 $900 constant  init-latest
 $902 constant  init-dp
@@ -150,7 +164,14 @@ include compiler-itc.ft
 
 ::host::
 
-$940c #target w! t' reset 2/ #target 2 + w!
+: irq-handler! ( num handler -- )
+               2/
+               swap 1- 4 * #target +
+               $940c over w!
+               2 + w! ;
+
+ #1 t' reset      irq-handler!
+
 tlast @ $900 >target w!
 t' cold 'start @ >target w!
 tvp @ $902 >target w!
