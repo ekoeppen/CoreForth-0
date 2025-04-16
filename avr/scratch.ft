@@ -1,4 +1,4 @@
-: .timer TCCR0A 8 dump ;
+: .timer TCCR0A 5 dump ;
 : timer-init
                 cli
                 led-init
@@ -15,24 +15,60 @@
                   $31 emit
                 again
                 ;
+: timer-poll   begin
+                  $30 emit
+                  begin TIFR0 c@ 2 and until
+                  2 TIFR0 c!
+                  led-toggle
+                  $31 emit
+                again
+                ;
 
-i: t0-handler  nop ;i
+\ -- timer polling ---------------------
 
+: ti led-init %00000101 TCCR0B c! ;
+: .t tifr0 c@ h.2 ;
+: tc 7 tifr0 c! ;
+: t? tifr0 c@ 1 and ;
+: tp tc begin .t key? until ;
+: tp 0 7 tifr0 c! begin 1 + tifr0 c@ 2 and until . ;
 
+ti
+tc .t
+.t
+tp
+
+\ --------------------------------------
 
 latest @ .
-OCR1B .
-PINB .
 TCCR0A 8 dump
-%00000101 TCCR0B c!
-%00000001 TIMSK0 c!
-%10000000 $5f c!
-sei
-cli
-$5f c@ .
 TIMSK0 c@ .
-TIFR0 c@ .
+TCNT0 c@ h.2 cr
+TCNT0 .
+TIMSK0 .
+TIFR0 .
+tifr0 .
+
+words
+
+\- Interrupts
+
+::: target :::
+
+i: t0-handler  nop ;i
 
 ::: host :::
 
 #17 t' t0-handler irq-handler!
+
+\ -- Tests ------------------------------
+
+: ccr cr ;
+: cccr ccr ;
+
+' ccr 10 dumpw
+' cccr 10 dumpw
+' cr .
+' exit .
+
+cccr

@@ -72,11 +72,9 @@ $910 torg
 \ -----------------------------------------------------------------------------
 \ -- Compiler and control flow
 
-t: start_      $0000 th,
-
-t: next        $01fc th, $30f9 th, $f018 th, $9165 th, $9175 th, $c002 th,
-               $9161 th, $9171 th, $01cf th, $01fb th, $9105 th, $9115 th,
-               $01f8 th, $95f6 th, $95e7 th, $9409 th,
+t: next        $01fc th, $30f9 th, $f018 th, $9165 th, $9175 th, $c002 th, $9161 th, $9171 th,
+               $01cf th, $01fb th, $30f9 th, $f018 th, $9105 th, $9115 th, $c002 th, $9101 th,
+               $9111 th, $01f8 th, $95f6 th, $95e7 th, $9409 th,
 t: docol       $939f th, $938f th, $01cb th, $9602 th,
                $c000 t' next there - 2/ 1- $fff and or th,
 t: docon       $93ba th, $93aa th, $01fb th, $9632 th, $30f9 th, $f018 th, $91a5 th, $91b5 th,
