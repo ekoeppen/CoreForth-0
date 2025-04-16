@@ -20,8 +20,6 @@
 
 cr
 
-variable 'start
-
 :noname        t, ; is t,call
 :noname        s" docon" tfwdref ; is t,docon
 :noname        s" docol" tfwdref ; is t,enter
@@ -72,24 +70,24 @@ $910 torg
 \ -----------------------------------------------------------------------------
 \ -- Compiler and control flow
 
-t: next        $01fc th, $30f9 th, $f018 th, $9165 th, $9175 th, $c002 th, $9161 th, $9171 th,
-               $01cf th, $01fb th, $30f9 th, $f018 th, $9105 th, $9115 th, $c002 th, $9101 th,
-               $9111 th, $01f8 th, $95f6 th, $95e7 th, $9409 th,
-t: docol       $939f th, $938f th, $01cb th, $9602 th,
-               $c000 t' next there - 2/ 1- $fff and or th,
-t: docon       $93ba th, $93aa th, $01fb th, $9632 th, $30f9 th, $f018 th, $91a5 th, $91b5 th,
-               $c002 th, $91a1 th, $91b1 th,
-               $c000 t' next there - 2/ 1- $fff and or th,
-t: dovar       $93ba th, $93aa th, $01db th, $9612 th,
-               $c000 t' next there - 2/ 1- $fff and or th,
+t: next        $01fc t, $30f9 t, $f018 t, $9165 t, $9175 t, $c002 t, $9161 t, $9171 t,
+               $01cf t, $01fb t, $30f9 t, $f018 t, $9105 t, $9115 t, $c002 t, $9101 t,
+               $9111 t, $01f8 t, $95f6 t, $95e7 t, $9409 t,
+t: docol       $939f t, $938f t, $01cb t, $9602 t,
+               $c000 t' next there - 2/ 1- $fff and or t,
+t: docon       $93ba t, $93aa t, $01fb t, $9632 t, $30f9 t, $f018 t, $91a5 t, $91b5 t,
+               $c002 t, $91a1 t, $91b1 t,
+               $c000 t' next there - 2/ 1- $fff and or t,
+t: dovar       $93ba t, $93aa t, $01db t, $9612 t,
+               $c000 t' next there - 2/ 1- $fff and or t,
 
 0 constant     start
 
-t: reset       $e008 th, $bf0e th, $ef0f th, $bf0d th, $ebcf th, $e0d8 th,
+t: reset       $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e0d8 t,
                t' start tcell +
                $80 over $0f and or tc, $e0 over 4 rshift $0f and or tc,
                $90 over 8 rshift $0f and or tc, #12 rshift $0f and $e0 or tc,
-               $c000 t' next there - 2/ 1- $fff and or th,
+               $c000 t' next there - 2/ 1- $fff and or t,
 
 code reti      $be3f $91ff $91ef $91df $91cf $91bf $91af $919f
                $918f $917f $916f $915f $914f $913f $912f $911f
