@@ -20,6 +20,9 @@
 
 cr
 
+: tset-ip      $80 over $0f and or tc, $e0 over 4 rshift $0f and or tc,
+               $90 over 8 rshift $0f and or tc, #12 rshift $0f and $e0 or tc, ;
+
 :noname        t, ; is t,call
 :noname        s" docon" tfwdref ; is t,docon
 :noname        s" docol" tfwdref ; is t,enter
@@ -38,9 +41,7 @@ cr
 :noname        $920f t, $921f t, $922f t, $923f t, $930f t, $931f t, $932f t, $933f t,
                $934f t, $935f t, $936f t, $937f t, $938f t, $939f t, $93af t, $93bf t,
                $93cf t, $93df t, $93ef t, $93ff t, $b63f t,
-               there 8 + >r
-               $80 r@ $0f and or tc, $e0 r@ 4 rshift $0f and or tc,
-               $90 r@ 8 rshift $0f and or tc, $e0 r> #12 rshift $0f and or tc,
+               there 8 + tset-ip
                $940c t, s" next" tfind 2/ t, ; is t,doirq
 :noname        s" reti" tfind t, ; is t,irqexit
 
@@ -84,9 +85,7 @@ t: dovar       $93ba t, $93aa t, $01db t, $9612 t,
 0 constant     start
 
 t: reset       $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e0d8 t,
-               t' start tcell +
-               $80 over $0f and or tc, $e0 over 4 rshift $0f and or tc,
-               $90 over 8 rshift $0f and or tc, #12 rshift $0f and $e0 or tc,
+               t' start tcell + tset-ip
                $c000 t' next there - 2/ 1- $fff and or t,
 
 code reti      $be3f $91ff $91ef $91df $91cf $91bf $91af $919f
