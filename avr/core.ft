@@ -1,5 +1,4 @@
-\ -----------------------------------------------------------------------------
-\ -- Stack manipulation
+\ ## Stack manipulation
 
 code dup        $93ba $93aa end-code
 code 2dup       $01fe $9101 $9111 $93ba $93aa $931a $930a end-code
@@ -10,8 +9,7 @@ code rot        $9119 $9109 $91e9 $91f9 $930a $931a $93ba $93aa $01df end-code
 code ?dup       $018d $2b01 $f011 $93ba $93aa end-code
 code nip        $9622 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Logical operators
+\ ## Logical operators
 
 code and        $91e9 $91f9 $23ae $23bf end-code
 code or         $91e9 $91f9 $2bae $2bbf end-code
@@ -21,8 +19,7 @@ code xor        $91e9 $91f9 $27ae $27bf end-code
 code aligned    $9611 $7fae end-code
 code bswap      $2f0b $2fba $2fa0 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Arithmetic
+\ ## Arithmetic
 
 code +          $91e9 $91f9 $0fae $1fbf end-code
 code -          $91e9 $91f9 $1bea $0bfb $01df end-code

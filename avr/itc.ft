@@ -1,5 +1,3 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab
-
 \ ## Indirect Threaded Forth
 \
 \ ### Register usage
@@ -11,10 +9,11 @@
 \ TOS: X  r27:r26
 \ 
 \ ### DOCOL / Enter
+\ 
 \ IP points to next word in the caller
 \ W points to CFA
 
-\ -- Host ---------------------------------------------------------------------
+\ ## Host
 
 ::host::
 
@@ -64,12 +63,11 @@ tram tvp !
 
 $910 torg
 
-\ -- Target -------------------------------------------------------------------
+\ ## Target
 
 ::target::
 
-\ -----------------------------------------------------------------------------
-\ -- Compiler and control flow
+\ ### Compiler and control flow
 
 t: next        $01fc t, $30f9 t, $f018 t, $9165 t, $9175 t, $c002 t, $9161 t, $9171 t,
                $01cf t, $01fb t, $30f9 t, $f018 t, $9105 t, $9115 t, $c002 t, $9101 t,
@@ -102,8 +100,7 @@ code nop       end-code
 code execute   $01fd $01bd $91a9 $91b9 $30f9 $f018 $9105 $9115 $c002
                $9101 $9111 $01f8 $95f6 $95e7 $9409 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Stack operations
+\ ### Stack operations
 
 code >r        $93bf $93af $91a9 $91b9 end-code
 code r>        $93ba $93aa $91af $91bf end-code
@@ -118,8 +115,7 @@ code rp!       $9711 $bfad $bfbe $91a9 $91b9 end-code
 code (s")      $01fc $91a5 $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee
                $01cf end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Machine interface
+\ ### Machine interface
 
 code bye       $9588 end-code
 code break     $9598 end-code
@@ -164,6 +160,8 @@ include compiler-itc.ft
                0 (source-id) !
                quit
                bye ;
+
+\ ## Finalize
 
 ::host::
 

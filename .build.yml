@@ -7,5 +7,14 @@ environment:
   REPO: CoreForth-0
 sources:
   - https://git.sr.ht/~ekoeppen/build-scripts
+artifacts:
+  - docs.tar.gz
 tasks:
   - mirror-to-github: ./build-scripts/github-mirror $REPO
+  - docs: |
+      cd $REPO
+      find * -type d | xargs -I % mkdir -p docs/%
+      find * -name '*.f[ts]' | \
+        xargs -I % sh -c "sed 's/^\([^\]\)/    \1/;s/\\\ //;s/\\\//;s/    include \(.*\)/[\1](\1.md)\\n/' % >docs/%.md"
+      cd ..
+      tar cfz docs.tar.gz CoreForth-0/docs

@@ -1,5 +1,3 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab
-
 \ ## Subroutine Threaded Forth
 \
 \ ### Register usage
@@ -9,7 +7,7 @@
 \ PSP: Y (r28, r29)
 \ RSP: SP
 
-\ -- Host ---------------------------------------------------------------------
+\ ## Host 
 
 ::host::
 
@@ -44,12 +42,11 @@ tram tvp !
 $910 torg
 
 
-\ -- Target -------------------------------------------------------------------
+\ ## Target 
 
 ::target::
 
-\ -----------------------------------------------------------------------------
-\ -- Compiler and control flow
+\ ## Compiler and control flow
 
 code branch     $91ff $91ef $0fee $1fff $9105 $9115 $9516 $9507
                 $930f $931f end-code
@@ -62,8 +59,7 @@ code docon      $93ba $93aa $91ff $91ef $0fee $1fff $91a5 $91b5 end-code
 code nop        end-code
 code execute    $01fd $91a9 $91b9 $95f6 $95e7 $9509 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Stack operations
+\ ## Stack operations
 
 code >r         $91ef $91ff $93af $93bf $91a9 $91b9 $93ff $93ef end-code
 code r>         $91ef $91ff $93ba $93aa $91bf $91af $93ff $93ef end-code
@@ -79,8 +75,7 @@ code (s")       $91ff $91ef $0fee $1fff $01df $91a5 $e0b0 $93fa
                 $93ea $0fea $1ffb $95f6 $95e7 $9631 $7fee $93ef
                 $93ff end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Machine interface
+\ ## Machine interface
 
 code bye       $9588 end-code
 

@@ -1,3 +1,5 @@
+\ ## Scratch / REPL
+
 : .timer TCCR0A 5 dump ;
 : timer-init
                 cli
@@ -24,7 +26,7 @@
                 again
                 ;
 
-\ -- timer polling ---------------------
+\ ## timer polling
 
 : ti led-init %00000101 TCCR0B c! ;
 : .t tifr0 c@ h.2 ;
@@ -38,7 +40,7 @@ tc .t
 .t
 tp
 
-\ --------------------------------------
+\ ## Tests
 
 latest @ .
 TCCR0A 8 dump
@@ -51,7 +53,7 @@ tifr0 .
 
 words
 
-\- Interrupts
+\ ## Interrupts
 
 ::: target :::
 
@@ -61,7 +63,7 @@ i: t0-handler  nop ;i
 
 #17 t' t0-handler irq-handler!
 
-\ -- Tests ------------------------------
+\ ## Tests
 
 : ccr cr ;
 : cccr ccr ;
