@@ -82,7 +82,8 @@ t: dovar       $93ba t, $93aa t, $01db t, $9612 t,
 
 0 constant     start
 
-t: reset       $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e0d8 t,
+t: reset-handler
+               $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e0d8 t,
                t' start tcell + tset-ip
                $c000 t' next there - 2/ 1- $fff and or t,
 
@@ -115,13 +116,6 @@ code rp!       $9711 $bfad $bfbe $91a9 $91b9 end-code
 code (s")      $01fc $91a5 $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee
                $01cf end-code
 
-\ ### Machine interface
-
-code bye       $9588 end-code
-code break     $9598 end-code
-code sei       $9478 end-code
-code cli       $94f8 end-code
-
 $900 constant  init-latest
 $902 constant  init-dp
 
@@ -150,6 +144,14 @@ include compiler-itc.ft
 : led-toggle   %00100000 >PINB ;
 : led-clear    %00000000 >PORTB ;
 
+: timer-init    cli
+                led-init
+                %00000000 TCCR0A c!
+                %00000101 TCCR0B c!
+                %00000001 TIMSK0 c!
+                ;
+i: t0-handler  led-toggle ;i
+
 : setup-pointers
                init-latest @ latest !
                init-dp @ dp !
@@ -165,7 +167,8 @@ include compiler-itc.ft
 
 ::host::
 
- #1 t' reset irq-handler!
+ #1 t' reset-handler irq-handler!
+#17 t' t0-handler irq-handler!
 
     tlast @ $900 >target w!
 t' cold t' start tcell + >target w!

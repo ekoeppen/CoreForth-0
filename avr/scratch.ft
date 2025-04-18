@@ -65,12 +65,3 @@ i: t0-handler  nop ;i
 
 \ ## Tests
 
-: ccr cr ;
-: cccr ccr ;
-
-' ccr 10 dumpw
-' cccr 10 dumpw
-' cr .
-' exit .
-
-cccr
