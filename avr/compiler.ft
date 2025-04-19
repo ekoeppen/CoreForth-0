@@ -8,4 +8,4 @@ variable state
 : compiling?    state @ ;
 : interpreting? state @ 0= ;
 
-: s"            postpone (s")
+: s"            postpone (s") ;
