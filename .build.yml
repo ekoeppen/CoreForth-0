@@ -1,20 +1,23 @@
 image: alpine/edge
+oauth: pages.sr.ht/PAGES:RW
 packages:
   - build-base
+  - hugo
+  - hut
 secrets:
   - ca99d209-296a-41b7-9eda-454250e4b901
 environment:
   REPO: CoreForth-0
+  SITE: ekoeppen.srht.site
 sources:
   - https://git.sr.ht/~ekoeppen/build-scripts
 artifacts:
   - docs.tar.gz
 tasks:
-  - mirror-to-github: ./build-scripts/github-mirror $REPO
   - docs: |
-      cd $REPO
-      find * -type d | xargs -I % mkdir -p docs/%
-      find * -name '*.f[ts]' | \
-        xargs -I % sh -c "sed 's/^\([^\]\)/    \1/;s/\\\ //;s/\\\//;s/    include \(.*\)/[\1](\1.md)\\n/' % >docs/%.md"
-      cd ..
-      tar cfz docs.tar.gz CoreForth-0/docs
+      cd $REPO/docs
+      ./mkmd.sh
+      hugo build
+      tar -cz -f $HOME/docs.tar.gz -C public .
+      hut pages publish -d $SITE -s coreforth-0 $HOME/docs.tar.gz 
+  - mirror-to-github: ./build-scripts/github-mirror $REPO

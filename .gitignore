@@ -3,3 +3,6 @@
 *.bin
 .helix
 .gdbinit
+docs/public
+docs/content
+.hugo_build.lock
