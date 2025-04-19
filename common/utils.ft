@@ -1,5 +1,3 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
-
 : dump          >r dup cr hex. space begin
                 r@ while
                   dup c@ h.2 space 1+

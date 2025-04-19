@@ -1,5 +1,3 @@
-\ vim:ft=forth:ts=2:sw=2:expandtab
-
 variable base
 
 : -rot          rot rot ;

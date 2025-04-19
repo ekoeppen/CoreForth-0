@@ -1,3 +1,13 @@
+\ ## Parsing Code Words
+\
+\ These words are used to parse code words in Janus when compiling the
+\ target code. The process is the same as when processing regular words,
+\ with the difference being that any numbers in the input stream are
+\ compiled into the target word. Only half-words are suppored.
+\
+\ First, the inner loop which parses the input stream and adds numbers to
+\ the target word:
+
 : parse-code    begin  bl word  dup c@ while
                   find ?dup if
                     1+ if execute else , then
@@ -8,12 +18,22 @@
                   then
                 repeat drop ;
 
+\ Immediate words are executed, non-numbers will cause a warning and will
+\ be ignored.
+
+\ The outer loop runs until the state is switched back to interpretation mode:
+
 : read-code     ] begin
                   parse-code
                   state @ 0= if exit then
                   refill
                 0= until ;
 
+\ The `code` definition word creates a target dictionary entry and proceeds
+\ to parse the subsequent numer stream.
+
 : code <builds  read-code ; immediate
+
+\ Finalize a code word by turning off the compiler.
 
 : end-code      [ ; immediate
