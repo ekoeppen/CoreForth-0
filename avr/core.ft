@@ -1,11 +1,13 @@
 \ ### Machine interface
 
-code bye       $9588 end-code
-code sleep     $9588 end-code
-code break     $9598 end-code
-code sei       $9478 end-code
-code cli       $94f8 end-code
-code reset     $940c $0000 end-code
+code bye        $9588 end-code
+code sleep      $9588 end-code
+code break      $9598 end-code
+code sei        $9478 end-code
+code cli        $94f8 end-code
+code reset      $940c $0000 end-code
+code wdt!       $95a8 $9100 $0060 $6108 $9300 $0060 $93a0 $0060
+                $91a9 $91b9 end-code
 
 \ ## Stack manipulation
 

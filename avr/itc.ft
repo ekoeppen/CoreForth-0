@@ -178,6 +178,7 @@ include compiler-itc.ft
                 %00000101 TCCR0B c!
                 %00000001 TIMSK0 c!
                 ;
+
 i: t0-handler  led-toggle ;i
 
 \ System start
@@ -199,6 +200,7 @@ i: t0-handler  led-toggle ;i
 ::host::
 
  #1 t' reset-handler irq-handler!
+ #7 t' t0-handler irq-handler!
 #17 t' t0-handler irq-handler!
 
     tlast @ $900 >target w!
