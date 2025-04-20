@@ -19,8 +19,6 @@
 
 ::host::
 
-cr
-
 \ Set the instruction pointer (IP) to the value on top of the stack by
 \ loading R24:R25 with the immediate value:
 
@@ -63,20 +61,14 @@ cr
 
 \ Save the target image as a hex file:
 
-: write-hex    s" avr.hex" w/o create-file throw >r
+: write-hex    ( c-addr n -- )
+               w/o create-file throw >r
                trom #target there trom - r@ type-hex
                r> close-file throw ;
 
-\ Initialize the target memory map and cell size:
+\ Initialize the target cell size:
 
-$00000000 to trom
-$00000200 to tram
         2 to tcell
-
-trom tdp !
-tram tvp !
-
-$910 torg
 
 \ ### Target
 
@@ -138,73 +130,3 @@ code rp!       $9711 $bfad $bfbe $91a9 $91b9 end-code
 code (s")      $01fc $91a5 $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee
                $01cf end-code
 
-\ Systtem variables
-
-$900 constant  init-latest
-$902 constant  init-dp
-
-$8ff constant  r0
-$8bf constant  s0
-
-\ Include the rest of the system:
-
-include atmega328p.ft
-include memory-mega.ft
-include core.ft
-include ../common/core.ft
-include ../common/output.ft
-include dictionary.ft
-include compiler.ft
-include utils.ft
-include ../common/input.ft
-include ../common/exception.ft
-include ../common/control-flow.ft
-include ../common/interpret.ft
-include compiler-itc.ft
-
-\ Hardware initialization
-
-: uart-init    #25 UBRR0L c! 0 UBRR0H c!
-               %00011000 UCSR0B c!
-               %00000110 UCSR0C c! ;
-: led-init     %00100000 >DDRB ;
-: led-set      %00100000 >PORTB ;
-: led-toggle   %00100000 >PINB ;
-: led-clear    %00000000 >PORTB ;
-
-: timer-init    cli
-                led-init
-                %00000000 TCCR0A c!
-                %00000101 TCCR0B c!
-                %00000001 TIMSK0 c!
-                ;
-
-i: t0-handler  led-toggle ;i
-
-\ System start
-
-: setup-pointers
-               init-latest @ latest !
-               init-dp @ dp !
-               ;
-
-: cold         hex uart-init
-               setup-pointers
-               0 (source-id) !
-               s" CoreForth-0 AVR ITC ready" type cr
-               quit
-               bye ;
-
-\ ## Finalize the compilation back in host mode:
-
-::host::
-
- #1 t' reset-handler irq-handler!
- #7 t' t0-handler irq-handler!
-#17 t' t0-handler irq-handler!
-
-    tlast @ $900 >target w!
-t' cold t' start tcell + >target w!
-      tvp @ $902 >target w!
-
-write-hex

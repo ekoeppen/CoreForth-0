@@ -1,0 +1,110 @@
+\ ## Arduino CoreForth
+\
+\ CoreForth-0 for Arduino Uno boards, with simple UART and LED functionality.
+\ Currently, only ITC threading is supported.
+
+::host::
+
+cr
+
+\ ROM starts at 0x0000 and RAM at 0x0200:
+
+$00000000 to trom
+$00000200 to tram
+
+trom tdp !
+tram tvp !
+
+\ The actual code starts at 0x0910, where the space from 0x0900 to 0x0910 is
+\ reserved for variables passed from the compilation phase to the system
+\ runtime. Using 0x0900 as the start allows distinguishing addresses between
+\ RAM and flash (all values below 0x0900 are RAM), at the expense of losing
+\ about 2k of flash.
+
+$910 torg
+
+::itc:: include ../itc.ft
+
+::target::
+
+\ System variables
+
+$900 constant  init-latest
+$902 constant  init-dp
+
+$8ff constant  r0
+$8bf constant  s0
+
+\ Include the rest of the system:
+
+include ../atmega328p.ft
+include ../memory-mega.ft
+include ../core.ft
+include ../../common/core.ft
+include ../../common/output.ft
+include ../dictionary.ft
+include ../compiler.ft
+include ../utils.ft
+include ../../common/input.ft
+include ../../common/exception.ft
+include ../../common/control-flow.ft
+include ../../common/interpret.ft
+include ../compiler-itc.ft
+
+\ Hardware initialization
+
+: uart-init    #25 UBRR0L c! 0 UBRR0H c!
+               %00011000 UCSR0B c!
+               %00000110 UCSR0C c! ;
+: led-init     %00100000 >DDRB ;
+: led-set      %00100000 >PORTB ;
+: led-toggle   %00100000 >PINB ;
+: led-clear    %00000000 >PORTB ;
+
+: timer-init    cli
+                led-init
+                %00000000 TCCR0A c!
+                %00000101 TCCR0B c!
+                %00000001 TIMSK0 c!
+                ;
+
+\ A simple IRQ handler which toggles the LED:
+
+i: t0-handler  led-toggle ;i
+
+\ System start: Initialize the dictionary pointers (here and latest).
+
+: setup-pointers
+               init-latest @ latest !
+               init-dp @ dp !
+               ;
+
+\ Cold start of the system:
+
+: cold         hex uart-init led-init
+               setup-pointers
+               0 (source-id) !
+               s" CoreForth-0 AVR ITC ready" type cr
+               quit
+               bye ;
+
+\ ## Finalize the compilation back in host mode:
+
+::host::
+
+\ Set the IRQ handlers for reset, the watchdog and timer 0:
+
+ #1 t' reset-handler irq-handler!
+ #7 t' t0-handler irq-handler!
+#17 t' t0-handler irq-handler!
+
+\ Store the values for latest and here (using the latest allocated address
+\ in RAM), and let execution start with `cold`:
+
+    tlast @ $900 >target w!
+      tvp @ $902 >target w!
+t' cold t' start tcell + >target w!
+
+\ Finally, write out the Intel HEX file with the compiled program:
+
+::itc:: s" arduino-itc.hex" write-hex
