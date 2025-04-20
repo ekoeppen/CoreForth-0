@@ -190,6 +190,7 @@ i: t0-handler  led-toggle ;i
 : cold         hex uart-init
                setup-pointers
                0 (source-id) !
+               s" CoreForth-0 AVR ITC ready" type cr
                quit
                bye ;
 
