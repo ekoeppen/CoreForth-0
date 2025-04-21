@@ -2,6 +2,7 @@
 
 code bye        $9588 end-code
 code sleep      $9588 end-code
+code standby    $9588 end-code
 code break      $9598 end-code
 code sei        $9478 end-code
 code cli        $94f8 end-code

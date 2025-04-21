@@ -50,6 +50,8 @@ include ../../common/exception.ft
 include ../../common/control-flow.ft
 include ../../common/interpret.ft
 include ../compiler-itc.ft
+include ../../common/timeout.ft
+include ../wdt-mega.ft
 
 \ Hardware initialization
 
@@ -57,9 +59,9 @@ include ../compiler-itc.ft
                %00011000 UCSR0B c!
                %00000110 UCSR0C c! ;
 : led-init     %00100000 >DDRB ;
-: led-set      %00100000 >PORTB ;
-: led-toggle   %00100000 >PINB ;
-: led-clear    %00000000 >PORTB ;
+: +led         %00100000 >PORTB ;
+: ~led         %00100000 >PINB ;
+: -led         %00000000 >PORTB ;
 
 : timer-init    cli
                 led-init
@@ -70,7 +72,12 @@ include ../compiler-itc.ft
 
 \ A simple IRQ handler which toggles the LED:
 
-i: t0-handler  led-toggle ;i
+i: t0-handler  ~led ;i
+
+\ Simple handler which increments the `tick` variable:
+ 
+i: tick-handler
+               1 tick +! ;i
 
 \ System start: Initialize the dictionary pointers (here and latest).
 
@@ -95,7 +102,7 @@ i: t0-handler  led-toggle ;i
 \ Set the IRQ handlers for reset, the watchdog and timer 0:
 
  #1 t' reset-handler irq-handler!
- #7 t' t0-handler irq-handler!
+ #7 t' tick-handler irq-handler!
 #17 t' t0-handler irq-handler!
 
 \ Store the values for latest and here (using the latest allocated address
