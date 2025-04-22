@@ -54,21 +54,23 @@ include ../../common/timeout.ft
 include ../wdt-mega.ft
 
 \ Hardware initialization
+\
+\ Set the UART to 38400bps at 16MHz
 
 : uart-init    #25 UBRR0L c! 0 UBRR0H c!
                %00011000 UCSR0B c!
                %00000110 UCSR0C c! ;
+
+\ LED at PB5 (D13)
+
 : led-init     %00100000 >DDRB ;
 : +led         %00100000 >PORTB ;
 : ~led         %00100000 >PINB ;
 : -led         %00000000 >PORTB ;
 
-: timer-init    cli
-                led-init
-                %00000000 TCCR0A c!
-                %00000101 TCCR0B c!
-                %00000001 TIMSK0 c!
-                ;
+\ Initialize the UART and LED, and enable sleep mode
+ 
+: hw-init      uart-init led-init %00000001 >smcr ;
 
 \ A simple IRQ handler which toggles the LED:
 
@@ -88,12 +90,13 @@ i: tick-handler
 
 \ Cold start of the system:
 
-: cold         hex uart-init led-init
+: cold         hw-init
                setup-pointers
                0 (source-id) !
                s" CoreForth-0 AVR ITC ready" type cr
+               hex
                quit
-               bye ;
+               reset ;
 
 \ ## Finalize the compilation back in host mode:
 
