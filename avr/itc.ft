@@ -31,6 +31,7 @@
 :noname        t, ; is t,call
 :noname        s" docon" tfwdref ; is t,docon
 :noname        s" docol" tfwdref ; is t,enter
+:noname        s" dovar" tfwdref ; is t,dovar
 :noname        s" exit" tfwdref ; is t,exit
 :noname        $940c t, s" next" tfind 2/ t, ; is t,next
 :noname        s" lit" tfwdref ; is t,lit
