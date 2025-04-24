@@ -2,51 +2,53 @@
 \
 \ ### Register usage
 \
+\ ```
 \ temp: r16, r17
 \ TOS: X (r26, r27)
 \ PSP: Y (r28, r29)
 \ RSP: SP
+\ ```
 
 \ ## Host 
 
 ::host::
 
-cr
+\ Jump to the value of the constant in the TOS by
+\ loading R30:R31 with the value and jumping to it:
 
-:noname     dup there - 2/ 1- dup abs $800 < if $fff and $d000 or th, drop else drop $940e th, 2/ th,  then ; is t,call
-:noname     s" docon" tfwdref ; is t,docon
-:noname     ; is t,enter
-:noname     ; is t,doirq
-:noname     $9508 th, ; is t,next
-:noname     $9508 th, ; is t,exit
-:noname     $9518 th, ; is t,irqexit
-:noname     s" (does>)" tfwdref ; is t,dodoes
-:noname     ; is t,docode
-:noname     s" lit" tfwdref ; is t,lit
-:noname     s" branch" tfwdref ; is t,branch
-:noname     s" ?branch" tfwdref ; is t,?branch
-:noname     talign
-            there tlast @ t, tlast !
-            there >target pack$ c@ 1+ tallot talign ; is thead
-:noname     tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
-:noname     tcell + dup tc@ + 1+ taligned ; is tlink>
+: tset-ip      2 + $e0 over $0f and or tc, $e0 over 4 rshift $0f and or tc,
+               $f0 over 8 rshift $0f and or tc, #12 rshift $0f and $e0 or tc,
+               $91a5 t, $91b5 t, $01fd t, $95f6 t, $95e7 t, $9409 t, ;
 
+:noname        dup there - 2/ 1- dup abs $800 < if $fff and $d000 or th, drop else drop $940e th, 2/ th,  then ; is t,call
+:noname        s" docon" tfwdref ; is t,docon
+:noname        ; is t,enter
+:noname        $920f t, $921f t, $922f t, $923f t, $930f t, $931f t, $932f t, $933f t,
+               $934f t, $935f t, $936f t, $937f t, $938f t, $939f t, $93af t, $93bf t,
+               $93cf t, $93df t, $93ef t, $93ff t, $b63f t, ; is t,doirq
+:noname        $9508 t, ; is t,next
+:noname        $9508 t, ; is t,exit
+:noname        $be3f t, $91ff t, $91ef t, $91df t, $91cf t, $91bf t, $91af t, $919f t,
+               $918f t, $917f t, $916f t, $915f t, $914f t, $913f t, $912f t, $911f t,
+               $910f t, $903f t, $902f t, $901f t, $900f t, $9518 t, ; is t,irqexit
+:noname        s" (does>)" tfwdref ; is t,dodoes
+:noname        ; is t,docode
+:noname        s" lit" tfwdref ; is t,lit
+:noname        s" branch" tfwdref ; is t,branch
+:noname        s" ?branch" tfwdref ; is t,?branch
+:noname        talign
+               there tlast @ t, tlast !
+               there >target pack$ c@ 1+ tallot talign ; is thead
+:noname        tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
+:noname        tcell + dup tc@ + 1+ taligned ; is tlink>
 
-$00000000 to trom
-$00000200 to tram
-        2 to tcell
-
-trom tdp !
-tram tvp !
-
-$910 torg
-
+include common.ft
 
 \ ## Target 
 
 ::target::
 
-\ ## Compiler and control flow
+\ Compiler and control flow
 
 code branch     $91ff $91ef $0fee $1fff $9105 $9115 $9516 $9507
                 $930f $931f end-code
@@ -59,7 +61,17 @@ code docon      $93ba $93aa $91ff $91ef $0fee $1fff $91a5 $91b5 end-code
 code nop        end-code
 code execute    $01fd $91a9 $91b9 $95f6 $95e7 $9509 end-code
 
-\ ## Stack operations
+\ Start vector:
+
+0 constant     start
+
+\ AVR reset handler
+
+t: reset-handler
+               $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e0d8 t,
+               t' start tset-ip
+
+\ Stack operations
 
 code >r         $91ef $91ff $93af $93bf $91a9 $91b9 $93ff $93ef end-code
 code r>         $91ef $91ff $93ba $93aa $91bf $91af $93ff $93ef end-code
@@ -75,60 +87,3 @@ code (s")       $91ff $91ef $0fee $1fff $01df $91a5 $e0b0 $93fa
                 $93ea $0fea $1ffb $95f6 $95e7 $9631 $7fee $93ef
                 $93ff end-code
 
-\ ## Machine interface
-
-code bye       $9588 end-code
-
-$900 constant init-latest
-$902 constant init-dp
-$904 constant init-vp
-
-$8ff constant  r0
-$8bf constant  s0
-
-include atmega328p.ft
-include memory-mega.ft
-include core.ft
-include ../common/core.ft
-include ../common/dictionary.ft
-include ../common/output.ft
-include dictionary.ft
-include compiler.ft
-include utils.ft
-include ../common/input.ft
-include ../common/exception.ft
-include ../common/control-flow.ft
-include ../common/interpret.ft
-
-: uart-init    #25 UBRR0L c! 0 UBRR0H c!
-               %00011000 UCSR0B c!
-               %00000110 UCSR0C c! ;
-: led-init     %00100000 >DDRB ;
-: led-set      %00100000 >PORTB ;
-: led-toggle   %00100000 >PINB ;
-: led-clear    %00000000 >PORTB ;
-
-: setup-pointers
-               init-latest @ latest !
-               init-dp @ dp !
-               init-vp @ vp !
-               ;
-
-: cold         t[ $e008 , $bf0e , $ef0f , $bf0d , $ebcf , $e0d8 , ]t
-               uart-init hex
-               setup-pointers
-               0 (source-id) !
-               quit
-               bye ;
-
-
-::host::
-
-$940c #target w! t' cold 2/ #target 2 + w!
-tlast @ $900 >target w!
-
-variable hex-fd
-
-s" avr.hex" w/o create-file throw hex-fd !
-trom #target there trom - hex-fd @ type-hex
-hex-fd @ close-file throw

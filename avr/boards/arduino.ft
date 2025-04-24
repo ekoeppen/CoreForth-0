@@ -1,7 +1,6 @@
 \ ## Arduino CoreForth
 \
 \ CoreForth-0 for Arduino Uno boards, with simple UART and LED functionality.
-\ Currently, only ITC threading is supported.
 
 ::host::
 
@@ -24,6 +23,7 @@ tram tvp !
 $910 torg
 
 ::itc:: include ../itc.ft
+::stc:: include ../stc.ft
 
 ::target::
 
@@ -49,7 +49,7 @@ include ../../common/input.ft
 include ../../common/exception.ft
 include ../../common/control-flow.ft
 include ../../common/interpret.ft
-include ../compiler-itc.ft
+::itc:: include ../compiler-itc.ft
 include ../../common/timeout.ft
 include ../wdt-mega.ft
 
@@ -93,7 +93,8 @@ i: tick-handler
 : cold         hw-init
                setup-pointers
                0 (source-id) !
-               s" CoreForth-0 AVR ITC ready" type cr
+::itc::        s" CoreForth-0 AVR ITC ready" type cr
+::stc::        s" CoreForth-0 AVR STC ready" type cr
                hex
                quit
                reset ;
@@ -118,3 +119,4 @@ t' cold t' start tcell + >target w!
 \ Finally, write out the Intel HEX file with the compiled program:
 
 ::itc:: s" arduino-itc.hex" write-hex
+::stc:: s" arduino-stc.hex" write-hex
