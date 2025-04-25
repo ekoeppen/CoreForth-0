@@ -4,6 +4,18 @@
 
 ::host::
 
+\ Load extra files passed on the command line when compiling,
+\ using the `-s` flag followed by the file name. The location for
+\ each file is resolved based on the location of this file.
+
+: include-extras
+               0 begin dup argc @ < while
+                  dup arg s" -s" str= if
+                     1+ dup arg included
+                  then
+                  1+
+                repeat drop ;
+
 cr
 
 \ ROM starts at 0x0000 and RAM at 0x0200:
@@ -88,6 +100,15 @@ i: tick-handler
                init-dp @ dp !
                ;
 
+\ Declare a default application word which does nothing. This can be overridden
+\ in files loaded as extras:
+
+: turnkey ;
+
+\ Include any extra files:
+
+include-extras
+
 \ Cold start of the system:
 
 : cold         hw-init
@@ -96,6 +117,7 @@ i: tick-handler
 ::itc::        s" CoreForth-0 AVR ITC ready" type cr
 ::stc::        s" CoreForth-0 AVR STC ready" type cr
                hex
+               turnkey
                quit
                reset ;
 
