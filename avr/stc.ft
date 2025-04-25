@@ -84,6 +84,6 @@ code sp!        $01ed end-code
 code rp!        $91ff $91ef $bfad $bfbe $91a9 $91b9 $9409 end-code
 
 code (s")       $91ff $91ef $0fee $1fff $01df $91a5 $e0b0 $93fa
-                $93ea $0fea $1ffb $95f6 $95e7 $9631 $7fee $93ef
+                $93ea $0fea $1ffb $9631 $7fee $95f6 $95e7 $93ef
                 $93ff end-code
 
