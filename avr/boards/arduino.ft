@@ -80,6 +80,23 @@ include ../wdt-mega.ft
 : ~led         %00100000 >PINB ;
 : -led         %00000000 >PORTB ;
 
+\ SPI
+
+: +spi         PORTB> %11111011 and >PORTB ;
+: -spi         PORTB> %00000100 or >PORTB ;
+: spi-init     DDRB>  %00101100 or >DDRB   %01010000 >SPCR   -spi ;
+: >spi>        ( c -- c )
+               >SPDR begin SPSR> %10000000 and key? or until SPDR> ; 
+: >spi         >spi> drop ;
+: spi>         $ff >spi> ;
+
+\ NRF24
+
+: rf-ce-init   DDRB>  %00000010 or >DDRB ;
+: -rf-ce       PORTB> %11111101 and >PORTB ;
+: +rf-ce       PORTB> %00000010 or >PORTB ;
+: rf-irq?      PORTB> %00000001 and ;
+
 \ Initialize the UART and LED, and enable sleep mode
  
 : hw-init      uart-init led-init %00000001 >smcr ;

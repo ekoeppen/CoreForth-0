@@ -4,3 +4,4 @@
 : wdif?         %10000000 WDTCSR bit@ ;
 : wdt/1s        %01000110 WDT! ;
 : wdt/250ms     %01000100 WDT! ;
+: wdt>timeout   wdt/1s sei ;

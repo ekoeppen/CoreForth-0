@@ -113,4 +113,6 @@ $4F constant TEMP2
                 begin rf-rx? not while
                   standby timeout?
                 repeat
-                %00000100 p2ifg bic!   rf-fifo@ ;
+                \ %00000100 p2ifg bic!
+                rf-fifo@
+                ;
