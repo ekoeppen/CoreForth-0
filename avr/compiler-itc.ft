@@ -1,10 +1,16 @@
-: align         here aligned org ;
+variable state
+
+: [             false state ! ; immediate
+: ]             true state ! ;
+: compiling?    state @ ;
+: interpreting? state @ 0= ;
+
 : >body         2 cells + ;
 : ,link         , ;
-: words         latest begin @ ?dup while
-                  dup link>name count $3F and type space
-                repeat ;
+: ,call         , ;
+: s"            postpone (s") ;
 
+: literal       postpone lit , ; immediate
 : ,enter        ['] docol , ;
 : ,docon        ['] docon , ;
 : ,dovar        ['] dovar , ;

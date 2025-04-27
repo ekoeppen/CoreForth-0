@@ -59,11 +59,11 @@ include ../../common/core.ft
 include ../../common/output.ft
 include ../../common/input.ft
 include ../dictionary.ft
-include ../compiler.ft
 include ../utils.ft
+::itc:: include ../compiler-itc.ft
+::stc:: include ../compiler-stc.ft
 include ../../common/control-flow.ft
 include ../../common/interpret.ft
-::itc:: include ../compiler-itc.ft
 
 \ Hardware initialization
 \

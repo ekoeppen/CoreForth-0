@@ -1,11 +1,12 @@
 variable state
 
-: ,call         , ;
-: literal       postpone lit , ; immediate
-
 : [             false state ! ; immediate
 : ]             true state ! ;
 : compiling?    state @ ;
 : interpreting? state @ 0= ;
 
+: ,call         drop ;
 : s"            postpone (s") ;
+
+: literal       drop ; immediate
+: postpone      bl word drop ; immediate

@@ -11,6 +11,7 @@ variable dp
 : here          dp @ ;
 : allot         here + dp ! ;
 : org           dp ! ;
+: align         here aligned org ;
 : ,             here ! cell allot ;
 : c,            here c! 1 allot ;
 : alloc         dp +! ;
@@ -35,4 +36,7 @@ variable dp
                 then
                 ;
 : '             bl word find dup 0= if drop count type space $3F emit else drop then ;
+: words         latest begin @ ?dup while
+                  dup link>name count $3F and type space
+                repeat ;
 
