@@ -52,18 +52,18 @@ $8bf constant  s0
 include ../atmega328p.ft
 include ../memory-mega.ft
 include ../core.ft
+include ../wdt-mega.ft
+include ../../common/exception.ft
+include ../../common/timeout.ft
 include ../../common/core.ft
 include ../../common/output.ft
+include ../../common/input.ft
 include ../dictionary.ft
 include ../compiler.ft
 include ../utils.ft
-include ../../common/input.ft
-include ../../common/exception.ft
 include ../../common/control-flow.ft
 include ../../common/interpret.ft
 ::itc:: include ../compiler-itc.ft
-include ../../common/timeout.ft
-include ../wdt-mega.ft
 
 \ Hardware initialization
 \
@@ -117,10 +117,15 @@ i: tick-handler
                init-dp @ dp !
                ;
 
-\ Declare a default application word which does nothing. This can be overridden
-\ in files loaded as extras:
+\ Declare a default application word which starts the interpreter.
+\ This can be overridden in files loaded as extras:
 
-: turnkey ;
+: turnkey      0 (source-id) !
+::itc::        s" CoreForth-0 AVR ITC ready" type cr
+::stc::        s" CoreForth-0 AVR STC ready" type cr
+               hex
+               quit
+               ;
 
 \ Include any extra files:
 
@@ -130,12 +135,7 @@ include-extras
 
 : cold         hw-init
                setup-pointers
-               0 (source-id) !
-::itc::        s" CoreForth-0 AVR ITC ready" type cr
-::stc::        s" CoreForth-0 AVR STC ready" type cr
-               hex
                turnkey
-               quit
                reset ;
 
 \ ## Finalize the compilation back in host mode:

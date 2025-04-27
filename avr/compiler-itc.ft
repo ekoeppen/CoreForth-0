@@ -1,7 +1,6 @@
 : align         here aligned org ;
 : >body         2 cells + ;
 : ,link         , ;
-: '             bl word find dup 0= if drop count type space $3F emit else drop then ;
 : words         latest begin @ ?dup while
                   dup link>name count $3F and type space
                 repeat ;

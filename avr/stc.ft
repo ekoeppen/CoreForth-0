@@ -39,8 +39,8 @@
 :noname        talign
                there tlast @ t, tlast !
                there >target pack$ c@ 1+ tallot talign ; is thead
-:noname        tlast @ tcell + dup tc@ $bf and swap tc! ; is timmediate
 :noname        tcell + dup tc@ + 1+ taligned ; is tlink>
+:noname        tlast @ tcell + dup tc@ %01000000 or swap tc! ; is timmediate
 
 include common.ft
 
