@@ -8,7 +8,9 @@ variable state
 : >body         2 cells + ;
 : ,link         , ;
 : ,call         , ;
-: s"            postpone (s") ;
+: s"            postpone (s")
+                [char] " word dup dup c@ 1+ here swap move
+                c@ 1+ allot align ; immediate
 
 : literal       postpone lit , ; immediate
 : ,enter        ['] docol , ;
