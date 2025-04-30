@@ -1,0 +1,34 @@
+\ ## Simple software RTC for time keeping
+\
+\ Keep time based on a tick interrupt
+\ 
+\ Variables holding the current time
+
+variable seconds
+variable minutes
+variable hours
+
+\ IRQ handler which will increment the time components based on a tick
+\ count of eight ticks per second
+
+i: rtc-handler tick dup c@ 1+ dup #8 < if swap c! else
+                  drop 0 swap c!
+                  seconds dup c@ 1+ dup #60 < if swap c! else
+                     drop 0 swap c!
+                     minutes dup c@ 1+ dup #60 < if swap c! else
+                        drop 0 swap c!
+                        hours dup c@ 1+ dup #24 < if swap c! else
+                           drop 0 swap c!
+                        then
+                     then
+                  then
+               then
+               ;i
+
+\ Print the time components
+
+: rtc. base @ hours c@ . minutes c@ . seconds c@ . tick c@ . base ! ;
+
+\ Reset the time components
+
+: rtc-init 0 dup tick ! dup seconds ! dup minutes ! hours ! ;
