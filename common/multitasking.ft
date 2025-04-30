@@ -1,0 +1,45 @@
+\ ## Simple cooperative multitasking
+\
+\ Cooperative multitasking based on eForth and hForth ideas.
+\ A task uses three variables and has own parameter and return
+\ stacks.
+
+\ The user pointer contains the address of the task specific data
+\ area
+
+variable up
+
+\ Address of the action to take when activating the task. At this
+\ point, only the `wake` action is defined.
+
+: status        up @ ;
+
+\ Address of the status word of the next task.
+
+: follower      up @ cell + ;
+
+\ Top of the parameter stack.
+
+: tos           up @ 2 cells + ;
+
+\ Suspend the current task and perform the action (`wake` for now)
+\ of the next task:
+\ - Push the top of the return stack
+\ - Store the top of the parameter stack in the task's user variable
+\ - Fetch the address of the next task, which is also the address
+\   of the task's action, and perform the action
+
+: pause         rp@
+                sp@ tos !
+                follower @ dup @ execute ;
+
+\ Default action for a task:
+\ - Restore the user pointer
+\ - Restore the top of the stack and drop the top element
+\ - Restore the top of the return stack, which will then
+\   have as the top element the instruction pointer a the time
+\   `pause` was called the last time
+
+: wake          up !
+                tos @ sp! drop
+                rp! ;
