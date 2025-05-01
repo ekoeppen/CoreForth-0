@@ -114,10 +114,6 @@ code um/mod     $9129 $9139 $9109 $9119 $e140 $0f00 $1f11 $1f22
 : */mod         >r m* r> sm/rem ;
 : */            */mod swap drop ;
 
-: emit          begin UCSR0A c@ %00100000 and until UDR0 c! ;
-: key?          UCSR0A c@ %10000000 and ;
-: key           begin key? until UDR0 c@ ;
-
 : bis!          tuck c@ or swap c! ;
 : bic!          swap invert over c@ and swap c! ;
 : xor!          tuck c@ xor swap c! ;

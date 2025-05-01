@@ -1,0 +1,150 @@
+\ ## Arduino CoreForth
+\
+\ CoreForth-0 for Arduino Uno boards, with simple UART and LED functionality.
+
+::host::
+
+\ Load extra files passed on the command line when compiling,
+\ using the `-s` flag followed by the file name. The location for
+\ each file is resolved based on the location of this file.
+
+: include-extras
+               0 begin dup argc @ < while
+                  dup arg s" -s" str= if
+                     1+ dup arg included
+                  then
+                  1+
+                repeat drop ;
+
+cr
+
+\ ROM starts at 0x0000 and RAM at 0x4000. ROM is also mapped at 0x8000 for LD/ST
+\ instructions.
+
+$00000000 to trom
+$00004000 to tram
+
+trom tdp !
+tram tvp !
+
+$100 torg
+
+::itc:: include ../itc.ft
+::stc:: include ../stc.ft
+
+::host::
+:noname        talign
+               there tlast @ $8000 or t, tlast !
+               there >target pack$ c@ 1+ tallot talign ; is thead
+::target::
+
+t: reset-handler
+               $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e7df t,
+               t' start tset-ip
+
+code (s")      $93ba $93aa $91ff $91ef $0fee $1fff $01df $91a5
+               $e0b0 $2f0f $6800 $930a $93ea $0fea $1ffb $95f6
+               $95e7 $9631 $7fee $93ef $93ff end-code
+
+code execute   $01fd $77ff $91a9 $91b9 $95f6 $95e7 $9509 end-code
+
+::target::
+
+\ System variables
+
+$8100 constant  init-latest
+$8102 constant  init-dp
+
+$7fff constant  r0
+$7fbf constant  s0
+
+\ Include the rest of the system:
+
+include ../periph-avr.ft
+include ../memory-avr.ft
+include ../core.ft
+
+: emit          begin USART0.STATUS c@ %00100000 and until USART0.TXDATAL c! ;
+: key?          USART0.STATUS c@ %10000000 and ;
+: key           begin key? until USART0.RXDATAL c@ ;
+
+include ../../common/exception.ft
+include ../../common/timeout.ft
+include ../../common/core.ft
+include ../../common/output.ft
+include ../../common/input.ft
+include ../dictionary.ft
+include ../utils.ft
+::itc:: include ../compiler-itc.ft
+::stc:: include ../compiler-stc.ft
+include ../../common/control-flow.ft
+include ../../common/interpret.ft
+
+\ Hardware initialization
+\
+\ Set the UART to 38400bps at 16MHz
+
+: uart-init    %00000011 PORTMUX.USARTROUTEA c!
+               #416 USART0.BAUD !
+               %00000011 USART0.CTRLC c!
+               %00010000 PORTD.DIRSET c!
+               %00100000 PORTD.DIRCLR c! 
+               %11000000 USART0.CTRLB c! ;
+
+\ LED at PF5
+
+: led-init     %00100000 PORTF.DIRSET c! ;
+: +led         %00100000 PORTF.OUTSET c! ;
+: ~led         %00100000 PORTF.OUTTGL c! ;
+: -led         %00100000 PORTF.OUTCLR c! ;
+
+\ Initialize the UART and LED
+ 
+: hw-init      $00 NVMCTRL.CTRLB c! uart-init led-init ;
+
+: setup-pointers
+               init-latest @ latest !
+               init-dp @ dp !
+               ;
+
+\ Declare a default application word which starts the interpreter.
+\ This can be overridden in files loaded as extras:
+
+: turnkey      0 (source-id) !
+::itc::        ." CoreForth-0 AVR ITC ready" cr
+::stc::        ." CoreForth-0 AVR STC ready" cr
+               hex
+               quit
+               ;
+
+\ Include any extra files:
+
+include-extras
+
+\ Cold start of the system:
+
+: cold         hw-init
+               setup-pointers
+               turnkey
+               reset ;
+
+\ ## Finalize the compilation back in host mode:
+
+::host::
+
+\ Set the IRQ handler for reset
+
+ #1 t' reset-handler irq-handler!
+
+\ Store the values for latest and here (using the latest allocated address
+\ in RAM), and let execution start with `cold`:
+
+    tlast @ $8000 or $100 >target w!
+               tvp @ $102 >target w!
+t' cold t' start tcell + >target w!
+
+\ Finally, write out the Intel HEX file with the compiled program:
+
+::itc:: s" curiosity-nano-itc.hex" write-hex
+::stc:: s" curiosity-nano-stc.hex" write-hex
+

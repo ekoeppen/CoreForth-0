@@ -21,18 +21,12 @@ cr
 \ ROM starts at 0x0000 and RAM at 0x0200:
 
 $00000000 to trom
-$00000200 to tram
+$00004000 to tram
 
 trom tdp !
 tram tvp !
 
-\ The actual code starts at 0x0910, where the space from 0x0900 to 0x0910 is
-\ reserved for variables passed from the compilation phase to the system
-\ runtime. Using 0x0900 as the start allows distinguishing addresses between
-\ RAM and flash (all values below 0x0900 are RAM), at the expense of losing
-\ about 2k of flash.
-
-$910 torg
+$100 torg
 
 ::itc:: include ../itc.ft
 ::stc:: include ../stc.ft
@@ -41,22 +35,21 @@ $910 torg
 
 \ System variables
 
-$900 constant  init-latest
-$902 constant  init-dp
+$100 constant  init-latest
+$102 constant  init-dp
 
 $8ff constant  r0
 $8bf constant  s0
 
 \ Include the rest of the system:
 
-include ../atmega328p.ft
+include ../periph-avr.ft
 include ../memory-mega.ft
 include ../core.ft
-include ../wdt-mega.ft
 
-: emit          begin UCSR0A c@ %00100000 and until UDR0 c! ;
-: key?          UCSR0A c@ %10000000 and ;
-: key           begin key? until UDR0 c@ ;
+: emit          begin USART0.STATUS c@ %00100000 and until USART0.TXDATAL c! ;
+: key?          USART0.STATUS c@ %10000000 and ;
+: key           begin key? until USART0.RXDATAL c@ ;
 
 include ../../common/exception.ft
 include ../../common/timeout.ft
@@ -74,48 +67,22 @@ include ../../common/interpret.ft
 \
 \ Set the UART to 38400bps at 16MHz
 
-: uart-init    #25 UBRR0L c! 0 UBRR0H c!
-               %00011000 UCSR0B c!
-               %00000110 UCSR0C c! ;
+: uart-init    #2500 USART0.BAUD !
+               %00000011 USART0.CTRLC c!
+               %00000001 PORTA.DIRSET c!
+               %00000010 PORTA.DIRCLR c! 
+               %11000000 USART0.CTRLB c! ;
 
-\ LED at PB5 (D13)
+\ LED at PC2 (D13)
 
-: led-init     %00100000 >DDRB ;
-: +led         %00100000 >PORTB ;
-: ~led         %00100000 >PINB ;
-: -led         %00000000 >PORTB ;
+: led-init     %00000100 PORTC.DIRSET c! ;
+: +led         %00000100 PORTC.OUTSET c! ;
+: ~led         %00000100 PORTC.OUTCLR c! ;
+: -led         %00000100 PORTC.OUTTGL c! ;
 
-\ SPI
-
-: +spi         PORTB> %11111011 and >PORTB ;
-: -spi         PORTB> %00000100 or >PORTB ;
-: spi-init     DDRB>  %00101100 or >DDRB   %01010000 >SPCR   -spi ;
-: >spi>        ( c -- c )
-               >SPDR begin SPSR> %10000000 and key? or until SPDR> ; 
-: >spi         >spi> drop ;
-: spi>         $ff >spi> ;
-
-\ NRF24
-
-: rf-ce-init   DDRB>  %00000010 or >DDRB ;
-: -rf-ce       PORTB> %11111101 and >PORTB ;
-: +rf-ce       PORTB> %00000010 or >PORTB ;
-: rf-irq?      PORTB> %00000001 and ;
-
-\ Initialize the UART and LED, and enable sleep mode
+\ Initialize the UART and LED
  
-: hw-init      uart-init led-init %00000001 >smcr ;
-
-\ A simple IRQ handler which toggles the LED:
-
-i: t0-handler  ~led ;i
-
-\ Simple handler which increments the `tick` variable:
- 
-i: tick-handler
-               1 tick +! ;i
-
-\ System start: Initialize the dictionary pointers (here and latest).
+: hw-init      uart-init led-init ;
 
 : setup-pointers
                init-latest @ latest !
@@ -147,20 +114,19 @@ include-extras
 
 ::host::
 
-\ Set the IRQ handlers for reset, the watchdog and timer 0:
+\ Set the IRQ handler for reset
 
  #1 t' reset-handler irq-handler!
- #7 t' tick-handler irq-handler!
-#17 t' t0-handler irq-handler!
 
 \ Store the values for latest and here (using the latest allocated address
 \ in RAM), and let execution start with `cold`:
 
-    tlast @ $900 >target w!
-      tvp @ $902 >target w!
+    tlast @ $100 >target w!
+      tvp @ $102 >target w!
 t' cold t' start tcell + >target w!
 
 \ Finally, write out the Intel HEX file with the compiled program:
 
-::itc:: s" arduino-itc.hex" write-hex
-::stc:: s" arduino-stc.hex" write-hex
+::itc:: s" produino-uno-4u-itc.hex" write-hex
+::stc:: s" produino-uno-4u-stc.hex" write-hex
+

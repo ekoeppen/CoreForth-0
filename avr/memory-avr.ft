@@ -1,0 +1,10 @@
+\ ## Memory operations
+\
+\ All memory operations use LD/ST since flash is mapped at address 0x8000
+
+code c@         $01fd $e0b0 $91a1 end-code
+code c!         $01fd $9109 $9119 $91a9 $91b9 $8300 end-code
+code @          $01fd $91a1 $91b1 end-code
+code !          $01fd $9109 $9119 $91a9 $91b9 $9301 $9311 end-code
+
+
