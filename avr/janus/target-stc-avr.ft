@@ -1,0 +1,15 @@
+\ ## Subroute Threaded Forth, AVRxx chip specific target words
+
+include target-stc.ft
+
+::target::
+
+t: reset-handler
+               $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e7df t,
+               t' start tset-ip
+
+code (s")      $93ba $93aa $91ff $91ef $0fee $1fff $01df $91a5
+               $e0b0 $2f0f $6800 $930a $93ea $0fea $1ffb $95f6
+               $95e7 $9631 $7fee $93ef $93ff end-code
+code execute   $01fd $77ff $91a9 $91b9 $95f6 $95e7 $9509 end-code
+

@@ -4,18 +4,6 @@
 
 ::host::
 
-\ Load extra files passed on the command line when compiling,
-\ using the `-s` flag followed by the file name. The location for
-\ each file is resolved based on the location of this file.
-
-: include-extras
-               0 begin dup argc @ < while
-                  dup arg s" -s" str= if
-                     1+ dup arg included
-                  then
-                  1+
-                repeat drop ;
-
 cr
 
 \ ROM starts at 0x0000 and RAM at 0x4000. ROM is also mapped at 0x8000 for LD/ST
@@ -29,24 +17,10 @@ tram tvp !
 
 $100 torg
 
-::itc:: include ../itc.ft
-::stc:: include ../stc.ft
-
-::host::
-:noname        talign
-               there tlast @ $8000 or t, tlast !
-               there >target pack$ c@ 1+ tallot talign ; is thead
-::target::
-
-t: reset-handler
-               $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e7df t,
-               t' start tset-ip
-
-code (s")      $93ba $93aa $91ff $91ef $0fee $1fff $01df $91a5
-               $e0b0 $2f0f $6800 $930a $93ea $0fea $1ffb $95f6
-               $95e7 $9631 $7fee $93ef $93ff end-code
-
-code execute   $01fd $77ff $91a9 $91b9 $95f6 $95e7 $9509 end-code
+::itc:: include ../janus/host-itc.ft
+::itc:: include ../janus/target-itc.ft
+::stc:: include ../janus/host-stc-avr.ft
+::stc:: include ../janus/target-stc-avr.ft
 
 ::target::
 

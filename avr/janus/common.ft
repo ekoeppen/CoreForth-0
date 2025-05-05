@@ -1,0 +1,34 @@
+\ ## Common host functions
+
+::host::
+
+\ Load extra files passed on the command line when compiling,
+\ using the `-s` flag followed by the file name. The location for
+\ each file is resolved based on the location of this file.
+
+: include-extras
+               0 begin dup argc @ < while
+                  dup arg s" -s" str= if
+                     1+ dup arg included
+                  then
+                  1+
+                repeat drop ;
+
+\ Install an IRQ handler at the given vector number:
+
+: irq-handler! ( num handler -- )
+               2/
+               swap 1- 4 * #target +
+               $940c over w!
+               2 + w! ;
+
+\ Save the target image as a hex file:
+
+: write-hex    ( c-addr n -- )
+               w/o create-file throw >r
+               trom #target there trom - r@ type-hex
+               r> close-file throw ;
+
+\ Initialize the target cell size:
+
+2 to tcell

@@ -1,0 +1,12 @@
+\ ## Subroute Threaded Forth, ATmega chip specific host words
+
+include host-stc.ft
+
+::host::
+
+\ Create a dictionary entry
+
+:noname        talign
+               there tlast @ t, tlast !
+               there >target pack$ c@ 1+ tallot talign ; is thead
+
