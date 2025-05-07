@@ -1,0 +1,27 @@
+\ ## Indirect Threaded Forth, host functions
+\
+\ Register usage
+\ 
+\ ```
+\ IP:     r25:r24
+\ W:      r23:r22
+\ SP: Y   r29:r28
+\ RP: SP
+\ TOS: X  r27:r26
+\ ```
+\ 
+\ DOCOL / Enter
+\ 
+\ IP points to next word in the caller
+\ W points to CFA
+
+\ ### Host
+
+::host::
+
+include host-itc.ft
+
+:noname        t, ; is t,call
+:noname        talign
+               there tlast @ t, tlast !
+               there >target pack$ c@ 1+ tallot talign ; is thead

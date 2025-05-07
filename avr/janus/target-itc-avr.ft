@@ -1,0 +1,57 @@
+\ ## Indirect Threaded Forth, target functions
+
+::target::
+
+\ Inner interpreter words:
+
+t: next        $01fc t, $9161 t, $9171 t, $01cf t, $01fb t, $9101 t, $9111 t, $01f8 t,
+               $77ff t, $95f6 t, $95e7 t, $9409 t,
+t: docol       $939f t, $938f t, $01cb t, $9602 t,
+               $c000 t' next there - 2/ 1- $fff and or t,
+t: docon       $93ba t, $93aa t, $01fb t, $9632 t, $91a1 t, $91b1 t,
+               $c000 t' next there - 2/ 1- $fff and or t,
+t: dovar       $93ba t, $93aa t, $01db t, $9612 t,
+               $c000 t' next there - 2/ 1- $fff and or t,
+
+code exit      $918f $919f end-code
+
+\ Control flow words
+
+code branch    $01fc $9181 $9191 $6890 end-code
+code ?branch   $2bab $91a9 $91b9 $f429 $01fc $9181 $9191 $6890
+               $c001 $9602 end-code
+code lit       $01fc $93ba $93aa $91a1 $91b1 $01cf end-code
+code nop       end-code
+code execute   $68b0 $01fd $01bd $91a9 $91b9 $9101 $9111 $01f8
+               $77ff $95f6 $95e7 $9409 end-code
+
+code reti      $be3f $91ff $91ef $91df $91cf $91bf $91af $919f
+               $918f $917f $916f $915f $914f $913f $912f $911f
+               $910f $903f $902f $901f $900f $9518 end-code
+
+\ Start vector:
+
+0 constant     start
+
+\ AVR reset handler
+
+t: reset-handler
+               $e70f t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e7df t,
+               $e0e1 t, $e1f0 t, $e000 t, $8300 t,
+               t' start tcell + $8000 or tset-ip
+               $c000 t' next there - 2/ 1- $fff and or t,
+
+\ Stack operations
+
+code >r        $93bf $93af $91a9 $91b9 end-code
+code r>        $93ba $93aa $91af $91bf end-code
+code r@        $93ba $93aa $b7ed $b7fe $9631 $91a1 $91b1 end-code
+code rdrop     $910f $911f end-code
+
+code sp@       $93ba $93aa $01de end-code
+code rp@       $93ba $93aa $b7ad $b7be $9611 end-code
+code sp!       $01ed end-code
+code rp!       $9711 $bfad $bfbe $91a9 $91b9 end-code
+
+code (s")      $93ba $93aa $01fc $91a1 $e0b0 $93fa $93ea $0fea
+               $1ffb $9631 $7fee $01cf end-code

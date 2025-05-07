@@ -27,10 +27,8 @@ include common.ft
 : tset-ip      $80 over $0f and or tc, $e0 over 4 rshift $0f and or tc,
                $90 over 8 rshift $0f and or tc, #12 rshift $0f and $e0 or tc, ;
 
-
 \ Host functions used during meta compilation
 
-:noname        t, ; is t,call
 :noname        s" docon" tfwdref ; is t,docon
 :noname        s" docol" tfwdref ; is t,enter
 :noname        s" dovar" tfwdref ; is t,dovar

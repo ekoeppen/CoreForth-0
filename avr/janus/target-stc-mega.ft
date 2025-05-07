@@ -2,6 +2,8 @@
 
 include target-stc.ft
 
+::target::
+
 t: reset-handler
                $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e0d8 t,
                t' start tset-ip

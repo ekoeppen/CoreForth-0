@@ -1,0 +1,59 @@
+\ ## Indirect Threaded Forth, target functions
+
+::target::
+
+\ Inner interpreter words:
+
+t: next        $01fc t, $30f9 t, $f018 t, $9165 t, $9175 t, $c002 t, $9161 t, $9171 t,
+               $01cf t, $01fb t, $30f9 t, $f018 t, $9105 t, $9115 t, $c002 t, $9101 t,
+               $9111 t, $01f8 t, $95f6 t, $95e7 t, $9409 t,
+t: docol       $939f t, $938f t, $01cb t, $9602 t,
+               $c000 t' next there - 2/ 1- $fff and or t,
+t: docon       $93ba t, $93aa t, $01fb t, $9632 t, $30f9 t, $f018 t, $91a5 t, $91b5 t,
+               $c002 t, $91a1 t, $91b1 t,
+               $c000 t' next there - 2/ 1- $fff and or t,
+t: dovar       $93ba t, $93aa t, $01db t, $9612 t,
+               $c000 t' next there - 2/ 1- $fff and or t,
+
+code exit      $918f $919f end-code
+
+\ Control flow words
+
+code branch    $01fc $30f9 $f018 $9185 $9195 $c002 $9181 $9191 end-code
+code ?branch   $2bab $91a9 $91b9 $f449 $01fc $30f9 $f018 $9185
+               $9195 $c004 $9181 $9191 $c001 $9602 end-code
+code lit       $01fc $93ba $93aa $30f9 $f018 $91a5 $91b5 $c002
+               $91a1 $91b1 $01cf end-code
+code nop       end-code
+code execute   $01fd $01bd $91a9 $91b9 $30f9 $f018 $9105 $9115 $c002
+               $9101 $9111 $01f8 $95f6 $95e7 $9409 end-code
+
+code reti      $be3f $91ff $91ef $91df $91cf $91bf $91af $919f
+               $918f $917f $916f $915f $914f $913f $912f $911f
+               $910f $903f $902f $901f $900f $9518 end-code
+
+\ Start vector:
+
+0 constant     start
+
+\ AVR reset handler
+
+t: reset-handler
+               $e008 t, $bf0e t, $ef0f t, $bf0d t, $ebcf t, $e0d8 t,
+               t' start tcell + tset-ip
+               $c000 t' next there - 2/ 1- $fff and or t,
+
+\ Stack operations
+
+code >r        $93bf $93af $91a9 $91b9 end-code
+code r>        $93ba $93aa $91af $91bf end-code
+code r@        $93ba $93aa $b7ed $b7fe $9631 $91a1 $91b1 end-code
+code rdrop     $910f $911f end-code
+
+code sp@       $93ba $93aa $01de end-code
+code rp@       $93ba $93aa $b7ad $b7be $9611 end-code
+code sp!       $01ed end-code
+code rp!       $9711 $bfad $bfbe $91a9 $91b9 end-code
+
+code (s")      $93ba $93aa $01fc $30f9 $f010 $91a5 $c001 $91a1
+               $e0b0 $93fa $93ea $0fea $1ffb $9631 $7fee $01cf end-code
