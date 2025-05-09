@@ -70,9 +70,9 @@ include ../../common/interpret.ft
 \ LED at PF5
 
 : led-init     %00100000 PORTF.DIRSET c! ;
-: +led         %00100000 PORTF.OUTSET c! ;
+: +led         %00100000 PORTF.OUTCLR c! ;
 : ~led         %00100000 PORTF.OUTTGL c! ;
-: -led         %00100000 PORTF.OUTCLR c! ;
+: -led         %00100000 PORTF.OUTSET c! ;
 
 \ Initialize the UART and LED
  

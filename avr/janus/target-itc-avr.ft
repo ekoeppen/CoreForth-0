@@ -5,7 +5,7 @@
 \ Inner interpreter words:
 
 t: next        $01fc t, $9161 t, $9171 t, $01cf t, $01fb t, $9101 t, $9111 t, $01f8 t,
-               $77ff t, $95f6 t, $95e7 t, $9409 t,
+               $95f6 t, $95e7 t, $9409 t,
 t: docol       $939f t, $938f t, $01cb t, $9602 t,
                $c000 t' next there - 2/ 1- $fff and or t,
 t: docon       $93ba t, $93aa t, $01fb t, $9632 t, $91a1 t, $91b1 t,
@@ -17,13 +17,13 @@ code exit      $918f $919f end-code
 
 \ Control flow words
 
-code branch    $01fc $9181 $9191 $6890 end-code
-code ?branch   $2bab $91a9 $91b9 $f429 $01fc $9181 $9191 $6890
-               $c001 $9602 end-code
+code branch    $01fc $9181 $9191 end-code
+code ?branch   $2bab $91a9 $91b9 $f421 $01fc $9181 $9191 $c001
+               $9602 end-code
 code lit       $01fc $93ba $93aa $91a1 $91b1 $01cf end-code
 code nop       end-code
-code execute   $68b0 $01fd $01bd $91a9 $91b9 $9101 $9111 $01f8
-               $77ff $95f6 $95e7 $9409 end-code
+code execute   $01fd $01bd $91a9 $91b9 $9101 $9111 $01f8 $95f6
+               $95e7 $9409 end-code
 
 code reti      $be3f $91ff $91ef $91df $91cf $91bf $91af $919f
                $918f $917f $916f $915f $914f $913f $912f $911f

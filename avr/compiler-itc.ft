@@ -13,9 +13,10 @@ variable state
                 c@ 1+ allot align ; immediate
 
 : literal       postpone lit , ; immediate
-: ,enter        ['] docol , ;
-: ,docon        ['] docon , ;
-: ,dovar        ['] dovar , ;
+: >rom          $7fff and ;
+: ,enter        ['] docol >rom , ;
+: ,docon        ['] docon >rom , ;
+: ,dovar        ['] dovar >rom , ;
 : ,exit         ['] exit , ;
 
 : immediate     %01000000 latest @ link>flags bis! ;

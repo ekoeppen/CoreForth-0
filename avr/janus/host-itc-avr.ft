@@ -21,9 +21,19 @@
 
 include host-itc.ft
 
-\ Calls are mapped to $8000 upwards to use the LD instruction
+\ Calls are mapped to $8000 upwards to use the LD instruction. Add this as an
+\ offset to branch and call targets.
 
 :noname        $8000 or t, ; is t,call
+:noname        swap $8000 or swap t! ; is t!target
+:noname        $8000 or t, ; is t,target
+
+\ Store calls to to action words as-is, as they need to be made to actual
+\ flash locations.
+
+:noname        s" docol" tfind t, ; is t,enter
+:noname        s" docon" tfind t, ; is t,docon
+:noname        s" dovar" tfind t, ; is t,dovar
 
 \ Create a dictionary entry, link addresses are mapped to $8000 upwards
 \ to allow using LD instructions to traverse the dictionary.
