@@ -58,7 +58,7 @@ include ../../common/interpret.ft
 
 \ Hardware initialization
 \
-\ Set the UART to 38400bps at 16MHz
+\ Set the UART to 38400bps at 4MHz
 
 : uart-init    %00000011 PORTMUX.USARTROUTEA c!
                #416 USART0.BAUD !

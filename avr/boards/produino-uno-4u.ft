@@ -1,12 +1,15 @@
 \ ## Arduino CoreForth
 \
-\ CoreForth-0 for Arduino Uno boards, with simple UART and LED functionality.
+\ CoreForth-0 for the [Produino Uno 4u](https://github.com/TheEccentricGenius/UNO4u_Board)
+\ using the AVR128DA28 MCU. Configured to run at 24MHz, with UART at 115200bps.
+\ LED at PC2 (D13) functionality.
 
 ::host::
 
 cr
 
-\ ROM starts at 0x0000 and RAM at 0x0200:
+\ ROM starts at 0x0000 and RAM at 0x4000. ROM is also mapped at 0x8000 for LD/ST
+\ instructions.
 
 $00000000 to trom
 $00004000 to tram
@@ -14,10 +17,12 @@ $00004000 to tram
 trom tdp !
 tram tvp !
 
-$100 torg
+\ Start at 0x110 to leave space for system variables at 0x100
 
-::itc:: include ../janus/host-itc.ft
-::itc:: include ../janus/target-itc.ft
+$110 torg
+
+::itc:: include ../janus/host-itc-avr.ft
+::itc:: include ../janus/target-itc-avr.ft
 ::stc:: include ../janus/host-stc-avr.ft
 ::stc:: include ../janus/target-stc-avr.ft
 
@@ -25,16 +30,16 @@ $100 torg
 
 \ System variables
 
-$100 constant  init-latest
-$102 constant  init-dp
+$8100 constant  init-latest
+$8102 constant  init-dp
 
-$8ff constant  r0
-$8bf constant  s0
+$7fff constant  r0
+$7fbf constant  s0
 
 \ Include the rest of the system:
 
 include ../periph-avr.ft
-include ../memory-mega.ft
+include ../memory-avr.ft
 include ../core.ft
 
 : emit          begin USART0.STATUS c@ %00100000 and until USART0.TXDATAL c! ;
@@ -55,9 +60,9 @@ include ../../common/interpret.ft
 
 \ Hardware initialization
 \
-\ Set the UART to 38400bps at 16MHz
+\ Set the UART to 115200bps at 24MHz (CLK_PER at 12MHz)
 
-: uart-init    #2500 USART0.BAUD !
+: uart-init    #416 USART0.BAUD !
                %00000011 USART0.CTRLC c!
                %00000001 PORTA.DIRSET c!
                %00000010 PORTA.DIRCLR c! 
@@ -72,7 +77,12 @@ include ../../common/interpret.ft
 
 \ Initialize the UART and LED
  
-: hw-init      uart-init led-init ;
+: hw-init      $00 NVMCTRL.CTRLB c!
+               %00000001 CLKCTRL.MCLKCTRLB ioreg-ccp!
+               %00100100 CLKCTRL.OSCHFCTRLA ioreg-ccp!
+               uart-init
+               led-init
+               ;
 
 : setup-pointers
                init-latest @ latest !
@@ -83,8 +93,9 @@ include ../../common/interpret.ft
 \ This can be overridden in files loaded as extras:
 
 : turnkey      0 (source-id) !
-::itc::        s" CoreForth-0 AVR ITC ready" type cr
-::stc::        s" CoreForth-0 AVR STC ready" type cr
+               +led
+::itc::        ." CoreForth-0 AVR ITC ready" cr
+::stc::        ." CoreForth-0 AVR STC ready" cr
                hex
                quit
                ;
@@ -111,9 +122,14 @@ include-extras
 \ Store the values for latest and here (using the latest allocated address
 \ in RAM), and let execution start with `cold`:
 
-    tlast @ $100 >target w!
-      tvp @ $102 >target w!
-t' cold t' start tcell + >target w!
+    tlast @ $8000 or $100 >target w!
+               tvp @ $102 >target w!
+::itc:: t' cold $8000 or t' start tcell + >target w!
+::stc:: t' cold t' start tcell + >target w!
+
+\ Clear the first word's link pointer to finish the dictionary linked list:
+
+0 $110 >target w!
 
 \ Finally, write out the Intel HEX file with the compiled program:
 
