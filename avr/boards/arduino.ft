@@ -81,7 +81,7 @@ include ../../common/interpret.ft
 : -spi         PORTB> %00000100 or >PORTB ;
 : spi-init     DDRB>  %00101100 or >DDRB   %01010000 >SPCR   -spi ;
 : >spi>        ( c -- c )
-               >SPDR begin SPSR> %10000000 and key? or until SPDR> ; 
+               >SPDR begin SPSR> %10000000 and until SPDR> ; 
 : >spi         >spi> drop ;
 : spi>         $ff >spi> ;
 

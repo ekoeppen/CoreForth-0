@@ -75,6 +75,25 @@ include ../../common/interpret.ft
 : ~led         %00000100 PORTC.OUTCLR c! ;
 : -led         %00000100 PORTC.OUTTGL c! ;
 
+\ SPI
+
+: +spi         %00001000 PORTC.OUTCLR c! ;
+: -spi         %00001000 PORTC.OUTSET c! ;
+: spi-init     %00001101 PORTC.DIRSET c!
+               %00100001 SPI1.CTRLA c!
+               %00000000 SPI1.CTRLB c!
+               -spi ;
+: >spi>        SPI1.DATA c! begin SPI1.INTFLAGS c@ %10000000 and until SPI1.DATA c@ ; 
+: >spi         >spi> drop ;
+: spi>         $ff >spi> ;
+
+\ NRF24
+
+: rf-ce-init   %10000000 PORTD.DIRSET c! ;
+: -rf-ce       %10000000 PORTD.OUTCLR c! ;
+: +rf-ce       %10000000 PORTD.OUTSET c! ;
+: rf-irq?      PORTD.IN c@ %01000000 and ;
+
 \ Initialize the UART and LED
  
 : hw-init      $00 NVMCTRL.CTRLB c!
@@ -93,7 +112,6 @@ include ../../common/interpret.ft
 \ This can be overridden in files loaded as extras:
 
 : turnkey      0 (source-id) !
-               +led
 ::itc::        ." CoreForth-0 AVR ITC ready" cr
 ::stc::        ." CoreForth-0 AVR STC ready" cr
                hex
