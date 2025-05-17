@@ -23,14 +23,12 @@ variable state
                   dup link>
                   swap immediate? not 1 or
                 then ;
-: '             bl word find dup 0= if drop count type space $3F emit
-                else drop then ;
+: '             bl word find dup 0= if drop count type space $3F emit else drop then ;
 
 : words         latest begin @ ?dup while
                   dup link>name count type space
                 repeat ;
-: postpone      bl word find 0< if literal postpone ,call
-                else ,call then ; immediate
+: postpone      bl word find 0< if literal postpone ,call else ,call then ; immediate
 : [']           ' postpone literal ; immediate
 
 : :             <builds ,enter hide ] ;

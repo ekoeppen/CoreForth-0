@@ -17,5 +17,5 @@
 
 : <builds       align   here latest dup @ ,link $FFFF h, !
                 bl word
-                dup dup c@ 1+ here swap hmove
+                dup dup c@ 1+ here swap cmove
                 c@ 1+ allot align ;
