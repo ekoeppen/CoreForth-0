@@ -1,0 +1,99 @@
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+::dtc:: cr ." *** DTC not supported ***" cr bye
+
+include ../janus/compiler.ft
+
+\ -- Target -------------------------------------------------------------------
+
+::target::
+
+$08000000 to trom
+$20000000 to tram
+        4 to tcell
+
+trom tdp !
+tram tvp !
+
+tram $00001000 + t, 0 t,
+trom $00000400 + torg
+
+include ../cpus/cortex-m0/armv6-m-primitives.ft
+::stc:: include ../cpus/cortex-m0/threading-stc.ft
+::itc:: include ../cpus/cortex-m0/threading-itc.ft
+
+          $FC buffer: psp
+             variable s0
+          $FC buffer: rsp
+             variable r0
+
+include ../common/core.ft
+include ../../common/core.ft
+include ../dictionary/common.ft
+include ../cpus/stm32l0xx/rcc.ft
+include ../cpus/stm32l0xx/flash.ft
+include ../cpus/stm32l0xx/gpio.ft
+include ../cpus/stm32l0xx/usart.ft
+
+: emit          begin USART2_ISR c@ %10000000 and until USART2_TDR c! ;
+: key?          USART2_ISR c@ %00100000 and ;
+: key           begin key? until USART2_RDR c@ ;
+
+include ../../common/output.ft
+include ../../common/input.ft
+include ../dictionary/full.ft
+::stc:: include ../common/threading-stc.ft
+::itc:: include ../common/threading-itc.ft
+include ../../common/exception.ft
+include ../../common/control-flow.ft
+include ../common/compiler.ft
+include ../../common/interpret.ft
+include ../../common/utils.ft
+include ../janus/init.ft
+
+: 16mhz        %00000001 RCC_CR ! begin RCC_CR @ %00000100 and until
+               %00000001 RCC_CFGR !
+               ;
+
+: uart-init    %00100000000000000000 RCC_APB1ENR bis!
+               GPIOA_MODER dup @ $FFFFFF0F and $000000A0 or swap !
+               GPIOA_AFRL dup @ $FFFF00FF and $00004400 or swap !
+               RCC_CCIPR dup @ $FFFFFFF3 and $00000008 or swap !
+               #138 USART2_BRR !
+               %00001101 USART2_CR1 bis!
+               ;
+
+: led-init     GPIOA_MODER dup @ $FFFFF3FF and $00000400 or swap ! ;
+: +led         $00000020 GPIOA_BSRR ! ;
+: -led         $00000020 GPIOA_BRR ! ;
+: ~led         GPIOA_IDR @ $00000020 xor GPIOA_ODR ! ;
+
+: button-init  GPIOC_MODER dup @ $F3FFFFFF and swap ! ;
+: button?      GPIOC_IDR @ $2000 and 0= ;
+
+: hw-init      %00000000000000000101 RCC_IOPENR bis!
+               16mhz
+               led-init
+               button-init
+               uart-init
+               ;
+
+: cold         s0 sp! r0 rp!
+               0 (source-id) !
+               setup-vars
+               hw-init
+               hex
+               abort
+               begin wfi again
+               ;
+
+\ -- Host ---------------------------------------------------------------------
+
+::host::
+
+include ../janus/save-image.ft
+
+::stc:: s" nucleo-l053r8-stc.hex" save-hex
+::itc:: s" nucleo-l053r8-itc.hex" save-hex
