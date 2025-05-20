@@ -36,6 +36,7 @@ include ../cpus/stm32l0xx/rcc.ft
 include ../cpus/stm32l0xx/flash.ft
 include ../cpus/stm32l0xx/gpio.ft
 include ../cpus/stm32l0xx/usart.ft
+include ../cpus/stm32l0xx/spi.ft
 
 : emit          begin USART2_ISR c@ %10000000 and until USART2_TDR c! ;
 : key?          USART2_ISR c@ %00100000 and ;
@@ -53,11 +54,16 @@ include ../../common/interpret.ft
 include ../../common/utils.ft
 include ../janus/init.ft
 
+\ Switch to MSI16 as system clock source
+
 : 16mhz        %00000001 RCC_CR ! begin RCC_CR @ %00000100 and until
                %00000001 RCC_CFGR !
                ;
 
-: uart-init    %00100000000000000000 RCC_APB1ENR bis!
+\ Enable USART2 with 115200bps, using MSI16 as clock source and
+\ PA2 and PA15 as TX/RX pins
+
+: uart-init    %100000000000000000 RCC_APB1ENR bis!
                GPIOA_MODER dup @ $FFFFFF0F and $000000A0 or swap !
                GPIOA_AFRL dup @ $FFFF00FF and $00004400 or swap !
                RCC_CCIPR dup @ $FFFFFFF3 and $00000008 or swap !
@@ -65,19 +71,48 @@ include ../janus/init.ft
                %00001101 USART2_CR1 bis!
                ;
 
+\ Enable LED at PA5 (overlaps with SPI2 SCK)
+
 : led-init     GPIOA_MODER dup @ $FFFFF3FF and $00000400 or swap ! ;
 : +led         $00000020 GPIOA_BSRR ! ;
 : -led         $00000020 GPIOA_BRR ! ;
 : ~led         GPIOA_IDR @ $00000020 xor GPIOA_ODR ! ;
 
+\ Enable button at PC13
+
 : button-init  GPIOC_MODER dup @ $F3FFFFFF and swap ! ;
 : button?      GPIOC_IDR @ $2000 and 0= ;
 
-: hw-init      %00000000000000000101 RCC_IOPENR bis!
+\ Enable SPI1 with system clock divided by two as clock and
+\ PB6 as SS pin
+
+: spi-init     %1000000000000 RCC_APB2ENR bis!
+               GPIOB_MODER dup @ $FFFFCFFF and $00001000 or swap !
+               $40 GPIOB_BSRR !
+               GPIOA_MODER dup @ $FFFF03FF and $0000A800 or swap !
+               GPIOA_OSPEEDR dup @ $FFFF03FF and $0000A800 or swap !
+               GPIOA_AFRL dup @ $000FFFFF and swap !
+               0 SPI1_CR1 !
+               %1100000100 SPI1_CR1 2dup !
+               swap %01000000 or swap !
+               ;
+
+: +spi         $40 GPIOB_BRR ! ;
+: -spi         $40 GPIOB_BSRR ! ;
+: >spi>        begin SPI1_SR @ %10 and until
+               SPI1_DR c!
+               begin SPI1_SR @ %1 and until
+               SPI1_DR c@
+               ;
+: >spi         >spi> drop ;
+: spi>         $ff >spi ; 
+
+: hw-init      %00000000000000000111 RCC_IOPENR bis!
                16mhz
                led-init
                button-init
                uart-init
+               spi-init
                ;
 
 : cold         s0 sp! r0 rp!
