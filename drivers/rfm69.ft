@@ -109,7 +109,7 @@ $4F constant TEMP2
 : rf-tx         ( addr n -- ) rf-tx-mode rf-fifo! ;
 : rf-rx?        %00000100 IRQFLAGS2 rf@ and ;
 : rf-rx         ( addr timeout -- )
-                wdt>timeout set-timeout rf-rx-mode
+                set-timeout rf-rx-mode
                 begin rf-rx? not while
                   standby timeout?
                 repeat

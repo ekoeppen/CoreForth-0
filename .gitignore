@@ -8,3 +8,4 @@ docs/content
 .hugo_build.lock
 .ignore
 scratch.ft
+.vscode
