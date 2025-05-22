@@ -11,3 +11,5 @@ t: next       $cf20 th, $682c th, $46a7 th,
 
 code exit     $bc80 $cf20 $682c $46a7 end-code
 code lit      $3e04 $6030 $cf01 $cf20 $682c $46a7 end-code
+
+code execute  $0005 $ce01 $682c $46a7 end-code

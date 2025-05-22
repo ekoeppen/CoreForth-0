@@ -22,3 +22,8 @@ variable (sink-id)
                 then r> drop ;
 : */mod         >r m* r> sm/rem ;
 : */            */mod swap drop ;
+
+::stc:: : (s")        r> 1- dup 1+ swap c@ 2dup + aligned 1+ >r ;
+::itc:: : (s")        r> dup 1+ swap c@ 2dup + aligned >r ;
+::dtc:: : (s")        r> dup 1+ swap c@ 2dup + aligned >r ;
+

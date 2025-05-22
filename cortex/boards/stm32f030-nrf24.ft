@@ -42,13 +42,8 @@ include ../cpus/cortex-m0/armv6-m-primitives.ft
              variable tx-tail
 
 include ../common/core.ft
-include ../../common/core.ft
 include ../dictionary/common.ft
-include ../dictionary/headerless.ft
-::stc:: include ../common/threading-stc.ft
-::itc:: include ../common/threading-itc.ft
-include ../../common/exception.ft
-include ../../common/timeout.ft
+include ../../common/core.ft
 
 $E000E100 constant NVIC_SETENA_BASE
 

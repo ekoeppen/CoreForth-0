@@ -5,3 +5,5 @@ code ?branch    $0001 $6830 $3604 $2900 $D002 $4671 $3104 $468F
 code lit        $4674 $3E04 $6030
                 $3C01 $8821 $3402 $8820 $0400 $4308 $3403 $46A7 end-code
 code exit       $BD00 end-code
+
+: execute       1+ >r ;

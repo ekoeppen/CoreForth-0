@@ -7,10 +7,5 @@
 : ,dodata       ['] dodata , ;
 : ,docon        ['] docon , ;
 
-
 : (does>)       r> latest @ link> ! ;
 : does>         ['] (does>) , $4C00 h, $47A0 h, ,dodoes ; immediate
-
-: (s")          r> count 2dup + aligned >r ;
-
-code execute    $0005 $ce01 $682c $46a7 end-code

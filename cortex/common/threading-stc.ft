@@ -10,7 +10,3 @@
 : ,docon        $3e04 h, $6030 h, $4800 h, $46F7 h, ;
 : (does>)       here latest @ link> #8 + org ,enter r> 1- ,call org ;
 : does>         postpone (does>) ; immediate
-
-: (s")          r> 1- count 2dup + aligned 1+ >r ;
-
-: execute       1+ >r ;
