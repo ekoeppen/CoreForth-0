@@ -1,4 +1,6 @@
-\ -- Host ---------------------------------------------------------------------
+\ # STM32F030 Board with NRF24 chip
+\
+\ # Host
 
 ::host::
 
@@ -9,7 +11,9 @@ include ../janus/compiler.ft
 
 :noname     2drop talign there tlast @ t, tlast ! ; is thead
 
-\ -- Target -------------------------------------------------------------------
+\ # Target
+\ 
+\ Board config, hardware setup and cold start 
 
 ::target::
 
@@ -85,6 +89,21 @@ $40022000 constant FLASH_ACR
 : !txb-empty?    tx-head @ tx-tail @ xor ;
 : !rxb-empty?    rx-head @ rx-tail @ xor ;
 
+\ ## USART1 Interrupt Handler
+\ 
+\ Handles USART1 interrupt events:
+\
+\ - When the TX buffer is not empty and the transmitter is ready:
+\   Sends the next byte from the TX buffer to USART1_TDR and increments
+\   the TX tail pointer. If no more data to transmit, disables the
+\   TX empty interrupt.
+\
+\ - When a byte has been received:
+\   Reads the received byte from USART1_RDR, stores it in the RX buffer,
+\   and increments the RX head pointer.
+\
+\ Both TX and RX use circular buffers with separate head/tail pointers.
+
 i: usart1-handler
                 %10000000 USART1_ISR bit@ !txb-empty? and if
                   txb tx-tail rbuf-ptr@ USART1_TDR !
@@ -99,13 +118,46 @@ i: usart1-handler
                 then
                 ;i
 
+\ ## Serial Output
+\
+\ Outputs a single character to USART1:
+\
+\ - If the TX buffer is not empty, waits until the buffer has space
+\   (using wfi - wait for interrupt - for power efficiency)
+\ - Stores the character in the TX buffer at the current head position
+\ - Increments the TX head pointer
+\ - Enables the transmit buffer empty interrupt to trigger transmission
+\
+\ This function implements the standard Forth EMIT word for character output.
+
 : emit          !txb-empty? if begin wfi !txb-empty? not until then
                 txb tx-head rbuf-ptr!
                 tx-head rbuf-ptr++
                 %10000000 USART1_CR1 bis!
                 ;
 
+\ ## Check Input Available
+\
+\ Checks if there are unread characters in the receive buffer.
+\
+\ Returns true (-1) if there are characters available to read,
+\ or false (0) if the receive buffer is empty.
+\
+\ This function implements the standard Forth KEY? word.
+
 : key?          !rxb-empty? ;
+
+\ ## Wait for and Read Input Character
+\
+\ Reads a single character from USART1:
+\
+\ - If the RX buffer is empty, waits until data is received
+\   (using wfi - wait for interrupt - for power efficiency)
+\ - Retrieves the character from the RX buffer at the current tail position
+\ - Increments the RX tail pointer
+\
+\ This function implements the standard Forth KEY word for character input.
+
 : key           !rxb-empty? not if begin wfi !rxb-empty? until then
                 rxb rx-tail rbuf-ptr@
                 rx-tail rbuf-ptr++ ;
@@ -136,6 +188,17 @@ $CC constant init-vp
 ::itc::         $4668 th, $3880 th, $0006 th, $4f02 th, $cf20 th, $682c th, $46a7 th,
 ::itc::         $ffff th, $03c0 th, $0000 th,
 
+\ ## SPI Data Transfer
+\
+\ Performs a full-duplex SPI data transfer:
+\
+\ - First waits until the transmit buffer is empty (TXE flag set)
+\ - Writes a byte to the SPI data register
+\ - Then waits until receive buffer is not empty (RXNE flag set)
+\ - Reads and returns the received byte from the data register
+\
+\ This implements the core SPI transaction primitive used by higher-level functions.
+
 : >spi>         begin %10 SPI1_SR bit@ until
                 SPI1_DR c!
                 begin %1 SPI1_SR bit@ until
@@ -155,11 +218,41 @@ include ../../drivers/nrf24.ft
                   r> 1- dup $10 mod 0= over and if cr over hex. space then >r
                 repeat rdrop drop ;
 
+\ ## Clock Configuration
+\
+\ Configures the system clock to run at 48MHz:
+\
+\ - Enables Flash prefetch buffer for better performance at high clock speeds
+\ - Sets PLL multiplication factor to generate 48MHz from the internal oscillator
+\ - Enables the PLL (Phase Locked Loop)
+\ - Switches the system clock to use the PLL as clock source
+\
+\ This provides the maximum performance available on STM32F030 devices.
+
 : 48mhz         %1 FLASH_ACR bis!
                 %1010000000000000000000 RCC_CFGR bis!
                 %1000000000000000000000000 RCC_CR bis!
                 %10 RCC_CFGR bis!
                 ;
+
+\ ## UART1 Configuration
+\
+\ Initializes USART1 for serial communication:
+\
+\ - Sets alternative function mapping for USART1 in RCC_CFGR3
+\ - Enables USART1 clock in the APB2 peripheral clock register
+\ - Resets all circular buffer pointers to zero
+\ - Configures GPIOA pins for USART1 alternate function mode:
+\   - PA9 (TX) and PA10 (RX) set to alternate function mode (0x2)
+\   - Alternate function 1 selected for these pins (USART1)
+\ - Sets baud rate to 115200 (69 clock divider at 48MHz)
+\ - Enables transmitter, receiver, and receive interrupt with these flags:
+\   - Bit 0: USART Enable
+\   - Bit 2: Receiver Enable
+\   - Bit 3: Transmitter Enable
+\   - Bit 5: RXNE interrupt enable
+\   - Bit 7: Transmit complete interrupt enable
+\ - Enables USART1 interrupt (position 27) in the NVIC
 
 : setup-uart1   %11 RCC_CFGR3 bis!
                 %100000000000000 RCC_APB2ENR bis!
@@ -170,6 +263,28 @@ include ../../drivers/nrf24.ft
                 %10101101 USART1_CR1 bis!
                 1 #27 lshift NVIC_SETENA_BASE bis! ;
                 ;
+
+\ ## SPI1 Configuration
+\
+\ Initializes SPI1 for communication with external devices (e.g., nRF24L01+):
+\
+\ - Enables SPI1 clock in the APB2 peripheral clock register
+\ - Configures SPI1_CR2 for:
+\   - 8-bit data size (DS bits 11:8 = 0111)
+\   - FIFO reception threshold (FRXTH = 1)
+\   - SS output enable (SSOE = 0)
+\ - Reads and discards any pending data in the status register
+\ - Configures SPI1_CR1 for:
+\   - Master mode (MSTR = 1)
+\   - Clock divider (BR bits = 010, divides by 8)
+\   - Software slave management (SSM = 1, SSI = 1)
+\   - MSB transmitted first (default)
+\   - Clock polarity and phase set to mode 0
+\ - Configures GPIOA pins for SPI1:
+\   - PA4 (NSS) as output mode (0x1)
+\   - PA5 (SCK), PA6 (MISO), PA7 (MOSI) as alternate function mode (0x2)
+\   - Alternate function 0 selected for these pins (SPI1)
+\ - Enables SPI1 peripheral (SPE bit in CR1)
 
 : setup-spi1    %1000000000000 RCC_APB2ENR bis!
                 %0001011100000000 SPI1_CR2 !
@@ -193,7 +308,9 @@ include ../../drivers/nrf24.ft
 ::untethered::  begin wfi again
                 ;
 
-\ -- Host ---------------------------------------------------------------------
+\ # Host
+\
+\ Finalize binary image and save it
 
 ::host::
 
