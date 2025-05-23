@@ -105,7 +105,13 @@ include ../janus/init.ft
                SPI1_DR c@
                ;
 : >spi         >spi> drop ;
-: spi>         $ff >spi ; 
+: spi>         $ff >spi> ; 
+
+\ NRF24 CE pin
+
+: rf-ce-init   GPIOC_MODER dup @ $03FFFFFF and $10000000 or swap ! ;
+: -rf-ce       $8000 GPIOC_BRR ! ;
+: +rf-ce       $8000 GPIOC_BSRR ! ;
 
 : hw-init      %00000000000000000111 RCC_IOPENR bis!
                16mhz
@@ -114,6 +120,10 @@ include ../janus/init.ft
                uart-init
                spi-init
                ;
+
+\ Include any extra files:
+
+include-extras
 
 : cold         s0 sp! r0 rp!
                0 (source-id) !
