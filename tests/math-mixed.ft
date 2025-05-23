@@ -1,4 +1,3 @@
-\ ------------------------------------------------------------------------
 TESTING MULTIPLY: S>D * M* UM*
 
 T{ 0 S>D -> 0 0 }T
@@ -41,7 +40,6 @@ T{ MID-UINT+1 4 UM* -> 0 2 }T
 T{ 1S 2 UM* -> 1S 1 LSHIFT 1 }T
 T{ MAX-UINT MAX-UINT UM* -> 1 1 INVERT }T
 
-\ ------------------------------------------------------------------------
 TESTING DIVIDE: FM/MOD SM/REM UM/MOD */ */MOD / /MOD MOD
 
 T{ 0 S>D 1 FM/MOD -> 0 0 }T

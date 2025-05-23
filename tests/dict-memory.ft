@@ -1,4 +1,3 @@
-\ ------------------------------------------------------------------------
 TESTING HERE , @ ! CELL+ CELLS C, C@ C! CHARS 2@ 2! ALIGN ALIGNED +! ALLOT
 
 HERE 1 ALLOT

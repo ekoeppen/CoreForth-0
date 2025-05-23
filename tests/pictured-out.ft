@@ -1,4 +1,3 @@
-\ ------------------------------------------------------------------------
 TESTING <# # #S #> HOLD SIGN BASE >NUMBER HEX DECIMAL
 
 : S=  \ ( ADDR1 C1 ADDR2 C2 -- T/F ) COMPARE TWO STRINGS.

@@ -1,4 +1,3 @@
-\ ------------------------------------------------------------------------
 TESTING DEFINING WORDS: : ; CONSTANT VARIABLE CREATE DOES> >BODY
 
 T{ 123 CONSTANT X123 -> }T
@@ -34,7 +33,6 @@ T{ ' W1 >BODY -> HERE }T
 T{ W1 -> HERE 1 + }T
 T{ W1 -> HERE 2 + }T
 
-\ ------------------------------------------------------------------------
 TESTING EVALUATE
 
 : GE1 S" 123" ; IMMEDIATE
@@ -52,7 +50,6 @@ T{ GE6 -> 123 }T
 T{ : GE7 GE2 GE5 ; -> }T
 T{ GE7 -> 124 }T
 
-\ ------------------------------------------------------------------------
 TESTING SOURCE >IN WORD
 
 : GS1 S" SOURCE" 2DUP EVALUATE

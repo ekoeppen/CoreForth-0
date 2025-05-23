@@ -1,7 +1,6 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab
 
-\ -----------------------------------------------------------------------------
-\ -- Dictionary
+\ ## Dictionary
 
 variable latest
 
@@ -39,8 +38,7 @@ variable latest
                   dup link>name count $3F and type space
                 repeat ;
 
-\ -----------------------------------------------------------------------------
-\ -- Compiler
+\ ## Compiler
 
 variable state
 

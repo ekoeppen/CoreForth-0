@@ -1,7 +1,6 @@
 \ vim:ft=forth:ts=2:sw=2:expandtab:foldmethod=marker:foldmarker=\\\ --\ ,\\\ ---:
 
-\ -----------------------------------------------------------------------------
-\ -- Machine interface
+\ ## Machine interface
 
 code halt       $3fff $4530 end-code
 code bye        $3fff end-code
@@ -31,8 +30,7 @@ code ?branch    $5307 $4437 $2402 $5325 $4530 $4525 $4530 end-code
 code exit       $4135 $4530 end-code
 code execute    $4706 $4437 $4600 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Stack operations
+\ ## Stack operations
 
 code dup        $8324 $4784 $0000 $4530 end-code
 code drop       $4437 $4530 end-code
@@ -52,16 +50,14 @@ code rp@        $8324 $4784 $0000 $4107 $4530 end-code
 code sp!        $4704 $4437 $4530 end-code
 code rp!        $4701 $4437 $4530 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Memory operations
+\ ## Memory operations
 
 code c@         $4767 $4530 end-code
 code c!         $4436 $46c7 $0000 $4437 $4530 end-code
 code @          $4727 $4530 end-code
 code !          $44b7 $0000 $4437 $4530 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Logical operators
+\ ## Logical operators
 
 code and        $f437 $4530 end-code
 code or         $d437 $4530 end-code
@@ -77,8 +73,7 @@ code bis        $443a $da07 $4530 end-code
 code bic        $443a $ca07 $4530 end-code
 code bit@       $b4b7 $0000 $2c02 $4307 $4530 $4337 $4530 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Arithmetic
+\ ## Arithmetic
 
 code +          $5437 $4530 end-code
 code -          $4436 $8706 $4607 $4530 end-code

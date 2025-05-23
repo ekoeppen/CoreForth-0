@@ -1,5 +1,4 @@
-\ -----------------------------------------------------------------------------
-\ -- Machine interface
+\ ## Machine interface
 
 code halt       $E7FE end-code
 code bye        $2118 $B402 $BEAB end-code
@@ -9,8 +8,7 @@ code sev        $BF40 end-code
 code eint       $B662 end-code
 code dint       $B672 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Stack operations
+\ ## Stack operations
 
 code dup        $3E04 $6030 end-code
 code drop       $6830 $3604 end-code
@@ -33,8 +31,7 @@ code rp@        $4669 $3E04 $6030 $0008 end-code
 code sp!        $4606 $4631 $3904 $6808 end-code
 code rp!        $0001 $6830 $3604 $468D end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Memory operations
+\ ## Memory operations
 
 code c@         $7800 end-code
 code c!         $6831 $7001 $6870 $3608 end-code
@@ -43,8 +40,7 @@ code h!         $6831 $8001 $6870 $3608 end-code
 code @          $6800 end-code
 code !          $6831 $6001 $6870 $3608 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Logical operators
+\ ## Logical operators
 
 code and        $6831 $3604 $4008 end-code
 code or         $6831 $3604 $4308 end-code
@@ -60,8 +56,7 @@ code bis        $6831 $3604 $4308 end-code
 code bic        $6831 $4381 $4608 $3604 end-code
 code bit@       $6831 $3604 $6802 $2000 $4011 $D000 $43C0 end-code
 
-\ -----------------------------------------------------------------------------
-\ -- Arithmetic
+\ ## Arithmetic
 
 code +          $6831 $3604 $1840 end-code
 code -          $6831 $3604 $1A08 end-code
