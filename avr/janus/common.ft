@@ -2,18 +2,6 @@
 
 ::host::
 
-\ Load extra files passed on the command line when compiling,
-\ using the `-s` flag followed by the file name. The location for
-\ each file is resolved based on the location of this file.
-
-: include-extras
-               0 begin dup argc @ < while
-                  dup arg s" -s" str= if
-                     1+ dup arg included
-                  then
-                  1+
-                repeat drop ;
-
 \ Install an IRQ handler at the given vector number:
 
 : irq-handler! ( num handler -- )
