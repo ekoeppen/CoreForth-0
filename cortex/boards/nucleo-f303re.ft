@@ -58,6 +58,7 @@ include ../cpus/stm32f303x/dma.ft
 include ../cpus/stm32f303x/flash.ft
 include ../cpus/stm32f303x/gpio.ft
 include ../cpus/stm32f303x/usart.ft
+include ../cpus/stm32f303x/spi.ft
 
 : +led          %100000 GPIOA_BSRR ! ;
 : -led          %100000 GPIOA_BRR ! ;
@@ -137,6 +138,30 @@ include ../../common/utils.ft
                 +pll
                 2 sysclk-src! ;
 
+\ SPI initialization for Arduino headers (SPI1)
+\ PA5 - SCK  (AF5)
+\ PA6 - MISO (AF5) 
+\ PA7 - MOSI (AF5)
+\ Configure in master mode, MSB first, CPOL=0, CPHA=0, 8-bit
+
+: spi-init     %100000000000 RCC_APB2ENR bis!
+               GPIOA_MODER dup @ $FFC0FFFF and $A80000 or swap !    \ Set pins to alternate function
+               GPIOA_AFRL dup @ $FFF000FF and $00555000 or swap !   \ Set to AF5
+               GPIOB_MODER dup @ $FFFF0FFF and $1000 or swap !      \ Set PB6 as output
+               0 SPI1_CR1 !                                         \ Reset SPI1 configuration
+               %1100000100 SPI1_CR1 !                               \ Set SSM, SSI, SPE, Master mode
+               %1000 SPI1_CR2 !                                     \ RXNE IE = 1 (8-bit)
+               ;
+
+\ Set SPI clock divider
+\ 0: fPCLK/2, 1: fPCLK/4, 2: fPCLK/8, 3: fPCLK/16,
+\ 4: fPCLK/32, 5: fPCLK/64, 6: fPCLK/128, 7: fPCLK/256
+
+: spi-clk!     ( divider -- )
+               %111 and 3 lshift
+               SPI1_CR1 dup @ $FFFFFFC7 and rot or swap !
+               ;
+
 : setup-dma     %1 RCC_AHBENR bis!
                 %10100010 DMA1_CCR6 !
                 USART2_RDR DMA1_CPAR6 !
@@ -156,11 +181,30 @@ include ../../common/utils.ft
                 %1000000 NVIC_SETENA_BASE cell+ bis!
                 ;
 
-: setup-hw      %00100000000000000000 RCC_AHBENR !
+: setup-hw      %00100000000000000000 RCC_AHBENR bis!
+                %00000000000000001000000000 RCC_AHBENR bis! \ Enable GPIOB clock
                 GPIOA_MODER dup @ $FFFFF3FF and $400 or swap !
                 setup-uart2
+                spi-init
                 ;
 
+\ SPI interface functions
+
+: spi-tx-ready? %10 SPI1_SR bit@ ;
+: spi-rx-ready? %1 SPI1_SR bit@ ;
+
+: >spi>        begin spi-tx-ready? until
+               SPI1_DR c!
+               begin spi-rx-ready? until
+               SPI1_DR c@ ;
+
+: >spi         >spi> drop ;
+: spi>         $FF >spi> ;
+
+\ SPI Chip Select functions (using PB6 as default CS)
+
+: -spi         %1000000 GPIOB_BSRR ! ; \ CS pin high (inactive)
+: +spi         %1000000 GPIOB_BRR ! ;  \ CS pin low (active)
 
 : flash-busy?   1 FLASH_SR bit@ ;
 : await-flash-idle
