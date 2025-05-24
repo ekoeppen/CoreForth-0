@@ -1,0 +1,28 @@
+\ ## Words for conditional interpretation and compilation
+\
+\ These words do not allow nesting, in a deviation from Forth 2012.
+\ 
+\ Skip until else or end are seen in the input stream
+
+: [else]       begin
+                  begin
+                     bl word count dup while
+                     2dup s" [then]" stri= if 2drop exit then
+                     s" [else]" stri= if exit then
+                  repeat 2drop
+               refill 0= until
+               ; immediate
+
+\ If the top of the stack is false, skip processing input data
+\ until else or then are seen
+
+: [if]         0= if postpone [else] then ; immediate
+
+\ No-operation, at the end of an if/else block.
+
+: [then]       ; immediate
+
+\ If the word following undefined is not found, leave false on
+\ the stack.
+
+: [undefined]  bl word find nip 0= ; immediate

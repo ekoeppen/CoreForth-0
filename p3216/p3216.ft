@@ -56,6 +56,7 @@ include compiler.ft
 include ../common/control-flow.ft
 include ../common/interpret.ft
 include ../common/utils.ft
+include ../common/tools.ft
 include pty.ft
 include tether.ft
 include files.ft

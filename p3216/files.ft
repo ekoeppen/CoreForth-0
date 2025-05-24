@@ -46,9 +46,6 @@ $400 buffer: tmp-path
 : get-dir       ( -- #dir dir# )
                 over swap pwd ;
 
-\ Copy the absolute path for a given absolute or relative path to
-\ a string:
-
 : read-line     swap dup >r 0 do
                   dup getc dup 0< if drop 2drop i false 0 unloop rdrop exit then
                            dup #10 = if drop 2drop i true 0 unloop rdrop exit then
